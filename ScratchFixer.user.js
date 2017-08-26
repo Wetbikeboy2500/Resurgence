@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      1.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
