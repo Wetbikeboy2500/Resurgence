@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -85,5 +85,64 @@
         happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
         html.getElementsByClassName("social-notification-list")[0].setAttribute("id", "messages");
         happening.childNodes[1].appendChild(html.getElementsByClassName("social-notification-list")[0]);
+    }
+    
+    let users = [], userinfo = {};
+
+    //first compile names of all the users
+    if (document.getElementsByTagName("a") != null) {
+        let links = document.getElementsByTagName("a");
+        //compile a list of the urls
+        for (let a of links) {
+            if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
+                if (!users.includes(a.getAttribute("href"))) {
+                    users.push(a.getAttribute("href"));
+                    console.log(users.length);
+                }
+            }
+        }
+        //load info for each user
+        userinfo.fulllength = users.length;
+        userinfo.length = 0;
+        for (let i = 0; i < users.length; i++) {
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = () => {
+                if (xhttp.status == 200 && xhttp.readyState == 4) {
+                    userinfo.length += 1;
+                    console.log(users[i]);
+                    userinfo[String(users[i])] = xhttp.responseXML.getElementsByClassName("profile-details")[0];
+                    if (userinfo.fulllength === userinfo.length) {
+                        add_profile_info();
+                    }
+                }
+            };
+            xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
+            xhttp.responseType = "document";
+            xhttp.send(null);
+        }
+    }
+    //once all info is loaded make it display over a element when hovered over
+    function add_profile_info () {
+        console.log(userinfo);
+        let links = document.getElementsByTagName("a");
+
+        for (let i = 0; i < links.length; i++) {
+            let a = links.item(i);
+            if (users.includes(a.getAttribute("href"))) {
+                a.addEventListener("mouseenter", (event) => {
+                    let div = document.createElement("div");
+                    div.setAttribute("class", "userwindow");
+                    div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    userinfo[a.getAttribute("href")].setAttribute("style", "margin: 0px;");
+                    div.appendChild(userinfo[a.getAttribute("href")]);
+                    document.body.appendChild(div);
+                }, false);
+                a.addEventListener("mouseleave", (event) => {
+                    if (document.body.getElementsByClassName("userwindow")[0] !== null) {
+                        document.body.removeChild(document.body.getElementsByClassName("userwindow")[0]);
+                    }
+                }, false);
+            }
+        }
     }
 })();
