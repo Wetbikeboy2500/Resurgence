@@ -6,6 +6,7 @@
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
 // @grant        none
+// @updateURL    https://github.com/Wetbikeboy2500/ScratchFixer/blob/master/ScratchFixer.user.js
 // ==/UserScript==
 
 (function() {
