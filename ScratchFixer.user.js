@@ -6,13 +6,13 @@
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
 // @grant        none
-// @updateURL    https://github.com/Wetbikeboy2500/ScratchFixer/blob/master/ScratchFixer.user.js
+// @updateURL    https://github.com/Wetbikeboy2500/ScratchFixer/raw/master/ScratchFixer.user.js
 // ==/UserScript==
 
 (function() {
     'use strict';
     window.addEventListener("load", load_messages, false);
-    //test
+    
     let style = document.createElement("style");
     style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; }';
     document.head.appendChild(style);
