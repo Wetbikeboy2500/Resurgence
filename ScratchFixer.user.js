@@ -25,9 +25,9 @@
         tips.innerHTML = "Forums";
         console.log("Old Theme");
     }
-    //adds phosphouors player but should also add the other one
+    //adds phosphouors player but I plan to add the new player
     let url = window.location.href;
-    let editor = 0;//0 is default 1 is phosperous and 2 is scratch player
+    let editor = 0;//0 is phosperous and 2 is scratch player
     if (url.includes("projects") && !url.includes("all")) {
         console.log("Project page");
         let buttons = document.getElementsByClassName("buttons")[0];
