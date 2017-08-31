@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -12,9 +12,9 @@
 (function() {
     'use strict';
     window.addEventListener("load", load_messages, false);
-    
+    //adds my css to edit custom elements
     let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; }';
+    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 32px; line-height: 32px; margin: 3px 0px 3px 0px; width: 110px;}';
     document.head.appendChild(style);
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
@@ -26,39 +26,67 @@
         tips.innerHTML = "Forums";
         console.log("Old Theme");
     }
-    //adds phosphouors player but I plan to add the new player
+    //adds the different players using a dropdown menu
     let url = window.location.href;
-    let editor = 0;//0 is phosperous and 2 is scratch player
     if (url.includes("projects") && !url.includes("all")) {
+        let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
         console.log("Project page");
-        let buttons = document.getElementsByClassName("buttons")[0];
-        let button = document.createElement("div");
-        button.setAttribute("class", "button");
-
-        button.addEventListener("click", () => {
-            if (editor === 0) {
-                editor = -1;//if spammed can't activate twice
-                document.getElementById("player").style = "display: none;";
-                let project = document.getElementById("project");
-                let number = project.getAttribute("data-project-id");
-                let script = document.createElement("script");
-                script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
-                document.getElementsByClassName("stage")[0].appendChild(script);
-                editor = 1;
-            } else if (editor == 1) {
-                editor = -1;
+        if (document.getElementById("share-bar") === null) {
+            menu = document.getElementsByClassName("buttons")[0];
+        } else {
+            menu = document.getElementsByClassName("buttons")[1];
+        }
+        let select = document.createElement("select");
+        select.setAttribute("class", "my_select");
+        select.addEventListener("change", (event) => {
+            if (player === 1 || player === 2) {
                 document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
-                document.getElementById("player").style = "display: block;";
-                editor = 0;
+            } else if (player === 0) {
+                document.getElementById("player").style = "display: none;";
             }
+            switch (document.getElementsByClassName("my_select")[0].value) {
+                case "D":
+                    document.getElementById("player").style = "display: block;";
+                    player = 0;
+                    break;
+                case "P":
+                    project = document.getElementById("project");
+                    number = project.getAttribute("data-project-id");
+                    script = document.createElement("script");
+                    script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
+                    document.getElementsByClassName("stage")[0].appendChild(script);
+                    player = 1;
+                    break;
+                case "S":
+                    project = document.getElementById("project");
+                    number = project.getAttribute("data-project-id");
+                    script = document.createElement("script");
+                    script.src = "https://sulfurous.aau.at/js/embed.js?id="+number+"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false";
+                    document.getElementsByClassName("stage")[0].appendChild(script);
+                    player = 2;
+                    break;
+                default:
+                    document.getElementById("player").style = "display: block;";
+                    player = 0
+                    break;
+                                                                         }
         }, false);
+        let option = document.createElement("option");
+        option.appendChild(document.createTextNode("Default"))
+        option.setAttribute("value", "D");
+        select.appendChild(option);
 
-        let span = document.createElement("span");
-        span.setAttribute("class", "white");
-        let text = document.createTextNode("Switch Player");
-        span.appendChild(text);
-        button.appendChild(span);
-        buttons.appendChild(button);
+        option = document.createElement("option");
+        option.appendChild(document.createTextNode("Phosperous"))
+        option.setAttribute("value", "P");
+        select.appendChild(option);
+
+        option = document.createElement("option");
+        option.appendChild(document.createTextNode("Sulfurous"))
+        option.setAttribute("value", "S");
+        select.appendChild(option);
+
+        menu.appendChild(select);
     }
     //add messages to main page
     function load_messages () {
@@ -86,7 +114,7 @@
         html.getElementsByClassName("social-notification-list")[0].setAttribute("id", "messages");
         happening.childNodes[1].appendChild(html.getElementsByClassName("social-notification-list")[0]);
     }
-    
+
     let users = [], userinfo = {};
 
     //first compile names of all the users
