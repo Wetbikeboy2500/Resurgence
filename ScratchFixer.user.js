@@ -14,7 +14,7 @@
     window.addEventListener("load", () => {
         console.log("window loaded");
         load_messages();
-        load_bbcode();
+        load_scratchblockcode();
         load_userinfo();
     }, false);
     //adds my css to edit custom elements
@@ -219,9 +219,9 @@
             }
         }
     }
-    //adds bbcode load support
+    //adds scratchblockcode load support
     let blocks = [], blocks1 = [];
-    function load_bbcode () {
+    function load_scratchblockcode () {
         if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
             console.log("contains scratch blocks");
             let xhttp = new XMLHttpRequest();
