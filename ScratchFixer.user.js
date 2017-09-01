@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -14,7 +14,7 @@
     window.addEventListener("load", load_messages, false);
     //adds my css to edit custom elements
     let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 32px; line-height: 32px; margin: 3px 0px 3px 0px; width: 110px;}';
+    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 32px; line-height: 32px; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
     document.head.appendChild(style);
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
@@ -28,7 +28,7 @@
     }
     //adds the different players using a dropdown menu
     let url = window.location.href;
-    if (url.includes("projects") && !url.includes("all")) {
+    if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
         let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
         console.log("Project page");
         if (document.getElementById("share-bar") === null) {
@@ -87,6 +87,48 @@
         select.appendChild(option);
 
         menu.appendChild(select);
+    }
+    //adds google to the search
+    if (url.includes("/search/")) {
+        console.log("search");
+        //first load new search
+        let search = document.createElement("gcse:searchresults-only");//<gcse:searchresults-only></gcse:searchresults-only>
+        let display = document.getElementById("projectBox");
+        display.appendChild(search);
+
+        var cx = '005257552979626070807:ejqzgnmerl0';
+        var gcse = document.createElement('script');
+        gcse.type = 'text/javascript';
+        gcse.async = true;
+        gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(gcse, s);
+
+        //add the button to switch to it
+        let nav = document.getElementsByClassName("sub-nav tabs")[0];
+        let button = document.createElement("a");
+        let li = document.createElement("li");
+        li.setAttribute("id", "active");
+        let img = document.createElement("img");
+        img.setAttribute("class", "tab-icon");
+        img.setAttribute("style", "height: 24px;");
+        li.appendChild(img);
+        let span = document.createElement("span");
+        span.appendChild(document.createTextNode("Google"));
+        li.appendChild(span);
+        button.appendChild(li);
+        nav.appendChild(button);
+
+        //add function to the button
+        button.addEventListener("click", () => {
+            //make button look selected
+            document.getElementsByClassName("active")[0].removeAttribute("class");
+            document.getElementById("active").setAttribute("class", "active");
+            //need to clear current searches
+            display.childNodes[0].style.display = "none";
+            display.childNodes[1].style.display = "none";
+            document.getElementById("___gcse_0").style.display = "block";
+        }, false);
     }
     //add messages to main page
     function load_messages () {
