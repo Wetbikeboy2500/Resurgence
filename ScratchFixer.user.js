@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -11,7 +11,12 @@
 
 (function() {
     'use strict';
-    window.addEventListener("load", load_messages, false);
+    window.addEventListener("load", () => {
+        console.log("window loaded");
+        load_messages();
+        load_bbcode();
+        load_userinfo();
+    }, false);
     //adds my css to edit custom elements
     let style = document.createElement("style");
     style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
@@ -140,7 +145,12 @@
             let xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = () => {
                 if (xhttp.status == 200 && xhttp.readyState == 4) {
-                    set_message(xhttp.responseXML);
+                    let html  = xhttp.responseXML;
+                    let happening = document.getElementsByClassName("box activity")[0];
+                    happening.childNodes[0].childNodes[0].innerHTML = "Messages";
+                    happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
+                    html.getElementsByClassName("social-notification-list")[0].setAttribute("id", "messages");
+                    happening.childNodes[1].appendChild(html.getElementsByClassName("social-notification-list")[0]);
                 }
             };
             xhttp.open("GET", "https://scratch.mit.edu/messages/", true);
@@ -149,46 +159,40 @@
         }
     }
 
-    function set_message (html) {
-        let happening = document.getElementsByClassName("box activity")[0];
-        happening.childNodes[0].childNodes[0].innerHTML = "Messages";
-        happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
-        html.getElementsByClassName("social-notification-list")[0].setAttribute("id", "messages");
-        happening.childNodes[1].appendChild(html.getElementsByClassName("social-notification-list")[0]);
-    }
-
     let users = [], userinfo = {};
 
-    //first compile names of all the users
-    if (document.getElementsByTagName("a") !== null) {
-        let links = document.getElementsByTagName("a");
-        //compile a list of the urls
-        for (let a of links) {
-            if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
-                if (!users.includes(a.getAttribute("href"))) {
-                    users.push(a.getAttribute("href"));
-                    console.log(users.length);
-                }
-            }
-        }
-        //load info for each user
-        userinfo.fulllength = users.length;
-        userinfo.length = 0;
-        for (let i = 0; i < users.length; i++) {
-            let xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = () => {
-                if (xhttp.status == 200 && xhttp.readyState == 4) {
-                    userinfo.length += 1;
-                    console.log(users[i]);
-                    userinfo[String(users[i])] = xhttp.responseXML.getElementsByClassName("profile-details")[0];
-                    if (userinfo.fulllength === userinfo.length) {
-                        add_profile_info();
+    function load_userinfo () {
+        //first compile names of all the users
+        if (document.getElementsByTagName("a") !== null) {
+            let links = document.getElementsByTagName("a");
+            //compile a list of the urls
+            for (let a of links) {
+                if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
+                    if (!users.includes(a.getAttribute("href"))) {
+                        users.push(a.getAttribute("href"));
+                        console.log(users.length);
                     }
                 }
-            };
-            xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
-            xhttp.responseType = "document";
-            xhttp.send(null);
+            }
+            //load info for each user
+            userinfo.fulllength = users.length;
+            userinfo.length = 0;
+            for (let i = 0; i < users.length; i++) {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        userinfo.length += 1;
+                        console.log(users[i]);
+                        userinfo[String(users[i])] = xhttp.responseXML.getElementsByClassName("profile-details")[0];
+                        if (userinfo.fulllength === userinfo.length) {
+                            add_profile_info();
+                        }
+                    }
+                };
+                xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
+                xhttp.responseType = "document";
+                xhttp.send(null);
+            }
         }
     }
     //once all info is loaded make it display over a element when hovered over
@@ -213,6 +217,48 @@
                     }
                 }, false);
             }
+        }
+    }
+    //adds bbcode load support
+    let blocks = [], blocks1 = [];
+    function load_bbcode () {
+        if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
+            console.log("contains scratch blocks");
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = () => {
+                if (xhttp.status == 200 && xhttp.readyState == 4) {
+                    let doc = xhttp.responseXML;
+                    //only do the elements in post body html
+                    let posts = document.getElementsByClassName("post_body_html");
+                    let posts1 = doc.getElementsByClassName("post_body_html");
+                    for (let a of posts) {
+                        if (a.getElementsByClassName("blocks") !== null) {
+                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                blocks.push(a.getElementsByClassName("blocks")[l]);
+                            }
+                        }
+                    }
+                    for (let a of posts1) {
+                        if (a.getElementsByClassName("blocks") !== null) {
+                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                blocks1.push(a.getElementsByClassName("blocks")[l]);
+                            }
+                        }
+                    }
+                    let i;
+                    for (i = 0; i < blocks1.length; i++) {
+                        blocks[i].setAttribute("id", i);
+                        blocks[i].addEventListener("click", (event) => {
+                            let target = event.currentTarget;
+                            target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
+                        }, false);
+                    }
+                    console.log("Finished BBCode");
+                }
+            };
+            xhttp.open("GET", url, true);
+            xhttp.responseType = "document";
+            xhttp.send(null);
         }
     }
 })();
