@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -14,7 +14,7 @@
     window.addEventListener("load", load_messages, false);
     //adds my css to edit custom elements
     let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 32px; line-height: 32px; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
+    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
     document.head.appendChild(style);
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
@@ -67,22 +67,22 @@
                     break;
                 default:
                     document.getElementById("player").style = "display: block;";
-                    player = 0
+                    player = 0;
                     break;
                                                                          }
         }, false);
         let option = document.createElement("option");
-        option.appendChild(document.createTextNode("Default"))
+        option.appendChild(document.createTextNode("Default"));
         option.setAttribute("value", "D");
         select.appendChild(option);
 
         option = document.createElement("option");
-        option.appendChild(document.createTextNode("Phosperous"))
+        option.appendChild(document.createTextNode("Phosphorus"));
         option.setAttribute("value", "P");
         select.appendChild(option);
 
         option = document.createElement("option");
-        option.appendChild(document.createTextNode("Sulfurous"))
+        option.appendChild(document.createTextNode("Sulfurous"));
         option.setAttribute("value", "S");
         select.appendChild(option);
 
@@ -160,7 +160,7 @@
     let users = [], userinfo = {};
 
     //first compile names of all the users
-    if (document.getElementsByTagName("a") != null) {
+    if (document.getElementsByTagName("a") !== null) {
         let links = document.getElementsByTagName("a");
         //compile a list of the urls
         for (let a of links) {
