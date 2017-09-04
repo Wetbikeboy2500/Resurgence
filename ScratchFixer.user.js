@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -44,7 +44,7 @@
         let select = document.createElement("select");
         select.setAttribute("class", "my_select");
         select.addEventListener("change", (event) => {
-            if (player === 1 || player === 2) {
+            if (player === 1 || player === 2 || player === 3) {
                 document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
             } else if (player === 0) {
                 document.getElementById("player").style = "display: none;";
@@ -70,6 +70,24 @@
                     document.getElementsByClassName("stage")[0].appendChild(script);
                     player = 2;
                     break;
+                case "5":
+                    project = document.getElementById("project");
+                    number = project.getAttribute("data-project-id");
+                    let div = document.createElement("div");
+                    div.setAttribute("id", "player");
+                    div.setAttribute("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;");
+                    div.setAttribute("class", "phosphorus");
+                    let obj = document.createElement("object");
+                    obj.setAttribute("style", "position:absolute;top:-51px;left:-2065px");
+                    obj.setAttribute("class", "int-player");
+                    obj.setAttribute("width", "2560");
+                    obj.setAttribute("height", "1440");
+                    obj.setAttribute("data", "https://llk.github.io/scratch-gui/#" + number);
+                    obj.setAttribute("scrolling", "no");
+                    div.appendChild(obj);
+                    document.getElementsByClassName("stage")[0].appendChild(div);
+                    player = 3;
+                    break;
                 default:
                     document.getElementById("player").style = "display: block;";
                     player = 0;
@@ -89,6 +107,11 @@
         option = document.createElement("option");
         option.appendChild(document.createTextNode("Sulfurous"));
         option.setAttribute("value", "S");
+        select.appendChild(option);
+        
+        option = document.createElement("option");
+        option.appendChild(document.createTextNode("Scratch 3"));
+        option.setAttribute("value", "5");
         select.appendChild(option);
 
         menu.appendChild(select);
