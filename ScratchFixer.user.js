@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.81
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -275,9 +275,8 @@
                             }
                         }
                     }
-                    let i;
                     if (blocks.length > 0) {
-                        for (i = 0; i < blocks1.length; i++) {
+                        for (let i = 0; i < blocks1.length; i++) {
                             blocks[i].setAttribute("id", i);
                             blocks[i].addEventListener("click", (event) => {
                                 let target = event.currentTarget;
@@ -302,8 +301,8 @@
                             }
                         }
                     }
-                    if (blocks.length > 0) {
-                        for (i = 0; i < blocks3.length; i++) {
+                    if (blocks2.length > 0) {
+                        for (let i = 0; i < blocks3.length; i++) {
                             blocks2[i].setAttribute("id", i);
                             blocks2[i].addEventListener("click", (event) => {
                                 let target = event.currentTarget;
