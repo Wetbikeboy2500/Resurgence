@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -16,6 +16,7 @@
         load_messages();
         load_scratchblockcode();
         load_userinfo();
+        load_bbcode();
     }, false);
     //adds my css to edit custom elements
     let style = document.createElement("style");
@@ -108,7 +109,7 @@
         option.appendChild(document.createTextNode("Sulfurous"));
         option.setAttribute("value", "S");
         select.appendChild(option);
-        
+
         option = document.createElement("option");
         option.appendChild(document.createTextNode("Scratch 3"));
         option.setAttribute("value", "5");
@@ -193,7 +194,7 @@
                 if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
                     if (!users.includes(a.getAttribute("href"))) {
                         users.push(a.getAttribute("href"));
-                        console.log(users.length);
+                        console.log(users.length, a.getAttribute("href"));
                     }
                 }
             }
@@ -205,14 +206,19 @@
                 xhttp.onreadystatechange = () => {
                     if (xhttp.status == 200 && xhttp.readyState == 4) {
                         userinfo.length += 1;
-                        console.log(users[i]);
                         userinfo[String(users[i])] = xhttp.responseXML.getElementsByClassName("profile-details")[0];
                         if (userinfo.fulllength === userinfo.length) {
                             add_profile_info();
                         }
                     }
                 };
-                xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
+                if (users[i].includes("https://scratch.mit.edu/users/")) {
+                    xhttp.open("GET", users[i], true);
+                } else if (users[i].includes("http://scratch.mit.edu/users/")) {
+                    xhttp.open("GET", "https" + users[i].substring(4), true);
+                } else  {
+                    xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
+                }
                 xhttp.responseType = "document";
                 xhttp.send(null);
             }
@@ -243,9 +249,10 @@
         }
     }
     //adds scratchblockcode load support
-    let blocks = [], blocks1 = [];
+    
     function load_scratchblockcode () {
         if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
+            let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
             console.log("contains scratch blocks");
             let xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = () => {
@@ -269,19 +276,75 @@
                         }
                     }
                     let i;
-                    for (i = 0; i < blocks1.length; i++) {
-                        blocks[i].setAttribute("id", i);
-                        blocks[i].addEventListener("click", (event) => {
-                            let target = event.currentTarget;
-                            target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
-                        }, false);
+                    if (blocks.length > 0) {
+                        for (i = 0; i < blocks1.length; i++) {
+                            blocks[i].setAttribute("id", i);
+                            blocks[i].addEventListener("click", (event) => {
+                                let target = event.currentTarget;
+                                target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
+                            }, false);
+                        }
                     }
-                    console.log("Finished BBCode");
+                    //do elements for signatures
+                    posts = document.getElementsByClassName("postsignature");
+                    posts1 = doc.getElementsByClassName("postsignature");
+                    for (let a of posts) {
+                        if (a.getElementsByClassName("blocks") !== null) {
+                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                blocks2.push(a.getElementsByClassName("blocks")[l]);
+                            }
+                        }
+                    }
+                    for (let a of posts1) {
+                        if (a.getElementsByClassName("blocks") !== null) {
+                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                blocks3.push(a.getElementsByClassName("blocks")[l]);
+                            }
+                        }
+                    }
+                    if (blocks.length > 0) {
+                        for (i = 0; i < blocks3.length; i++) {
+                            blocks2[i].setAttribute("id", i);
+                            blocks2[i].addEventListener("click", (event) => {
+                                let target = event.currentTarget;
+                                target.parentElement.replaceChild(blocks3[target.id], blocks2[target.id]);
+                            }, false);
+                        }
+                    }
+                    console.log("Finished ScratchBlocks");
                 }
             };
             xhttp.open("GET", url, true);
             xhttp.responseType = "document";
             xhttp.send(null);
+        }
+    }
+    
+    function load_bbcode () {
+        if (url.includes("discuss")) {
+            let bbarr = [], bbcode = {};
+            let posts = document.getElementsByClassName("blockpost");
+            for (let a of posts) {
+                bbarr.push(a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"));
+            }
+            bbcode.full_length = bbarr.length;
+            for (let i = 0; i < bbarr.length; i++) {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let button = document.createElement("button");
+                        button.setAttribute("style", "height: 15px; line-height: 14px;");
+                        button.appendChild(document.createTextNode("BBCode"));
+                        button.addEventListener("click", (event) => {
+                            posts.item(i).getElementsByClassName("post_body_html")[0].innerText = xhttp.responseText;
+                        });
+                        posts.item(i).getElementsByClassName("box-head")[0].appendChild(button);
+                        
+                    }
+                };
+                xhttp.open("GET", "https://scratch.mit.edu" + bbarr[i] + "source/", true);
+                xhttp.send(null);
+            }
         }
     }
 })();
