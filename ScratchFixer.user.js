@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.81
+// @version      1.9
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -249,7 +249,7 @@
         }
     }
     //adds scratchblockcode load support
-    
+
     function load_scratchblockcode () {
         if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
             let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
@@ -318,7 +318,7 @@
             xhttp.send(null);
         }
     }
-    
+
     function load_bbcode () {
         if (url.includes("discuss")) {
             let bbarr = [], bbcode = {};
@@ -331,14 +331,20 @@
                 let xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = () => {
                     if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let current = posts.item(i).getElementsByClassName("post_body_html")[0].innerHTML;
                         let button = document.createElement("button");
                         button.setAttribute("style", "height: 15px; line-height: 14px;");
                         button.appendChild(document.createTextNode("BBCode"));
                         button.addEventListener("click", (event) => {
-                            posts.item(i).getElementsByClassName("post_body_html")[0].innerText = xhttp.responseText;
+                            if (event.currentTarget.innerHTML === "BBCode") {
+                                posts.item(i).getElementsByClassName("post_body_html")[0].innerText = xhttp.responseText;
+                                event.currentTarget.innerHTML = "Original";
+                            } else {
+                                posts.item(i).getElementsByClassName("post_body_html")[0].innerHTML = current;
+                                event.currentTarget.innerHTML = "BBCode";
+                            }
                         });
                         posts.item(i).getElementsByClassName("box-head")[0].appendChild(button);
-                        
                     }
                 };
                 xhttp.open("GET", "https://scratch.mit.edu" + bbarr[i] + "source/", true);
