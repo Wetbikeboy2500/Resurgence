@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      1.9
+// @version      2.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -184,12 +184,10 @@
     }
 
     let users = [], userinfo = {};
-    //awesome api https://api.scratch.mit.edu/users/Montoja
     function load_userinfo () {
-        //first compile names of all the users
-        if (document.getElementsByTagName("a") !== null) {
+        if (document.getElementsByTagName("a").length !== 0) {
+            console.log("New profile loader");
             let links = document.getElementsByTagName("a");
-            //compile a list of the urls
             for (let a of links) {
                 if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
                     if (!users.includes(a.getAttribute("href"))) {
@@ -198,7 +196,7 @@
                     }
                 }
             }
-            //load info for each user
+
             userinfo.fulllength = users.length;
             userinfo.length = 0;
             for (let i = 0; i < users.length; i++) {
@@ -206,50 +204,57 @@
                 xhttp.onreadystatechange = () => {
                     if (xhttp.status == 200 && xhttp.readyState == 4) {
                         userinfo.length += 1;
-                        userinfo[String(users[i])] = xhttp.responseXML.getElementsByClassName("profile-details")[0];
+                        userinfo[String(users[i])] = JSON.parse(xhttp.responseText);
                         if (userinfo.fulllength === userinfo.length) {
-                            add_profile_info();
+                            //run final code here
+                            for (let a of links) {
+                                if (users.includes(a.getAttribute("href"))) {
+                                    a.addEventListener("mouseenter", (event) => {
+                                        let div = document.createElement("div");
+                                        div.setAttribute("class", "userwindow");
+                                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                                        let info = userinfo[a.getAttribute("href")];
+                                        let date = new Date(Date.parse(info.history.joined));
+                                        //date = new Date(date);
+                                        let dif = calcDate(new Date(), date);
+                                        div.appendChild(document.createTextNode(info.username + " joined " + dif +" from " + info.profile.country));
+                                        document.body.appendChild(div);
+                                    }, false);
+                                    a.addEventListener("mouseleave", (event) => {
+                                        if (document.body.getElementsByClassName("userwindow")[0] !== null) {
+                                            document.body.removeChild(document.body.getElementsByClassName("userwindow")[0]);
+                                        }
+                                    }, false);
+                                }
+                            }
+                            console.log("Finished user info");
                         }
                     }
                 };
-                if (users[i].includes("https://scratch.mit.edu/users/")) {
-                    xhttp.open("GET", users[i], true);
-                } else if (users[i].includes("http://scratch.mit.edu/users/")) {
-                    xhttp.open("GET", "https" + users[i].substring(4), true);
-                } else  {
-                    xhttp.open("GET", "https://scratch.mit.edu" + users[i], true);
+                let string = users[i];
+                if (users[i].lastIndexOf("/") + 1 === users[i].length) {
+                    string = string.slice(0, -1);
                 }
-                xhttp.responseType = "document";
+                if (users[i].includes("https://scratch.mit.edu/users/") || users[i].includes("http://scratch.mit.edu/users/")) {
+                    xhttp.open("GET", "https://api.scratch.mit.edu/users/" + string.substring(string.indexOf("/users/") + 7), true);
+                } else  {
+                    xhttp.open("GET", "https://api.scratch.mit.edu" + string, true);
+                }
                 xhttp.send(null);
             }
         }
     }
-    //once all info is loaded make it display over a element when hovered over
-    function add_profile_info () {
-        console.log(userinfo);
-        let links = document.getElementsByTagName("a");
 
-        for (let i = 0; i < links.length; i++) {
-            let a = links.item(i);
-            if (users.includes(a.getAttribute("href"))) {
-                a.addEventListener("mouseenter", (event) => {
-                    let div = document.createElement("div");
-                    div.setAttribute("class", "userwindow");
-                    div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
-                    userinfo[a.getAttribute("href")].setAttribute("style", "margin: 0px;");
-                    div.appendChild(userinfo[a.getAttribute("href")]);
-                    document.body.appendChild(div);
-                }, false);
-                a.addEventListener("mouseleave", (event) => {
-                    if (document.body.getElementsByClassName("userwindow")[0] !== null) {
-                        document.body.removeChild(document.body.getElementsByClassName("userwindow")[0]);
-                    }
-                }, false);
-            }
-        }
+    function calcDate(date1,date2) {
+        let diff = Math.floor(date1.getTime() - date2.getTime());
+        let day = 1000 * 60 * 60 * 24;
+        let months = Math.ceil(Math.floor(diff/day)/31);
+        let years = Math.floor(months/12);
+        months -= years * 12;
+        let message = years + " years, " + months + " months ago";
+        return message;
     }
     //adds scratchblockcode load support
-
     function load_scratchblockcode () {
         if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
             let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
