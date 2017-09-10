@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.1
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -18,9 +18,10 @@
         load_userinfo();
         load_bbcode();
     }, false);
+    let url = window.location.href;
     //adds my css to edit custom elements
     let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;} li.unread {background-color: #eed; opacity: 1;}';
+    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
     document.head.appendChild(style);
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
@@ -33,7 +34,7 @@
         console.log("Old Theme");
     }
     //adds the different players using a dropdown menu
-    let url = window.location.href;
+
     if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
         let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
         console.log("Project page");
@@ -161,26 +162,123 @@
     }
     //add messages to main page
     function load_messages () {
+        //https://api.scratch.mit.edu/users/Wetbikeboy2500/messages?limit=40&offset=0
         if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
-            let s = document.createElement("style");
-            s.innerHTML = "#messages { height: 100%; width: 100%; max-height: 245px; overflow-y: scroll; } .box-content { padding: 0px 0px 0px 8px !important; } .read { margin-top: 6px !important; margin-bottom: 6px !important; line-height: 1em;} ul h3 { font-size: 1.1rem !important }";
-            document.head.appendChild(s);
             console.log("loading messages");
+            let token = null;
             let xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = () => {
                 if (xhttp.status == 200 && xhttp.readyState == 4) {
-                    let html  = xhttp.responseXML;
-                    let happening = document.getElementsByClassName("box activity")[0];
-                    happening.childNodes[0].childNodes[0].innerHTML = "Messages";
-                    happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
-                    html.getElementsByClassName("social-notification-list")[0].setAttribute("id", "messages");
-                    happening.childNodes[1].appendChild(html.getElementsByClassName("social-notification-list")[0]);
+                    let html  = xhttp.responseText;
+                    let js = JSON.parse(html);
+                    load_message(js.user.token, js.user.username);
                 }
             };
-            xhttp.open("GET", "https://scratch.mit.edu/messages/", true);
-            xhttp.responseType = "document";
+            xhttp.open("GET", "https://scratch.mit.edu/session/", true);
             xhttp.send(null);
+
         }
+    }
+
+    function load_message (token, username) {
+        let s = document.createElement("style");
+        s.innerHTML = ".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}";
+        document.head.appendChild(s);
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.status == 200 && xhttp.readyState == 4) {
+                let html = JSON.parse(xhttp.responseText);
+                let ul = document.createElement("ul");
+                for (let a of html) {
+                    let li = document.createElement("li");
+                    let container = document.createElement("div");
+                    let link, user;
+                    switch (a.type) {
+                        case "forumpost":
+                            container.appendChild(document.createTextNode("There are new posts in the forum: "));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/discuss/topic/"+a.topic_id+"/unread/");
+                            link.appendChild(document.createTextNode(a.topic_title));
+                            container.appendChild(link);
+                            break;
+                        case "studioactivity":
+                            container.appendChild(document.createTextNode("There was new activity in "));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/studios/"+a.gallery_id);
+                            link.appendChild(document.createTextNode(a.title));
+                            container.appendChild(link);
+                            break;
+                        case "favoriteproject":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(" favorited your project "));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/projects/"+a.project_id);
+                            link.appendChild(document.createTextNode(a.project_title));
+                            container.appendChild(link);
+                            break;
+                        case "loveproject":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(" loved your project "));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/projects/"+a.project_id);
+                            link.appendChild(document.createTextNode(a.title));
+                            container.appendChild(link);
+                            break;
+                        default:
+                            if (a.comment_id !== null) {
+                                user = document.createElement("a");
+                                user.setAttribute("href", "/users/" + a.actor_username);
+                                user.setAttribute("class", "username_link");
+                                user.appendChild(document.createTextNode(a.actor_username));
+                                container.appendChild(user);
+                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your project '));
+                                link = document.createElement("a");
+                                link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                                link.appendChild(document.createTextNode(a.comment_obj_title));
+                                container.appendChild(link); 
+                            } else {
+                                console.warn(a, "Not Found");
+                            }
+
+                                  }
+                    li.appendChild(container);
+                    ul.appendChild(li);
+                }
+                let happening = document.getElementsByClassName("box activity")[0];
+                happening.childNodes[0].childNodes[0].innerHTML = "Messages";
+                happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
+                ul.setAttribute("id", "messages");
+                happening.childNodes[1].appendChild(ul);
+                //then needs to see message count for the user
+                set_unread(username);
+            }
+        };
+        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+username+"/messages?limit=40&offset=0", true);
+        xhttp.setRequestHeader("X-Token", token);
+        xhttp.send(null);
+    }
+
+    function set_unread (username) {
+        let r = new XMLHttpRequest();
+        r.onreadystatechange = () => {
+            if (r.status == 200 && r.readyState == 4) {
+                let count = JSON.parse(r.responseText).msg_count;
+                let messages = document.getElementById("messages").getElementsByTagName("li");
+                for (let i = 0; i < count; i++) {
+                    messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                }
+            }
+        };
+        r.open("GET", "https://api.scratch.mit.edu/proxy/users/"+username+"/activity/count", true);
+        r.send(null);
     }
 
     let users = [], userinfo = {};
