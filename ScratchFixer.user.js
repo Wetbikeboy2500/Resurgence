@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScratchFixer
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -21,7 +21,7 @@
     let url = window.location.href;
     //adds my css to edit custom elements
     let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} #___gcse_0 {display: none;}';
+    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} .form-control {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}'; 
     document.head.appendChild(style);
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
@@ -232,8 +232,28 @@
                             link.appendChild(document.createTextNode(a.title));
                             container.appendChild(link);
                             break;
-                        default:
-                            if (a.comment_id !== null) {
+                        case "followuser":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(" followed you"));
+                            break;
+                        case "remixproject":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(" remixed your project "));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/projects/"+a.project_id);
+                            link.appendChild(document.createTextNode(a.title));
+                            container.appendChild(link);
+                            break;
+                        case "addcomment":
+                            if (a.comment_type === 0) { //project
                                 user = document.createElement("a");
                                 user.setAttribute("href", "/users/" + a.actor_username);
                                 user.setAttribute("class", "username_link");
@@ -243,10 +263,62 @@
                                 link = document.createElement("a");
                                 link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
                                 link.appendChild(document.createTextNode(a.comment_obj_title));
-                                container.appendChild(link); 
+                                container.appendChild(link);
+                            } else if (a.comment_type === 1) { //profile page
+                                user = document.createElement("a");
+                                user.setAttribute("href", "/users/" + a.actor_username);
+                                user.setAttribute("class", "username_link");
+                                user.appendChild(document.createTextNode(a.actor_username));
+                                container.appendChild(user);
+                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your profile '));
+                                link = document.createElement("a");
+                                link.setAttribute("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                                link.appendChild(document.createTextNode(a.comment_obj_title));
+                                container.appendChild(link);
+                            } else if (a.comment_type === 2) {
+                                user = document.createElement("a");
+                                user.setAttribute("href", "/users/" + a.actor_username);
+                                user.setAttribute("class", "username_link");
+                                user.appendChild(document.createTextNode(a.actor_username));
+                                container.appendChild(user);
+                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" in the studio '));
+                                link = document.createElement("a");
+                                link.setAttribute("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                                link.appendChild(document.createTextNode(a.comment_obj_title));
+                                container.appendChild(link);
                             } else {
-                                console.warn(a, "Not Found");
+                                console.warn("Comment type not found");
                             }
+                            break;
+                        case "curatorinvite":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(' invited you to curate '));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/studios/"+a.gallery_id);
+                            link.appendChild(document.createTextNode(a.title));
+                            container.appendChild(link);
+                            break;
+                        case "becomeownerstudio":
+                            user = document.createElement("a");
+                            user.setAttribute("href", "/users/" + a.actor_username);
+                            user.setAttribute("class", "username_link");
+                            user.appendChild(document.createTextNode(a.actor_username));
+                            container.appendChild(user);
+                            container.appendChild(document.createTextNode(' promoted you to manager in '));
+                            link = document.createElement("a");
+                            link.setAttribute("href", "/studios/"+a.gallery_id);
+                            link.appendChild(document.createTextNode(a.title));
+                            container.appendChild(link);
+                            break;
+                        case "userjoin":
+                            container.appendChild(document.createTextNode('Welcome to Scratch'));
+                            break;
+                        default:
+                            console.warn(a, "Not Found");
 
                                   }
                     li.appendChild(container);
