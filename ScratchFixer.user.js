@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      2.4
+// @version      2.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -193,6 +193,7 @@
                     let li = document.createElement("li");
                     let container = document.createElement("div");
                     let link, user;
+                    
                     switch (a.type) {
                         case "forumpost":
                             container.appendChild(document.createTextNode("There are new posts in the forum: "));
@@ -321,6 +322,7 @@
                             console.warn(a, "Not Found");
 
                                   }
+                    container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
                     li.appendChild(container);
                     ul.appendChild(li);
                 }
@@ -423,6 +425,37 @@
         months -= years * 12;
         let message = years + " years, " + months + " months ago";
         return message;
+    }
+    function calcSmallest(date2) {
+        let date1 = new Date(), time, unit;
+        if (date1.getFullYear() == date2.getFullYear()) {
+            if (date1.getMonth() == date2.getMonth()) {
+                if (date1.getDate() == date2.getDate()) {
+                    if (date1.getHours() == date2.getHours()) {
+                        time = date1.getMinutes() - date2.getMinutes();
+                        unit = " minute";
+                    } else {
+                        time = date1.getHours() - date2.getHours();
+                        unit = " hour";
+                    }
+                } else {
+                    time = date1.getDate() - date2.getDate();
+                    unit = " day";
+                }
+            } else {
+                time = date1.getMonth() - date2.getMonth();
+                unit = " month";
+            }
+        } else {
+            time = date1.getFullYear() - date2.getFullYear();
+            unit = " year";
+        }
+        if (time == 1) {
+            return " " + time + unit + " ago"; 
+        } else {
+            return " " + time + unit + "s ago";
+        }
+        
     }
     //adds scratchblockcode load support
     function load_scratchblockcode () {
