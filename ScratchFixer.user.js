@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      2.5
+// @version      2.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
-// @grant        none
+// @grant        GM_setValue
+// @grant        GM_getValue
 // @updateURL    https://github.com/Wetbikeboy2500/ScratchFixer/raw/master/ScratchFixer.user.js
 // ==/UserScript==
 
@@ -18,7 +19,7 @@
         load_userinfo();
         load_bbcode();
     }, false);
-    let url = window.location.href;
+    let url = window.location.href, count = null;
     //adds my css to edit custom elements
     let style = document.createElement("style");
     style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}'; 
@@ -171,7 +172,8 @@
                 if (xhttp.status == 200 && xhttp.readyState == 4) {
                     let html  = xhttp.responseText;
                     let js = JSON.parse(html);
-                    load_message(js.user.token, js.user.username);
+                    //load_message(js.user.token, js.user.username);
+                    check_unread(js.user.token, js.user.username);
                 }
             };
             xhttp.open("GET", "https://scratch.mit.edu/session/", true);
@@ -180,174 +182,18 @@
         }
     }
 
-    function load_message (token, username) {
-        let s = document.createElement("style");
-        s.innerHTML = ".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}";
-        document.head.appendChild(s);
-        let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = () => {
-            if (xhttp.status == 200 && xhttp.readyState == 4) {
-                let html = JSON.parse(xhttp.responseText);
-                let ul = document.createElement("ul");
-                for (let a of html) {
-                    let li = document.createElement("li");
-                    let container = document.createElement("div");
-                    let link, user;
-                    
-                    switch (a.type) {
-                        case "forumpost":
-                            container.appendChild(document.createTextNode("There are new posts in the forum: "));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/discuss/topic/"+a.topic_id+"/unread/");
-                            link.appendChild(document.createTextNode(a.topic_title));
-                            container.appendChild(link);
-                            break;
-                        case "studioactivity":
-                            container.appendChild(document.createTextNode("There was new activity in "));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/studios/"+a.gallery_id);
-                            link.appendChild(document.createTextNode(a.title));
-                            container.appendChild(link);
-                            break;
-                        case "favoriteproject":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(" favorited your project "));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/projects/"+a.project_id);
-                            link.appendChild(document.createTextNode(a.project_title));
-                            container.appendChild(link);
-                            break;
-                        case "loveproject":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(" loved your project "));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/projects/"+a.project_id);
-                            link.appendChild(document.createTextNode(a.title));
-                            container.appendChild(link);
-                            break;
-                        case "followuser":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(" followed you"));
-                            break;
-                        case "remixproject":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(" remixed your project "));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/projects/"+a.project_id);
-                            link.appendChild(document.createTextNode(a.title));
-                            container.appendChild(link);
-                            break;
-                        case "addcomment":
-                            if (a.comment_type === 0) { //project
-                                user = document.createElement("a");
-                                user.setAttribute("href", "/users/" + a.actor_username);
-                                user.setAttribute("class", "username_link");
-                                user.appendChild(document.createTextNode(a.actor_username));
-                                container.appendChild(user);
-                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your project '));
-                                link = document.createElement("a");
-                                link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                                link.appendChild(document.createTextNode(a.comment_obj_title));
-                                container.appendChild(link);
-                            } else if (a.comment_type === 1) { //profile page
-                                user = document.createElement("a");
-                                user.setAttribute("href", "/users/" + a.actor_username);
-                                user.setAttribute("class", "username_link");
-                                user.appendChild(document.createTextNode(a.actor_username));
-                                container.appendChild(user);
-                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your profile '));
-                                link = document.createElement("a");
-                                link.setAttribute("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                                link.appendChild(document.createTextNode(a.comment_obj_title));
-                                container.appendChild(link);
-                            } else if (a.comment_type === 2) {
-                                user = document.createElement("a");
-                                user.setAttribute("href", "/users/" + a.actor_username);
-                                user.setAttribute("class", "username_link");
-                                user.appendChild(document.createTextNode(a.actor_username));
-                                container.appendChild(user);
-                                container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" in the studio '));
-                                link = document.createElement("a");
-                                link.setAttribute("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                                link.appendChild(document.createTextNode(a.comment_obj_title));
-                                container.appendChild(link);
-                            } else {
-                                console.warn("Comment type not found");
-                            }
-                            break;
-                        case "curatorinvite":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(' invited you to curate '));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/studios/"+a.gallery_id);
-                            link.appendChild(document.createTextNode(a.title));
-                            container.appendChild(link);
-                            break;
-                        case "becomeownerstudio":
-                            user = document.createElement("a");
-                            user.setAttribute("href", "/users/" + a.actor_username);
-                            user.setAttribute("class", "username_link");
-                            user.appendChild(document.createTextNode(a.actor_username));
-                            container.appendChild(user);
-                            container.appendChild(document.createTextNode(' promoted you to manager in '));
-                            link = document.createElement("a");
-                            link.setAttribute("href", "/studios/"+a.gallery_id);
-                            link.appendChild(document.createTextNode(a.title));
-                            container.appendChild(link);
-                            break;
-                        case "userjoin":
-                            container.appendChild(document.createTextNode('Welcome to Scratch'));
-                            break;
-                        default:
-                            console.warn(a, "Not Found");
-
-                                  }
-                    container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
-                    li.appendChild(container);
-                    ul.appendChild(li);
-                }
-                let happening = document.getElementsByClassName("box activity")[0];
-                happening.childNodes[0].childNodes[0].innerHTML = "Messages";
-                happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
-                ul.setAttribute("id", "messages");
-                happening.childNodes[1].appendChild(ul);
-                //then needs to see message count for the user
-                set_unread(username);
-            }
-        };
-        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+username+"/messages?limit=40&offset=0", true);
-        xhttp.setRequestHeader("X-Token", token);
-        xhttp.send(null);
-    }
-
-    function set_unread (username) {
+    function check_unread (token, username) {
         let r = new XMLHttpRequest();
         r.onreadystatechange = () => {
             if (r.status == 200 && r.readyState == 4) {
-                let count = JSON.parse(r.responseText).msg_count;
-                let messages = document.getElementById("messages").getElementsByTagName("li");
-                for (let i = 0; i < count; i++) {
-                    messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                count = JSON.parse(r.responseText).msg_count;
+                if (count > 0 || GM_getValue("message", true) === true) {
+                    console.log("load from web");
+                    get_message(token, username);
+                } else {
+                    console.log("load from presave");
+                    //load from the json list
+                    load_message(GM_getValue("message", {}), username);
                 }
             }
         };
@@ -355,66 +201,253 @@
         r.send(null);
     }
 
+    function get_message (token, username) {
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.status == 200 && xhttp.readyState == 4) {
+                load_message(xhttp.responseText, username);
+            }
+        };
+        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+username+"/messages?limit=40&offset=0", true);
+        xhttp.setRequestHeader("X-Token", token);
+        xhttp.send(null);
+    }
+
+    function load_message (json, username) {
+        let s = document.createElement("style");
+        s.innerHTML = ".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}";
+        document.head.appendChild(s);
+        let html = JSON.parse(json);
+        GM_setValue("message", json);
+        let ul = document.createElement("ul");
+        for (let a of html) {
+            let li = document.createElement("li");
+            let container = document.createElement("div");
+            let link, user;
+
+            switch (a.type) {
+                case "forumpost":
+                    container.appendChild(document.createTextNode("There are new posts in the forum: "));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/discuss/topic/"+a.topic_id+"/unread/");
+                    link.appendChild(document.createTextNode(a.topic_title));
+                    container.appendChild(link);
+                    break;
+                case "studioactivity":
+                    container.appendChild(document.createTextNode("There was new activity in "));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/studios/"+a.gallery_id);
+                    link.appendChild(document.createTextNode(a.title));
+                    container.appendChild(link);
+                    break;
+                case "favoriteproject":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(" favorited your project "));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/projects/"+a.project_id);
+                    link.appendChild(document.createTextNode(a.project_title));
+                    container.appendChild(link);
+                    break;
+                case "loveproject":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(" loved your project "));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/projects/"+a.project_id);
+                    link.appendChild(document.createTextNode(a.title));
+                    container.appendChild(link);
+                    break;
+                case "followuser":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(" followed you"));
+                    break;
+                case "remixproject":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(" remixed your project "));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/projects/"+a.project_id);
+                    link.appendChild(document.createTextNode(a.title));
+                    container.appendChild(link);
+                    break;
+                case "addcomment":
+                    if (a.comment_type === 0) { //project
+                        user = document.createElement("a");
+                        user.setAttribute("href", "/users/" + a.actor_username);
+                        user.setAttribute("class", "username_link");
+                        user.appendChild(document.createTextNode(a.actor_username));
+                        container.appendChild(user);
+                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your project '));
+                        link = document.createElement("a");
+                        link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                        link.appendChild(document.createTextNode(a.comment_obj_title));
+                        container.appendChild(link);
+                    } else if (a.comment_type === 1) { //profile page
+                        user = document.createElement("a");
+                        user.setAttribute("href", "/users/" + a.actor_username);
+                        user.setAttribute("class", "username_link");
+                        user.appendChild(document.createTextNode(a.actor_username));
+                        container.appendChild(user);
+                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your profile '));
+                        link = document.createElement("a");
+                        link.setAttribute("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                        link.appendChild(document.createTextNode(a.comment_obj_title));
+                        container.appendChild(link);
+                    } else if (a.comment_type === 2) {
+                        user = document.createElement("a");
+                        user.setAttribute("href", "/users/" + a.actor_username);
+                        user.setAttribute("class", "username_link");
+                        user.appendChild(document.createTextNode(a.actor_username));
+                        container.appendChild(user);
+                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" in the studio '));
+                        link = document.createElement("a");
+                        link.setAttribute("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id);
+                        link.appendChild(document.createTextNode(a.comment_obj_title));
+                        container.appendChild(link);
+                    } else {
+                        console.warn("Comment type not found");
+                    }
+                    break;
+                case "curatorinvite":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(' invited you to curate '));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/studios/"+a.gallery_id);
+                    link.appendChild(document.createTextNode(a.title));
+                    container.appendChild(link);
+                    break;
+                case "becomeownerstudio":
+                    user = document.createElement("a");
+                    user.setAttribute("href", "/users/" + a.actor_username);
+                    user.setAttribute("class", "username_link");
+                    user.appendChild(document.createTextNode(a.actor_username));
+                    container.appendChild(user);
+                    container.appendChild(document.createTextNode(' promoted you to manager in '));
+                    link = document.createElement("a");
+                    link.setAttribute("href", "/studios/"+a.gallery_id);
+                    link.appendChild(document.createTextNode(a.title));
+                    container.appendChild(link);
+                    break;
+                case "userjoin":
+                    container.appendChild(document.createTextNode('Welcome to Scratch'));
+                    break;
+                default:
+                    console.warn(a, "Not Found");
+
+                          }
+            container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
+            li.appendChild(container);
+            ul.appendChild(li);
+        }
+        let happening = document.getElementsByClassName("box activity")[0];
+        happening.childNodes[0].childNodes[0].innerHTML = "Messages";
+        happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
+        ul.setAttribute("id", "messages");
+        happening.childNodes[1].appendChild(ul);
+        //then needs to see message count for the user
+        set_unread(username);
+    }
+
+    function set_unread (username) {
+        let messages = document.getElementById("messages").getElementsByTagName("li");
+        for (let i = 0; i < count; i++) {
+            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+        }
+    }
+
     let users = [], userinfo = {};
     function load_userinfo () {
         if (document.getElementsByTagName("a").length !== 0) {
+            let userlinks = false;
+            userinfo = GM_getValue("user", {});
             console.log("New profile loader");
             let links = document.getElementsByTagName("a");
             for (let a of links) {
                 if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
-                    if (!users.includes(a.getAttribute("href"))) {
+                    userlinks = true;
+                    if (!users.includes(a.getAttribute("href")) && !userinfo.hasOwnProperty(a.getAttribute("href"))) {
                         users.push(a.getAttribute("href"));
-                        console.log(users.length, a.getAttribute("href"));
+                        console.log("load new user info");
                     }
                 }
             }
 
             userinfo.fulllength = users.length;
             userinfo.length = 0;
-            for (let i = 0; i < users.length; i++) {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        userinfo.length += 1;
-                        userinfo[String(users[i])] = JSON.parse(xhttp.responseText);
-                        if (userinfo.fulllength === userinfo.length) {
-                            //run final code here
-                            for (let a of links) {
-                                if (users.includes(a.getAttribute("href"))) {
-                                    a.addEventListener("mouseenter", (event) => {
-                                        let div = document.createElement("div");
-                                        div.setAttribute("class", "userwindow");
-                                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
-                                        let info = userinfo[a.getAttribute("href")];
-                                        let date = new Date(Date.parse(info.history.joined));
-                                        //date = new Date(date);
-                                        let dif = calcDate(new Date(), date);
-                                        div.appendChild(document.createTextNode(info.username + " joined " + dif +" from " + info.profile.country));
-                                        document.body.appendChild(div);
-                                    }, false);
-                                    a.addEventListener("mouseleave", (event) => {
-                                        if (document.body.getElementsByClassName("userwindow")[0] !== null) {
-                                            document.body.removeChild(document.body.getElementsByClassName("userwindow")[0]);
-                                        }
-                                    }, false);
-                                }
+            if (!userlinks) {
+                console.log("No user links");
+            } else if (users.length === 0) {
+                set_userinfo(links);
+            } else {
+                for (let i = 0; i < users.length; i++) {
+                    let xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = () => {
+                        if (xhttp.status == 200 && xhttp.readyState == 4) {
+                            userinfo.length += 1;
+                            userinfo[String(users[i])] = JSON.parse(xhttp.responseText);
+                            if (userinfo.fulllength === userinfo.length) {
+                                set_userinfo(links);
                             }
-                            console.log("Finished user info");
                         }
+                    };
+                    let string = users[i];
+                    if (users[i].lastIndexOf("/") + 1 === users[i].length) {
+                        string = string.slice(0, -1);
                     }
-                };
-                let string = users[i];
-                if (users[i].lastIndexOf("/") + 1 === users[i].length) {
-                    string = string.slice(0, -1);
+                    if (users[i].includes("https://scratch.mit.edu/users/") || users[i].includes("http://scratch.mit.edu/users/")) {
+                        xhttp.open("GET", "https://api.scratch.mit.edu/users/" + string.substring(string.indexOf("/users/") + 7), true);
+                    } else  {
+                        xhttp.open("GET", "https://api.scratch.mit.edu" + string, true);
+                    }
+                    xhttp.send(null);
                 }
-                if (users[i].includes("https://scratch.mit.edu/users/") || users[i].includes("http://scratch.mit.edu/users/")) {
-                    xhttp.open("GET", "https://api.scratch.mit.edu/users/" + string.substring(string.indexOf("/users/") + 7), true);
-                } else  {
-                    xhttp.open("GET", "https://api.scratch.mit.edu" + string, true);
-                }
-                xhttp.send(null);
             }
         }
+    }
+
+    function set_userinfo (links) {
+        GM_setValue("user", userinfo);
+        //run final code here
+        for (let a of links) {
+            if (userinfo.hasOwnProperty(a.getAttribute("href"))) {
+                //if (users.includes(a.getAttribute("href"))) {
+                a.addEventListener("mouseenter", (event) => {
+                    let div = document.createElement("div");
+                    div.setAttribute("class", "userwindow");
+                    div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    let info = userinfo[a.getAttribute("href")];
+                    let date = new Date(Date.parse(info.history.joined));
+                    //date = new Date(date);
+                    let dif = calcDate(new Date(), date);
+                    div.appendChild(document.createTextNode(info.username + " joined " + dif +" from " + info.profile.country));
+                    document.body.appendChild(div);
+                }, false);
+                a.addEventListener("mouseleave", (event) => {
+                    if (document.body.getElementsByClassName("userwindow")[0] !== null) {
+                        document.body.removeChild(document.body.getElementsByClassName("userwindow")[0]);
+                    }
+                }, false);
+            }
+        }
+        console.log("Finished user info");
     }
 
     function calcDate(date1,date2) {
@@ -423,9 +456,31 @@
         let months = Math.ceil(Math.floor(diff/day)/31);
         let years = Math.floor(months/12);
         months -= years * 12;
-        let message = years + " years, " + months + " months ago";
+        let message = "";
+        if (years > 0) {
+            if (years == 1) {
+                message += "1 year";
+            } else {
+                message += years + " years";
+            }
+            if (months > 0) {
+                message += ", "
+            }
+        }
+        if (months > 0) {
+            if (months == 1) {
+                message += "1 month";
+            } else {
+                message += months + " months";
+            }
+        } else if (years == 0) {
+            message += "1 month";
+        }
+
+        message += " ago";
         return message;
     }
+
     function calcSmallest(date2) {
         let date1 = new Date(), time, unit;
         if (date1.getFullYear() == date2.getFullYear()) {
@@ -455,7 +510,7 @@
         } else {
             return " " + time + unit + "s ago";
         }
-        
+
     }
     //adds scratchblockcode load support
     function load_scratchblockcode () {
