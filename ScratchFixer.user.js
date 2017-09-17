@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      2.7
+// @version      2.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -48,7 +48,7 @@
             load_bbcode();
         }
     },5000);//6 second wait for the page
-    /*//adds info button to bottom of the page and new page will be coming soon but until then I am just going to let it sit here
+    //adds info button to bottom of the page and new page will be coming soon but until then I am just going to let it sit here
     if (document.getElementsByClassName("lists").length > 0) {
         let dd = document.createElement("dd");
         let a = document.createElement("a");
@@ -66,11 +66,76 @@
     }
     //adds the new page
     if ("https://scratch.mit.edu/resurgence" === url) {
+        style = document.createElement("style");
+        style.innerHTML = '.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}'; 
+        document.head.appendChild(style);
         let main = document.getElementsByClassName("box-content")[0];
         main.innerHTML = "";
-        main.appendChild(document.createTextNode("Resurgence Userscript"));
-        main.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
-    }*/
+        let h4 = document.createElement("h4");
+        h4.appendChild(document.createTextNode("Resurgence Userscript"));
+        document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;")
+        document.getElementsByClassName("box-head")[0].appendChild(h4);
+        let p = document.createElement("p");
+        p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
+        main.appendChild(p);        
+        p = document.createElement("p");
+        p.appendChild(document.createTextNode("Special thanks to "));
+        let a = document.createElement("a");
+        a.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
+        a.appendChild(document.createTextNode("NitroCipher"));
+        p.appendChild(a);
+        main.appendChild(p);
+        p = document.createElement("p");
+        p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
+        main.appendChild(p);
+        p = document.createElement("p");
+        a = document.createElement("a");
+        a.setAttribute("href", "https://scratch.mit.edu/discuss/topic/274665/");
+        a.appendChild(document.createTextNode("Click this to go to the forum post"));
+        p.appendChild(a);
+        main.appendChild(p);
+        p = document.createElement("p");
+        a = document.createElement("a");
+        a.setAttribute("href", "https://github.com/Wetbikeboy2500/ScratchFixer");
+        a.appendChild(document.createTextNode("Click this to go to the Github repo"));
+        p.appendChild(a);
+        main.appendChild(p);
+        let h3 = document.createElement("h3");
+        h3.appendChild(document.createTextNode("Features"));
+        main.appendChild(h3);
+        let ul = document.createElement("ul");
+        let li = document.createElement("li");
+        li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Adds messages to the main page"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Adds google search so you can search the whole Scratch site with google"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Quick info when hovering over usernames"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Click on a new button “BBCode” to switch between the BBCode and the original post"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Changes the messages area to look like how it use to look"));
+        ul.appendChild(li);
+        li = document.createElement("li");
+        li.appendChild(document.createTextNode("Adds this page to Scratch"));
+        ul.appendChild(li);
+        main.appendChild(ul);
+    }
     //adds the different players using a dropdown menu
     if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
         let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
@@ -223,7 +288,7 @@
         r.onreadystatechange = () => {
             if (r.status == 200 && r.readyState == 4) {
                 count = JSON.parse(r.responseText).msg_count;
-                if (count > 0 || GM_getValue("message", true) === true) {
+                if (count > 0 || GM_getValue("message", true) === true || GM_getValue("username", true) != username) {
                     console.log("load from web");
                     get_message(token, username);
                 } else {
@@ -254,6 +319,7 @@
         s.innerHTML = ".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}";
         document.head.appendChild(s);
         let html = JSON.parse(json);
+        GM_setValue("username", username);
         GM_setValue("message", json);
         let ul = document.createElement("ul");
         for (let a of html) {
