@@ -7,7 +7,7 @@
 // @match        https://scratch.mit.edu/*
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @updateURL    https://github.com/Wetbikeboy2500/ScratchFixer/raw/master/ScratchFixer.user.js
+// @updateURL    https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/ScratchFixer.user.js
 // ==/UserScript==
 
 (function() {
