@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      2.6
+// @version      2.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -13,13 +13,16 @@
 (function() {
     'use strict';
     window.addEventListener("load", () => {
-        console.log("window loaded");
-        load_messages();
-        load_scratchblockcode();
-        load_userinfo();
-        load_bbcode();
+        if (ran_code == false) {
+            console.log("window loaded");
+            ran_code = true;
+            load_messages();
+            load_scratchblockcode();
+            load_userinfo();
+            load_bbcode();
+        }
     }, false);
-    let url = window.location.href, count = null;
+    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false;
     //adds my css to edit custom elements
     let style = document.createElement("style");
     style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}'; 
@@ -34,8 +37,41 @@
         tips.innerHTML = "Forums";
         console.log("Old Theme");
     }
+    //make sure code runs if window loading dosn't work
+    setTimeout (() => {
+        if (ran_code == false) {
+            console.log("load interval");
+            ran_code = true;
+            load_messages();
+            load_scratchblockcode();
+            load_userinfo();
+            load_bbcode();
+        }
+    },5000);//6 second wait for the page
+    /*//adds info button to bottom of the page and new page will be coming soon but until then I am just going to let it sit here
+    if (document.getElementsByClassName("lists").length > 0) {
+        let dd = document.createElement("dd");
+        let a = document.createElement("a");
+        a.setAttribute("href", "/resurgence");
+        a.appendChild(document.createTextNode("Resurgence Userscript"));
+        dd.appendChild(a);
+        document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
+    } else if (document.getElementsByClassName("footer-col").length > 0) {
+        let li = document.createElement("li");
+        let a = document.createElement("a");
+        a.setAttribute("href", "/resurgence");
+        a.appendChild(document.createTextNode("Resurgence Userscript"));
+        li.appendChild(a);
+        document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
+    }
+    //adds the new page
+    if ("https://scratch.mit.edu/resurgence" === url) {
+        let main = document.getElementsByClassName("box-content")[0];
+        main.innerHTML = "";
+        main.appendChild(document.createTextNode("Resurgence Userscript"));
+        main.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
+    }*/
     //adds the different players using a dropdown menu
-
     if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
         let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
         console.log("Project page");
@@ -373,7 +409,6 @@
         }
     }
 
-    let users = [], userinfo = {};
     function load_userinfo () {
         if (document.getElementsByTagName("a").length !== 0) {
             let userlinks = false;
