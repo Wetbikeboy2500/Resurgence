@@ -1,15 +1,17 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      2.8
+// @version      2.9
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
+// @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.css
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
 // @updateURL    https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/ScratchFixer.user.js
 // ==/UserScript==
-
 (function() {
     'use strict';
     window.addEventListener("load", () => {
@@ -22,11 +24,11 @@
             load_bbcode();
         }
     }, false);
-    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false;
+    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false, style;
     //adds my css to edit custom elements
-    let style = document.createElement("style");
-    style.innerHTML = '.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}'; 
-    document.head.appendChild(style);
+    GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
+    dark_theme();
+    //GM_addStyle(GM_getResourceText("CSS"));
     //fixes navbar
     if (document.getElementById("navigation") !== null) {
         document.getElementsByClassName("tips")[0].childNodes[0].setAttribute("href", "/discuss");
@@ -49,6 +51,17 @@
         }
     },5000);//6 second wait for the page
     //adds info button to bottom of the page and new page will be coming soon but until then I am just going to let it sit here
+    let but = document.createElement("button");
+    but.addEventListener("click", () => {
+        if (GM_getValue("theme", false) === "dark") {
+            GM_setValue("theme", "light");
+        } else {
+            GM_setValue("theme", "dark");
+        }
+        dark_theme();
+    });
+    but.setAttribute("title", "Must refresh page for theme change to take effect");
+    but.appendChild(document.createTextNode("Switch Theme"));
     if (document.getElementsByClassName("lists").length > 0) {
         let dd = document.createElement("dd");
         let a = document.createElement("a");
@@ -56,6 +69,7 @@
         a.appendChild(document.createTextNode("Resurgence Userscript"));
         dd.appendChild(a);
         document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
+        document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(but);
     } else if (document.getElementsByClassName("footer-col").length > 0) {
         let li = document.createElement("li");
         let a = document.createElement("a");
@@ -63,12 +77,11 @@
         a.appendChild(document.createTextNode("Resurgence Userscript"));
         li.appendChild(a);
         document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
+        document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(but);
     }
     //adds the new page
     if ("https://scratch.mit.edu/resurgence" === url) {
-        style = document.createElement("style");
-        style.innerHTML = '.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}'; 
-        document.head.appendChild(style);
+        GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}');
         let main = document.getElementsByClassName("box-content")[0];
         main.innerHTML = "";
         let h4 = document.createElement("h4");
@@ -196,7 +209,7 @@
                     document.getElementById("player").style = "display: block;";
                     player = 0;
                     break;
-                                                                         }
+            }
         }, false);
         let option = document.createElement("option");
         option.appendChild(document.createTextNode("Default"));
@@ -262,6 +275,17 @@
             document.getElementById("___gcse_0").style.display = "block";
         }, false);
     }
+    //adds dark theme button
+    function dark_theme () {
+        console.log(GM_getValue("theme", false));
+        if (GM_getValue("theme", false) === "dark") {
+            //want dark theme
+            style = GM_addStyle(GM_getResourceText("CSS"));
+        } else if (style !== null) {
+            style.parentNode.removeChild(style);
+            style = null;
+        }
+    }
     //add messages to main page
     function load_messages () {
         //https://api.scratch.mit.edu/users/Wetbikeboy2500/messages?limit=40&offset=0
@@ -315,9 +339,7 @@
     }
 
     function load_message (json, username) {
-        let s = document.createElement("style");
-        s.innerHTML = ".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}";
-        document.head.appendChild(s);
+        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(json);
         GM_setValue("username", username);
         GM_setValue("message", json);
@@ -454,14 +476,14 @@
                 default:
                     console.warn(a, "Not Found");
 
-                          }
+            }
             container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
             li.appendChild(container);
             ul.appendChild(li);
         }
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
-        happening.childNodes[1].removeChild(happening.childNodes[1].childNodes[0]);
+        happening.childNodes[1].childNodes[0].style.display = "none";
         ul.setAttribute("id", "messages");
         happening.childNodes[1].appendChild(ul);
         //then needs to see message count for the user
