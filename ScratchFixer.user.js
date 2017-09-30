@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.3
+// @version      3.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -13,7 +13,7 @@
 // @updateURL    https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/ScratchFixer.user.js
 // @run-at       document-start
 // ==/UserScript==
-(function() {
+(function () {
     'use strict';
     window.addEventListener("load", () => {
         if (ran_code == false) {
@@ -101,7 +101,7 @@
             main.innerHTML = "";
             let h4 = document.createElement("h4");
             h4.appendChild(document.createTextNode("Resurgence Userscript"));
-            document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;")
+            document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;");
             document.getElementsByClassName("box-head")[0].appendChild(h4);
             let p = document.createElement("p");
             p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
@@ -307,55 +307,78 @@
         }
     }
     //add messages to main page
-    function load_messages () {
-        //https://api.scratch.mit.edu/users/Wetbikeboy2500/messages?limit=40&offset=0
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
-            console.log("loading messages");
-            let token = null;
-            let xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = () => {
-                if (xhttp.status == 200 && xhttp.readyState == 4) {
-                    let html  = xhttp.responseText;
-                    let js = JSON.parse(html);
-                    //load_message(js.user.token, js.user.username);
-                    check_unread(js.user.token, js.user.username);
+    let messages = {
+        get_session: () => {
+            return new Promise ((resolve, reject) => {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let html  = xhttp.responseText;
+                        let js = JSON.parse(html);
+                        console.log(js.user);
+                        resolve({
+                            token: js.user.token,
+                            username: js.user.username
+                        });
+                    }
+                };
+                xhttp.onerror = (err) => {
+                    reject("Error getting userinfo " + err);
+                };
+                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                xhttp.send(null);
+            });
+        },
+        check_unread: (user) => {
+            return new Promise ((resolve, reject) => {
+                let r = new XMLHttpRequest();
+                r.onreadystatechange = () => {
+                    if (r.status == 200 && r.readyState == 4) {
+                        count = JSON.parse(r.responseText).msg_count;
+                        user.has_messages = count > 0 || GM_getValue("message", true) === true || GM_getValue("username", true) != user.username;
+                        resolve(user);
+                    }
+                };
+                r.onerror = (error) => {
+                    reject("Error checking unread messgaes" + error);
+                };
+                r.open("GET", "https://api.scratch.mit.edu/proxy/users/"+user.username+"/activity/count", true);
+                r.send(null);
+            });
+        },
+        get_message: (user) => {
+            return new Promise((resolve, reject) => {
+                if (user.has_messages) { //load new messages
+                    let xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = () => {
+                        if (xhttp.status == 200 && xhttp.readyState == 4) {
+                            //load_message(xhttp.responseText, username);
+                            user.messages = xhttp.responseText;
+                            resolve(user);
+                        }
+                    };
+                    xhttp.onerror = (error) => {
+                        reject("Error loading messages" + error);
+                    };
+                    xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
+                    xhttp.setRequestHeader("X-Token", user.token);
+                    xhttp.send(null);
+                } else { //load form presave
+                    user.messages = GM_getValue("message", {});
+                    resolve(user);
                 }
-            };
-            xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-            xhttp.send(null);
-
+            });
         }
-    }
+    };
 
-    function check_unread (token, username) {
-        let r = new XMLHttpRequest();
-        r.onreadystatechange = () => {
-            if (r.status == 200 && r.readyState == 4) {
-                count = JSON.parse(r.responseText).msg_count;
-                if (count > 0 || GM_getValue("message", true) === true || GM_getValue("username", true) != username) {
-                    console.log("load from web");
-                    get_message(token, username);
-                } else {
-                    console.log("load from presave");
-                    //load from the json list
-                    load_message(GM_getValue("message", {}), username);
-                }
-            }
-        };
-        r.open("GET", "https://api.scratch.mit.edu/proxy/users/"+username+"/activity/count", true);
-        r.send(null);
-    }
-
-    function get_message (token, username) {
-        let xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = () => {
-            if (xhttp.status == 200 && xhttp.readyState == 4) {
-                load_message(xhttp.responseText, username);
-            }
-        };
-        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+username+"/messages?limit=40&offset=0", true);
-        xhttp.setRequestHeader("X-Token", token);
-        xhttp.send(null);
+    function load_messages () {
+        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
+            messages.get_session()
+                .then(user => messages.check_unread(user))
+                .then(user => messages.get_message(user))
+                .then(user => load_message(user.messages, user.username))
+                .catch((error) => console.warn(error));
+        }
     }
 
     function load_message (json, username) {
@@ -727,35 +750,52 @@
 
     function load_bbcode () {
         if (url.includes("discuss")) {
-            let bbarr = [], bbcode = {};
+            console.log("load bbcode");
+            let bbarr = [];
             let posts = document.getElementsByClassName("blockpost");
             for (let a of posts) {
-                bbarr.push(a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"));
+                bbarr.push(load_mcode({
+                    url: a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"),
+                    index: posts[bbarr.length]
+                }));
             }
-            bbcode.full_length = bbarr.length;
-            for (let i = 0; i < bbarr.length; i++) {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        let current = posts.item(i).getElementsByClassName("post_body_html")[0].innerHTML;
-                        let button = document.createElement("button");
-                        button.setAttribute("style", "height: 15px; line-height: 14px;");
-                        button.appendChild(document.createTextNode("BBCode"));
-                        button.addEventListener("click", (event) => {
-                            if (event.currentTarget.innerHTML === "BBCode") {
-                                posts.item(i).getElementsByClassName("post_body_html")[0].innerText = xhttp.responseText;
-                                event.currentTarget.innerHTML = "Original";
-                            } else {
-                                posts.item(i).getElementsByClassName("post_body_html")[0].innerHTML = current;
-                                event.currentTarget.innerHTML = "BBCode";
-                            }
-                        });
-                        posts.item(i).getElementsByClassName("box-head")[0].appendChild(button);
-                    }
-                };
-                xhttp.open("GET", "https://scratch.mit.edu" + bbarr[i] + "source/", true);
-                xhttp.send(null);
-            }
+            Promise.all(bbarr)
+                .then((post) => {
+                post.forEach ((post) => {
+                    let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
+                    let button = document.createElement("button");
+                    button.setAttribute("style", "height: 15px; line-height: 14px;");
+                    button.appendChild(document.createTextNode("BBCode"));
+                    button.addEventListener("click", (event) => {
+                        if (event.currentTarget.innerHTML === "BBCode") {
+                            post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
+                            event.currentTarget.innerHTML = "Original";
+                        } else {
+                            post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
+                            event.currentTarget.innerHTML = "BBCode";
+                        }
+                    });
+                    post.index.getElementsByClassName("box-head")[0].appendChild(button);
+                });
+            })
+                .catch(error => console.warn(error));
         }
+    }
+    //using promises
+    function load_mcode (post) {
+        return new Promise((resolve, reject) => {
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = () => {
+                if (xhttp.status == 200 && xhttp.readyState == 4) {
+                    post.response = xhttp.responseText;
+                    resolve(post);
+                }
+            };
+            xhttp.onerror = (error) => {
+                reject("Error loading BBCode"+error);
+            };
+            xhttp.open("GET", "https://scratch.mit.edu" + post.url + "source/", true);
+            xhttp.send(null);
+        });
     }
 })();
