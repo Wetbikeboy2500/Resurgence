@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.0
+// @version      3.1
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -11,6 +11,7 @@
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @updateURL    https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/ScratchFixer.user.js
+// @run-at       document-start
 // ==/UserScript==
 (function() {
     'use strict';
@@ -18,262 +19,278 @@
         if (ran_code == false) {
             console.log("window loaded");
             ran_code = true;
-            load_messages();
-            load_scratchblockcode();
-            load_userinfo();
-            load_bbcode();
+            run();
         }
     }, false);
-    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false, style = null;
-    //adds my css to edit custom elements
-    GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
-    dark_theme();
-    //GM_addStyle(GM_getResourceText("CSS"));
-    //fixes navbar
-    if (document.getElementById("navigation") !== null) {
-        document.getElementsByClassName("tips")[0].childNodes[0].setAttribute("href", "/discuss");
-        console.log("New Theme");
-    } else {
-        let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
-        tips.setAttribute("href", "/discuss");
-        tips.innerHTML = "Forums";
-        console.log("Old Theme");
-    }
     //make sure code runs if window loading dosn't work
     setTimeout (() => {
         if (ran_code == false) {
             console.log("load interval");
             ran_code = true;
-            load_messages();
-            load_scratchblockcode();
-            load_userinfo();
-            load_bbcode();
+            run();
         }
     },5000);//6 second wait for the page
-    //adds info button to bottom of the page and new page will be coming soon but until then I am just going to let it sit here
-    let but = document.createElement("button");
-    but.addEventListener("click", () => {
-        if (GM_getValue("theme", false) === "dark") {
-            GM_setValue("theme", "light");
-        } else {
-            GM_setValue("theme", "dark");
-        }
+
+    function run () {
+        load_messages();
+        load_scratchblockcode();
+        load_userinfo();
+        load_bbcode();
+    }
+
+    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false, style = null;
+    //adds my css to edit custom elements
+    document.addEventListener("DOMContentLoaded", () => {
+        GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
         dark_theme();
+        fix_nav();
+        load_newpage();
+        add_player();
+        add_search();
     });
-    but.setAttribute("title", "Must refresh page for theme change to take effect");
-    but.appendChild(document.createTextNode("Switch Theme"));
-    if (document.getElementsByClassName("lists").length > 0) {
-        let dd = document.createElement("dd");
-        let a = document.createElement("a");
-        a.setAttribute("href", "/resurgence");
-        a.appendChild(document.createTextNode("Resurgence Userscript"));
-        dd.appendChild(a);
-        document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
-        document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(but);
-    } else if (document.getElementsByClassName("footer-col").length > 0) {
-        let li = document.createElement("li");
-        let a = document.createElement("a");
-        a.setAttribute("href", "/resurgence");
-        a.appendChild(document.createTextNode("Resurgence Userscript"));
-        li.appendChild(a);
-        document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
-        document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(but);
-    }
-    //adds the new page
-    if ("https://scratch.mit.edu/resurgence" === url) {
-        GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}');
-        let main = document.getElementsByClassName("box-content")[0];
-        main.innerHTML = "";
-        let h4 = document.createElement("h4");
-        h4.appendChild(document.createTextNode("Resurgence Userscript"));
-        document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;")
-        document.getElementsByClassName("box-head")[0].appendChild(h4);
-        let p = document.createElement("p");
-        p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
-        main.appendChild(p);        
-        p = document.createElement("p");
-        p.appendChild(document.createTextNode("Special thanks to "));
-        let a = document.createElement("a");
-        a.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
-        a.appendChild(document.createTextNode("NitroCipher"));
-        p.appendChild(a);
-        main.appendChild(p);
-        p = document.createElement("p");
-        p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
-        main.appendChild(p);
-        p = document.createElement("p");
-        a = document.createElement("a");
-        a.setAttribute("href", "https://scratch.mit.edu/discuss/topic/274665/");
-        a.appendChild(document.createTextNode("Click this to go to the forum post"));
-        p.appendChild(a);
-        main.appendChild(p);
-        p = document.createElement("p");
-        a = document.createElement("a");
-        a.setAttribute("href", "https://github.com/Wetbikeboy2500/ScratchFixer");
-        a.appendChild(document.createTextNode("Click this to go to the Github repo"));
-        p.appendChild(a);
-        main.appendChild(p);
-        let h3 = document.createElement("h3");
-        h3.appendChild(document.createTextNode("Features"));
-        main.appendChild(h3);
-        let ul = document.createElement("ul");
-        let li = document.createElement("li");
-        li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Adds messages to the main page"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Adds google search so you can search the whole Scratch site with google"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Quick info when hovering over usernames"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Click on a new button “BBCode” to switch between the BBCode and the original post"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Changes the messages area to look like how it use to look"));
-        ul.appendChild(li);
-        li = document.createElement("li");
-        li.appendChild(document.createTextNode("Adds this page to Scratch"));
-        ul.appendChild(li);
-        main.appendChild(ul);
-    }
-    //adds the different players using a dropdown menu
-    if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
-        let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
-        console.log("Project page");
-        if (document.getElementById("share-bar") === null) {
-            menu = document.getElementsByClassName("buttons")[0];
+
+    function fix_nav () {
+        //fixes navbar
+        if (document.getElementById("navigation") !== null) {
+            document.getElementsByClassName("tips")[0].childNodes[0].setAttribute("href", "/discuss");
+            console.log("New Theme");
         } else {
-            menu = document.getElementsByClassName("buttons")[1];
+            let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
+            tips.setAttribute("href", "/discuss");
+            tips.innerHTML = "Forums";
+            console.log("Old Theme");
         }
-        let select = document.createElement("select");
-        select.setAttribute("class", "my_select");
-        select.addEventListener("change", (event) => {
-            if (player === 1 || player === 2 || player === 3) {
-                document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
-            } else if (player === 0) {
-                document.getElementById("player").style = "display: none;";
-            }
-            switch (document.getElementsByClassName("my_select")[0].value) {
-                case "D":
-                    document.getElementById("player").style = "display: block;";
-                    player = 0;
-                    break;
-                case "P":
-                    project = document.getElementById("project");
-                    number = project.getAttribute("data-project-id");
-                    script = document.createElement("script");
-                    script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
-                    document.getElementsByClassName("stage")[0].appendChild(script);
-                    player = 1;
-                    break;
-                case "S":
-                    project = document.getElementById("project");
-                    number = project.getAttribute("data-project-id");
-                    script = document.createElement("script");
-                    script.src = "https://sulfurous.aau.at/js/embed.js?id="+number+"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false";
-                    document.getElementsByClassName("stage")[0].appendChild(script);
-                    player = 2;
-                    break;
-                case "5":
-                    project = document.getElementById("project");
-                    number = project.getAttribute("data-project-id");
-                    let div = document.createElement("div");
-                    div.setAttribute("id", "player");
-                    div.setAttribute("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;");
-                    div.setAttribute("class", "phosphorus");
-                    let obj = document.createElement("object");
-                    obj.setAttribute("style", "position:absolute;top:-51px;left:-2065px");
-                    obj.setAttribute("class", "int-player");
-                    obj.setAttribute("width", "2560");
-                    obj.setAttribute("height", "1440");
-                    obj.setAttribute("data", "https://llk.github.io/scratch-gui/#" + number);
-                    obj.setAttribute("scrolling", "no");
-                    div.appendChild(obj);
-                    document.getElementsByClassName("stage")[0].appendChild(div);
-                    player = 3;
-                    break;
-                default:
-                    document.getElementById("player").style = "display: block;";
-                    player = 0;
-                    break;
-            }
-        }, false);
-        let option = document.createElement("option");
-        option.appendChild(document.createTextNode("Default"));
-        option.setAttribute("value", "D");
-        select.appendChild(option);
-
-        option = document.createElement("option");
-        option.appendChild(document.createTextNode("Phosphorus"));
-        option.setAttribute("value", "P");
-        select.appendChild(option);
-
-        option = document.createElement("option");
-        option.appendChild(document.createTextNode("Sulfurous"));
-        option.setAttribute("value", "S");
-        select.appendChild(option);
-
-        option = document.createElement("option");
-        option.appendChild(document.createTextNode("Scratch 3"));
-        option.setAttribute("value", "5");
-        select.appendChild(option);
-
-        menu.appendChild(select);
     }
-    //adds google to the search
-    if (url.includes("/search/")) {
-        console.log("search");
-        //first load new search
-        let search = document.createElement("gcse:searchresults-only");//<gcse:searchresults-only></gcse:searchresults-only>
-        let display = document.getElementById("projectBox");
-        display.appendChild(search);
+    function load_newpage () {
+        console.log("load newpage");
+        let but = document.createElement("button");
+        but.addEventListener("click", () => {
+            if (GM_getValue("theme", false) === "dark") {
+                GM_setValue("theme", "light");
+            } else {
+                GM_setValue("theme", "dark");
+            }
+            dark_theme();
+        });
+        but.setAttribute("title", "Must refresh page for theme change to take effect");
+        but.appendChild(document.createTextNode("Switch Theme"));
+        if (document.getElementsByClassName("lists").length > 0) {
+            let dd = document.createElement("dd");
+            let a = document.createElement("a");
+            a.setAttribute("href", "/resurgence");
+            a.appendChild(document.createTextNode("Resurgence Userscript"));
+            dd.appendChild(a);
+            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
+            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(but);
+        } else if (document.getElementsByClassName("footer-col").length > 0) {
+            let li = document.createElement("li");
+            let a = document.createElement("a");
+            a.setAttribute("href", "/resurgence");
+            a.appendChild(document.createTextNode("Resurgence Userscript"));
+            li.appendChild(a);
+            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
+            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(but);
+        }
+        //adds the new page
+        if ("https://scratch.mit.edu/resurgence" === url) {
+            GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}');
+            let main = document.getElementsByClassName("box-content")[0];
+            main.innerHTML = "";
+            let h4 = document.createElement("h4");
+            h4.appendChild(document.createTextNode("Resurgence Userscript"));
+            document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;")
+            document.getElementsByClassName("box-head")[0].appendChild(h4);
+            let p = document.createElement("p");
+            p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
+            main.appendChild(p);        
+            p = document.createElement("p");
+            p.appendChild(document.createTextNode("Special thanks to "));
+            let a = document.createElement("a");
+            a.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
+            a.appendChild(document.createTextNode("NitroCipher"));
+            p.appendChild(a);
+            main.appendChild(p);
+            p = document.createElement("p");
+            p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
+            main.appendChild(p);
+            p = document.createElement("p");
+            a = document.createElement("a");
+            a.setAttribute("href", "https://scratch.mit.edu/discuss/topic/274665/");
+            a.appendChild(document.createTextNode("Click this to go to the forum post"));
+            p.appendChild(a);
+            main.appendChild(p);
+            p = document.createElement("p");
+            a = document.createElement("a");
+            a.setAttribute("href", "https://github.com/Wetbikeboy2500/ScratchFixer");
+            a.appendChild(document.createTextNode("Click this to go to the Github repo"));
+            p.appendChild(a);
+            main.appendChild(p);
+            let h3 = document.createElement("h3");
+            h3.appendChild(document.createTextNode("Features"));
+            main.appendChild(h3);
+            let ul = document.createElement("ul");
+            let li = document.createElement("li");
+            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Adds messages to the main page"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Adds google search so you can search the whole Scratch site with google"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Quick info when hovering over usernames"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Click on a new button “BBCode” to switch between the BBCode and the original post"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Changes the messages area to look like how it use to look"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Adds this page to Scratch"));
+            ul.appendChild(li);
+            main.appendChild(ul);
+        }
+    }
+    function add_player () {
+        //adds the different players using a dropdown menu
+        if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
+            let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
+            console.log("Project page");
+            if (document.getElementById("share-bar") === null) {
+                menu = document.getElementsByClassName("buttons")[0];
+            } else {
+                menu = document.getElementsByClassName("buttons")[1];
+            }
+            let select = document.createElement("select");
+            select.setAttribute("class", "my_select");
+            select.addEventListener("change", (event) => {
+                if (player === 1 || player === 2 || player === 3) {
+                    document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
+                } else if (player === 0) {
+                    document.getElementById("player").style = "display: none;";
+                }
+                switch (document.getElementsByClassName("my_select")[0].value) {
+                    case "D":
+                        document.getElementById("player").style = "display: block;";
+                        player = 0;
+                        break;
+                    case "P":
+                        project = document.getElementById("project");
+                        number = project.getAttribute("data-project-id");
+                        script = document.createElement("script");
+                        script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
+                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        player = 1;
+                        break;
+                    case "S":
+                        project = document.getElementById("project");
+                        number = project.getAttribute("data-project-id");
+                        script = document.createElement("script");
+                        script.src = "https://sulfurous.aau.at/js/embed.js?id="+number+"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false";
+                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        player = 2;
+                        break;
+                    case "5":
+                        project = document.getElementById("project");
+                        number = project.getAttribute("data-project-id");
+                        let div = document.createElement("div");
+                        div.setAttribute("id", "player");
+                        div.setAttribute("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;");
+                        div.setAttribute("class", "phosphorus");
+                        let obj = document.createElement("object");
+                        obj.setAttribute("style", "position:absolute;top:-51px;left:-2065px");
+                        obj.setAttribute("class", "int-player");
+                        obj.setAttribute("width", "2560");
+                        obj.setAttribute("height", "1440");
+                        obj.setAttribute("data", "https://llk.github.io/scratch-gui/#" + number);
+                        obj.setAttribute("scrolling", "no");
+                        div.appendChild(obj);
+                        document.getElementsByClassName("stage")[0].appendChild(div);
+                        player = 3;
+                        break;
+                    default:
+                        document.getElementById("player").style = "display: block;";
+                        player = 0;
+                        break;
+                }
+            }, false);
+            let option = document.createElement("option");
+            option.appendChild(document.createTextNode("Default"));
+            option.setAttribute("value", "D");
+            select.appendChild(option);
 
-        var cx = '005257552979626070807:ejqzgnmerl0';
-        var gcse = document.createElement('script');
-        gcse.type = 'text/javascript';
-        gcse.async = true;
-        gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-        var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(gcse, s);
+            option = document.createElement("option");
+            option.appendChild(document.createTextNode("Phosphorus"));
+            option.setAttribute("value", "P");
+            select.appendChild(option);
 
-        //add the button to switch to it
-        let nav = document.getElementsByClassName("sub-nav tabs")[0];
-        let button = document.createElement("a");
-        let li = document.createElement("li");
-        li.setAttribute("id", "active");
-        let img = document.createElement("img");
-        img.setAttribute("class", "tab-icon");
-        img.setAttribute("style", "height: 24px;");
-        li.appendChild(img);
-        let span = document.createElement("span");
-        span.appendChild(document.createTextNode("Google"));
-        li.appendChild(span);
-        button.appendChild(li);
-        nav.appendChild(button);
+            option = document.createElement("option");
+            option.appendChild(document.createTextNode("Sulfurous"));
+            option.setAttribute("value", "S");
+            select.appendChild(option);
 
-        //add function to the button
-        button.addEventListener("click", () => {
-            //make button look selected
-            document.getElementsByClassName("active")[0].removeAttribute("class");
-            document.getElementById("active").setAttribute("class", "active");
-            //need to clear current searches
-            display.childNodes[0].style.display = "none";
-            display.childNodes[1].style.display = "none";
-            document.getElementById("___gcse_0").style.display = "block";
-        }, false);
+            option = document.createElement("option");
+            option.appendChild(document.createTextNode("Scratch 3"));
+            option.setAttribute("value", "5");
+            select.appendChild(option);
+
+            menu.appendChild(select);
+        }
+    }
+    function add_search () {
+        //adds google to the search
+        if (url.includes("/search/")) {
+            console.log("search");
+            //first load new search
+            let search = document.createElement("gcse:searchresults-only");//<gcse:searchresults-only></gcse:searchresults-only>
+            let display = document.getElementById("projectBox");
+            display.appendChild(search);
+
+            var cx = '005257552979626070807:ejqzgnmerl0';
+            var gcse = document.createElement('script');
+            gcse.type = 'text/javascript';
+            gcse.async = true;
+            gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(gcse, s);
+
+            //add the button to switch to it
+            let nav = document.getElementsByClassName("sub-nav tabs")[0];
+            let button = document.createElement("a");
+            let li = document.createElement("li");
+            li.setAttribute("id", "active");
+            let img = document.createElement("img");
+            img.setAttribute("class", "tab-icon");
+            img.setAttribute("style", "height: 24px;");
+            li.appendChild(img);
+            let span = document.createElement("span");
+            span.appendChild(document.createTextNode("Google"));
+            li.appendChild(span);
+            button.appendChild(li);
+            nav.appendChild(button);
+
+            //add function to the button
+            button.addEventListener("click", () => {
+                //make button look selected
+                document.getElementsByClassName("active")[0].removeAttribute("class");
+                document.getElementById("active").setAttribute("class", "active");
+                //need to clear current searches
+                display.childNodes[0].style.display = "none";
+                display.childNodes[1].style.display = "none";
+                document.getElementById("___gcse_0").style.display = "block";
+            }, false);
+        }
     }
     //adds dark theme button
     function dark_theme () {
