@@ -104,8 +104,12 @@
             document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;");
             document.getElementsByClassName("box-head")[0].appendChild(h4);
             let p = document.createElement("p");
-            p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
-            main.appendChild(p);        
+            p.appendChild(document.createTextNode("Made By "));
+            let a = document.createElement("a");
+            a.setAttribute("href", "https://scratch.mit.edu/users/Wetbikeboy2500/");
+            a.appendChild(document.createTextNode("Wetbikeboy2500"));
+            p.appendChild(a);
+            main.appendChild(p);   
             p = document.createElement("p");
             p.appendChild(document.createTextNode("Special thanks to "));
             let a = document.createElement("a");
