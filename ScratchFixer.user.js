@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.4
+// @version      3.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -104,14 +104,18 @@
             document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;");
             document.getElementsByClassName("box-head")[0].appendChild(h4);
             let p = document.createElement("p");
-            p.appendChild(document.createTextNode("Made By Wetbikeboy2500"));
-            main.appendChild(p);        
+            p.appendChild(document.createTextNode("Made By "));
+            let a = document.createElement("a");
+            a.setAttribute("href", "https://scratch.mit.edu/users/Wetbikeboy2500/");
+            a.appendChild(document.createTextNode("Wetbikeboy2500"));
+            p.appendChild(a);
+            main.appendChild(p);   
             p = document.createElement("p");
             p.appendChild(document.createTextNode("Special thanks to "));
-            let a = document.createElement("a");
-            a.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
-            a.appendChild(document.createTextNode("NitroCipher"));
-            p.appendChild(a);
+            let a2 = document.createElement("a");
+            a2.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
+            a2.appendChild(document.createTextNode("NitroCipher"));
+            p.appendChild(a2);
             main.appendChild(p);
             p = document.createElement("p");
             p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
