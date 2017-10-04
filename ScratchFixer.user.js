@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.5
+// @version      3.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -96,7 +96,7 @@
         }
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
-            GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;}');
+            GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
             let main = document.getElementsByClassName("box-content")[0];
             main.innerHTML = "";
             let h4 = document.createElement("h4");
@@ -165,6 +165,9 @@
             ul.appendChild(li);
             li = document.createElement("li");
             li.appendChild(document.createTextNode("Adds this page to Scratch"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Adds option for Dark Theme for Scratch"));
             ul.appendChild(li);
             main.appendChild(ul);
         }
