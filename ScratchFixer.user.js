@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.6
+// @version      3.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -38,10 +38,10 @@
         load_bbcode();
     }
 
-    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false, style = null;
+    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
     //adds my css to edit custom elements
     if (GM_getValue("theme", false) === "dark") {
-        GM_addStyle("html, body {background: none; background-color: #22252a !important;}");
+        GM_addStyle("html, body {background: none; background-color: #17191c !important;}");
     } 
     document.addEventListener("DOMContentLoaded", () => {
         GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
@@ -322,7 +322,6 @@
                     if (xhttp.status == 200 && xhttp.readyState == 4) {
                         let html  = xhttp.responseText;
                         let js = JSON.parse(html);
-                        console.log(js.user);
                         resolve({
                             token: js.user.token,
                             username: js.user.username
@@ -336,20 +335,23 @@
                 xhttp.send(null);
             });
         },
+        //this should instead see if the newest messgae equals our newesst message
         check_unread: (user) => {
             return new Promise ((resolve, reject) => {
                 let r = new XMLHttpRequest();
                 r.onreadystatechange = () => {
                     if (r.status == 200 && r.readyState == 4) {
-                        count = JSON.parse(r.responseText).msg_count;
-                        user.has_messages = count > 0 || GM_getValue("message", true) === true || GM_getValue("username", true) != user.username;
+                        let rec = JSON.parse(r.responseText);
+                        let mes = JSON.parse(GM_getValue("message", true));
+                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
                         resolve(user);
                     }
                 };
                 r.onerror = (error) => {
                     reject("Error checking unread messgaes" + error);
                 };
-                r.open("GET", "https://api.scratch.mit.edu/proxy/users/"+user.username+"/activity/count", true);
+                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                r.setRequestHeader("X-Token", user.token);
                 r.send(null);
             });
         },
@@ -359,7 +361,6 @@
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            //load_message(xhttp.responseText, username);
                             user.messages = xhttp.responseText;
                             resolve(user);
                         }
@@ -383,16 +384,16 @@
             messages.get_session()
                 .then(user => messages.check_unread(user))
                 .then(user => messages.get_message(user))
-                .then(user => load_message(user.messages, user.username))
+                .then(user => load_message(user))
                 .catch((error) => console.warn(error));
         }
     }
 
-    function load_message (json, username) {
+    function load_message (users) {
         GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
-        let html = JSON.parse(json);
-        GM_setValue("username", username);
-        GM_setValue("message", json);
+        let html = JSON.parse(users.messages);
+        GM_setValue("username", users.username);
+        GM_setValue("message", users.messages);
         let ul = document.createElement("ul");
         for (let a of html) {
             let li = document.createElement("li");
@@ -536,14 +537,28 @@
         happening.childNodes[1].childNodes[0].style.display = "none";
         ul.setAttribute("id", "messages");
         happening.childNodes[1].appendChild(ul);
-        //then needs to see message count for the user
-        set_unread(username);
+        set_unread(users);
     }
 
-    function set_unread (username) {
-        let messages = document.getElementById("messages").getElementsByTagName("li");
-        for (let i = 0; i < count; i++) {
-            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+    function set_unread (user) {
+        if (user.has_messages) {
+            let x = new XMLHttpRequest();
+            x.onreadystatechange = () => {
+                if (x.readyState == 4 && x.status == 200) {
+                    let count = JSON.parse(x.responseText).count;
+                    let messages = document.getElementById("messages").getElementsByTagName("li");
+                    for (let i = 0; i < count; i++) {
+                        if (GM_getValue("theme", false) === "dark") {
+                            messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
+                        } else {
+                            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                        }
+
+                    }
+                }
+            };
+            x.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages/count", true);
+            x.send();
         }
     }
 
