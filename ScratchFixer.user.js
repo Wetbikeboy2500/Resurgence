@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.7
+// @version      3.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -29,13 +29,16 @@
             ran_code = true;
             run();
         }
-    },5000);//6 second wait for the page
+    },5000);//5 second wait for the page
 
     function run () {
         load_messages();
-        load_scratchblockcode();
         load_userinfo();
-        load_bbcode();
+        if (url.includes("discuss")) {
+            load_images();
+            load_scratchblockcode();
+            load_bbcode();
+        }
     }
 
     let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
@@ -168,6 +171,9 @@
             ul.appendChild(li);
             li = document.createElement("li");
             li.appendChild(document.createTextNode("Adds option for Dark Theme for Scratch"));
+            ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Enlarge photos in forum posts"));
             ul.appendChild(li);
             main.appendChild(ul);
         }
@@ -702,7 +708,7 @@
     }
     //adds scratchblockcode load support
     function load_scratchblockcode () {
-        if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
+        if (document.getElementsByClassName("blocks")[0] !== null) {
             let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
             console.log("contains scratch blocks");
             let xhttp = new XMLHttpRequest();
@@ -771,37 +777,35 @@
     }
 
     function load_bbcode () {
-        if (url.includes("discuss")) {
-            console.log("load bbcode");
-            let bbarr = [];
-            let posts = document.getElementsByClassName("blockpost");
-            for (let a of posts) {
-                bbarr.push(load_mcode({
-                    url: a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"),
-                    index: posts[bbarr.length]
-                }));
-            }
-            Promise.all(bbarr)
-                .then((post) => {
-                post.forEach ((post) => {
-                    let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
-                    let button = document.createElement("button");
-                    button.setAttribute("style", "height: 15px; line-height: 14px;");
-                    button.appendChild(document.createTextNode("BBCode"));
-                    button.addEventListener("click", (event) => {
-                        if (event.currentTarget.innerHTML === "BBCode") {
-                            post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
-                            event.currentTarget.innerHTML = "Original";
-                        } else {
-                            post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
-                            event.currentTarget.innerHTML = "BBCode";
-                        }
-                    });
-                    post.index.getElementsByClassName("box-head")[0].appendChild(button);
-                });
-            })
-                .catch(error => console.warn(error));
+        console.log("load bbcode");
+        let bbarr = [];
+        let posts = document.getElementsByClassName("blockpost");
+        for (let a of posts) {
+            bbarr.push(load_mcode({
+                url: a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"),
+                index: posts[bbarr.length]
+            }));
         }
+        Promise.all(bbarr)
+            .then((post) => {
+            post.forEach ((post) => {
+                let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
+                let button = document.createElement("button");
+                button.setAttribute("style", "height: 15px; line-height: 14px;");
+                button.appendChild(document.createTextNode("BBCode"));
+                button.addEventListener("click", (event) => {
+                    if (event.currentTarget.innerHTML === "BBCode") {
+                        post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
+                        event.currentTarget.innerHTML = "Original";
+                    } else {
+                        post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
+                        event.currentTarget.innerHTML = "BBCode";
+                    }
+                });
+                post.index.getElementsByClassName("box-head")[0].appendChild(button);
+            });
+        })
+            .catch(error => console.warn(error));
     }
     //using promises
     function load_mcode (post) {
@@ -819,5 +823,39 @@
             xhttp.open("GET", "https://scratch.mit.edu" + post.url + "source/", true);
             xhttp.send(null);
         });
+    }
+    //enlarging images on scratch
+    function load_images () {
+        console.log("load images");
+
+        GM_addStyle("#display_img {position: fixed; left: 0px; top: 51px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 51px); display: none;} #display_img_img {height: 100%;} .postright img {cursor: zoom-in;}");
+        //adds the faded background
+        let div = document.createElement("div");
+        div.setAttribute("id", "display_img");
+        document.getElementById("pagewrapper").appendChild(div);
+
+        let div1 = document.createElement("div");
+        div1.setAttribute("style", "position: fixed; left: 0px; top: 52px; width: 100%; height: calc(100% - 52px); text-align: center; display: none; cursor: zoom-out;");
+        let img = document.createElement("img");
+        img.setAttribute("src", "");
+        img.setAttribute("id", "display_img_img");
+        div1.appendChild(img);
+        document.getElementById("pagewrapper").appendChild(div1);
+        div1.addEventListener("click", (event) => {
+            div.style.display = "none";
+            div1.style.display = "none";
+        });
+
+        let posts = document.getElementsByClassName("postright");
+        for (let a of posts) {
+            let imgs = a.getElementsByTagName("img");
+            for (let b of imgs) {
+                b.addEventListener("click", (event) => {
+                    img.setAttribute("src", event.currentTarget.src);
+                    div.style.display = "block";
+                    div1.style.display = "block";
+                });
+            }
+        }
     }
 })();
