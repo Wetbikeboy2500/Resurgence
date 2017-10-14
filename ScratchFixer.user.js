@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.8
+// @version      3.9
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -32,8 +32,10 @@
     },5000);//5 second wait for the page
 
     function run () {
-        load_messages();
         load_userinfo();
+        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
+            load_messages();
+        }
         if (url.includes("discuss")) {
             load_images();
             load_scratchblockcode();
@@ -273,12 +275,12 @@
             let display = document.getElementById("projectBox");
             display.appendChild(search);
 
-            var cx = '005257552979626070807:ejqzgnmerl0';
-            var gcse = document.createElement('script');
+            let cx = '005257552979626070807:ejqzgnmerl0';
+            let gcse = document.createElement('script');
             gcse.type = 'text/javascript';
             gcse.async = true;
             gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-            var s = document.getElementsByTagName('script')[0];
+            let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
             //add the button to switch to it
@@ -386,13 +388,11 @@
     };
 
     function load_messages () {
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
-            messages.get_session()
-                .then(user => messages.check_unread(user))
-                .then(user => messages.get_message(user))
-                .then(user => load_message(user))
-                .catch((error) => console.warn(error));
-        }
+        messages.get_session()
+            .then(user => messages.check_unread(user))
+            .then(user => messages.get_message(user))
+            .then(user => load_message(user))
+            .catch((error) => console.warn(error));
     }
 
     function load_message (users) {
@@ -538,11 +538,13 @@
             li.appendChild(container);
             ul.appendChild(li);
         }
+        timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
         ul.setAttribute("id", "messages");
         happening.childNodes[1].appendChild(ul);
+
         set_unread(users);
     }
 
@@ -621,15 +623,17 @@
         GM_setValue("user", userinfo);
         //run final code here
         for (let a of links) {
-            if (userinfo.hasOwnProperty(a.getAttribute("href"))) {
-                //if (users.includes(a.getAttribute("href"))) {
+            if (userinfo.hasOwnProperty(a.getAttribute("href")) && a.getAttribute("href") !== GM_getValue("username", "")) {
                 a.addEventListener("mouseenter", (event) => {
                     let div = document.createElement("div");
                     div.setAttribute("class", "userwindow");
-                    div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    if (GM_getValue("theme", false) === "dark") {
+                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: #000;");
+                    } else {
+                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    }
                     let info = userinfo[a.getAttribute("href")];
                     let date = new Date(Date.parse(info.history.joined));
-                    //date = new Date(date);
                     let dif = calcDate(new Date(), date);
                     div.appendChild(document.createTextNode(info.username + " joined " + dif +" from " + info.profile.country));
                     document.body.appendChild(div);
@@ -828,7 +832,7 @@
     function load_images () {
         console.log("load images");
 
-        GM_addStyle("#display_img {position: fixed; left: 0px; top: 51px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 51px); display: none;} #display_img_img {height: 100%;} .postright img {cursor: zoom-in;}");
+        GM_addStyle("#display_img {position: fixed; left: 0px; top: 51px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 51px); display: none;} #display_img_img {height: 100%; max-width: 100%;} .postright img {cursor: zoom-in;}");
         //adds the faded background
         let div = document.createElement("div");
         div.setAttribute("id", "display_img");
@@ -857,5 +861,31 @@
                 });
             }
         }
+    }
+
+    function timer () {
+        let event = new Date("Oct 31, 2017").getTime();
+        let span = document.createElement("span");
+        span.setAttribute("style", "float: right; color: #f6660d;");
+        span.appendChild(document.createTextNode("Halloween"));
+        document.getElementsByClassName("box-header")[0].appendChild(span);
+        let x = setInterval(() => {
+            let distance = event - new Date().getTime();
+
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
+            if (distance < 0) {
+                clearInterval(x);
+                if (days <= -2) {
+                    span.parentElement.removeChild(span);
+                } else {
+                    span.innerHTML = "Its Halloween";
+                }
+            }
+        });
     }
 })();
