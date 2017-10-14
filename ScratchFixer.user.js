@@ -33,9 +33,7 @@
 
     function run () {
         load_userinfo();
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
-            load_messages();
-        }
+        load_messages();
         if (url.includes("discuss")) {
             load_images();
             load_scratchblockcode();
@@ -388,11 +386,13 @@
     };
 
     function load_messages () {
-        messages.get_session()
-            .then(user => messages.check_unread(user))
-            .then(user => messages.get_message(user))
-            .then(user => load_message(user))
-            .catch((error) => console.warn(error));
+        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
+            messages.get_session()
+                .then(user => messages.check_unread(user))
+                .then(user => messages.get_message(user))
+                .then(user => load_message(user))
+                .catch((error) => console.warn(error));
+        }
     }
 
     function load_message (users) {
@@ -623,7 +623,7 @@
         GM_setValue("user", userinfo);
         //run final code here
         for (let a of links) {
-            if (userinfo.hasOwnProperty(a.getAttribute("href")) && a.getAttribute("href") !== GM_getValue("username", "")) {
+            if (userinfo.hasOwnProperty(a.getAttribute("href")) && !a.getAttribute("href").includes(GM_getValue("username", ""))) {
                 a.addEventListener("mouseenter", (event) => {
                     let div = document.createElement("div");
                     div.setAttribute("class", "userwindow");
