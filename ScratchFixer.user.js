@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.9
+// @version      4.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -39,6 +39,8 @@
             load_scratchblockcode();
             load_bbcode();
         }
+
+        load_leaves();
     }
 
     let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
@@ -887,5 +889,59 @@
                 }
             }
         });
+    }
+
+    function load_leaves () {
+        if (url == "https://scratch.mit.edu/") {
+            let we = [];
+            let leaves = function (i) {
+                this.x = Math.random() * 90;
+                this.y = Math.random() * 90;
+                this.z = Math.random() * 90;
+                this.px = Math.random() * window.innerWidth;
+                this.py = 40 * Math.random() * -1;
+                this.r = true;
+                this.index = i;
+
+                this.img = document.createElement("img");
+                let arr = ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"];
+                this.img.src = arr[Math.floor(Math.random() * arr.length)];
+                this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
+                document.body.appendChild(this.img);
+                this.render = () => {
+                    if (this.py > window.innerHeight) {
+                        this.r = false;
+                        document.body.removeChild(this.img);
+                    }
+                    this.x += Math.random() * 0.5;
+                    this.y += Math.random() * 0.5;
+                    this.z += Math.random() * 0.5;
+                    this.py += Math.random() * 0.5;
+                    this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
+
+                };
+            };
+            let create = true;
+            window.addEventListener("blur", () => {
+                create = false;
+            });
+            window.addEventListener("focus", () => {
+                create = true;
+            });
+            setInterval(() => {
+                if (create) {
+                    for (let i = 0; i < 5; i++) {
+                        we.push(new leaves(we.length));
+                    } 
+                }
+            }, 1000);
+            setInterval(() => {
+                we.forEach((a) => {
+                    if (a.r) {
+                        a.render();
+                    }
+                });
+            }, 1);
+        }
     }
 })();
