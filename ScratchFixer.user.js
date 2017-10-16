@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.2
+// @version      4.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -39,7 +39,6 @@
             load_scratchblockcode();
             load_bbcode();
         }
-        misc();
         load_leaves();
     }
 
@@ -55,6 +54,7 @@
         load_newpage();
         add_player();
         add_search();
+        misc();
     });
 
     function fix_nav () {
@@ -959,10 +959,60 @@
                 let d = new Audio("http://scriftj.x10host.com/Vaporwave.mp3");
                 d.play();
                 d.addEventListener("ended", () => {
-                   d.play(); 
-                });
-                GM_addStyle("#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
+                    d.play(); 
+                });               
+                GM_addStyle("body,a:-webkit-any-link{cursor:url(http://i.cubeupload.com/gIEPOl.png),auto;cursor:url(http://i.cubeupload.com/gIEPOl.png),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
                 div.parentElement.removeChild(div);
+
+                let we = [];
+                let leaves = function (i) {
+                    this.x = Math.random() * 90;
+                    this.y = Math.random() * 90;
+                    this.z = Math.random() * 90;
+                    this.px = Math.random() * window.innerWidth;
+                    this.py = 40 * Math.random() * -1;
+                    this.r = true;
+                    this.index = i;
+
+                    this.img = document.createElement("img");
+                    let arr = ["http://scriftj.x10host.com/2aa.png"];
+                    this.img.src = arr[Math.floor(Math.random() * arr.length)];
+                    this.img.setAttribute("style", "position: absolute; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px;");
+                    document.body.appendChild(this.img);
+                    this.render = () => {
+                        if (this.py > window.innerHeight) {
+                            this.r = false;
+                            document.body.removeChild(this.img);
+                        }
+                        this.x += Math.random() * 0.5;
+                        this.y += Math.random() * 0.5;
+                        this.z += Math.random() * 0.5;
+                        this.py += Math.random() * 1;
+                        this.img.setAttribute("style", "position: fixed; index: -1; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
+
+                    };
+                };
+                let create = true;
+                window.addEventListener("blur", () => {
+                    create = false;
+                });
+                window.addEventListener("focus", () => {
+                    create = true;
+                });
+                setInterval(() => {
+                    if (create) {
+                        for (let i = 0; i < 5; i++) {
+                            we.push(new leaves(we.length));
+                        } 
+                    }
+                }, 1000);
+                setInterval(() => {
+                    we.forEach((a) => {
+                        if (a.r) {
+                            a.render();
+                        }
+                    });
+                }, 1);
             });
         }
     }
