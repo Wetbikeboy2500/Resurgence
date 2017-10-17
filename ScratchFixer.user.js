@@ -154,16 +154,14 @@
     function add_player () {
         //adds the different players using a dropdown menu
         if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
-            let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
+            let player = 0, menu; //0 is default, 1 is phosphorous, 2 is sulforus
             console.log("Project page");
             if (document.getElementById("share-bar") === null) {
                 menu = document.getElementsByClassName("buttons")[0];
             } else {
                 menu = document.getElementsByClassName("buttons")[1];
             }
-            let select = document.createElement("select");
-            select.setAttribute("class", "my_select");
-            select.addEventListener("change", (event) => {
+            element("select").a("class", "my_select").e("change", (event) => {
                 if (player === 1 || player === 2 || player === 3) {
                     document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
                 } else if (player === 0) {
@@ -175,37 +173,19 @@
                         player = 0;
                         break;
                     case "P":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        script = document.createElement("script");
-                        script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
-                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        element("script").a("src", "https://phosphorus.github.io/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&auto-start=false&light-content=false")
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 1;
                         break;
                     case "S":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        script = document.createElement("script");
-                        script.src = "https://sulfurous.aau.at/js/embed.js?id="+number+"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false";
-                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        element("script").a("src", "https://sulfurous.aau.at/js/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false")
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 2;
                         break;
                     case "5":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        let div = document.createElement("div");
-                        div.setAttribute("id", "player");
-                        div.setAttribute("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;");
-                        div.setAttribute("class", "phosphorus");
-                        let obj = document.createElement("object");
-                        obj.setAttribute("style", "position:absolute;top:-51px;left:-2065px");
-                        obj.setAttribute("class", "int-player");
-                        obj.setAttribute("width", "2560");
-                        obj.setAttribute("height", "1440");
-                        obj.setAttribute("data", "https://llk.github.io/scratch-gui/#" + number);
-                        obj.setAttribute("scrolling", "no");
-                        div.appendChild(obj);
-                        document.getElementsByClassName("stage")[0].appendChild(div);
+                        element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
+                            .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 3;
                         break;
                     default:
@@ -213,28 +193,12 @@
                         player = 0;
                         break;
                 }
-            }, false);
-            let option = document.createElement("option");
-            option.appendChild(document.createTextNode("Default"));
-            option.setAttribute("value", "D");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Phosphorus"));
-            option.setAttribute("value", "P");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Sulfurous"));
-            option.setAttribute("value", "S");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Scratch 3"));
-            option.setAttribute("value", "5");
-            select.appendChild(option);
-
-            menu.appendChild(select);
+            }, false)
+            .append(element("option").t("Default").a("value", "D"))
+            .append(element("option").t("Phosphorus").a("value", "P"))
+            .append(element("option").t("Sulfurous").a("value", "S"))
+            .append(element("option").t("Scratch 3").a("value", "5"))
+            .ap(menu);
         }
     }
     function add_search () {
@@ -242,7 +206,7 @@
         if (url.includes("/search/")) {
             console.log("search");
             //first load new search
-            let search = document.createElement("gcse:searchresults-only");//<gcse:searchresults-only></gcse:searchresults-only>
+            let search = document.createElement("gcse:searchresults-only");
             let display = document.getElementById("projectBox");
             display.appendChild(search);
 
@@ -254,23 +218,7 @@
             let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
-            //add the button to switch to it
-            let nav = document.getElementsByClassName("sub-nav tabs")[0];
-            let button = document.createElement("a");
-            let li = document.createElement("li");
-            li.setAttribute("id", "active");
-            let img = document.createElement("img");
-            img.setAttribute("class", "tab-icon");
-            img.setAttribute("style", "height: 24px;");
-            li.appendChild(img);
-            let span = document.createElement("span");
-            span.appendChild(document.createTextNode("Google"));
-            li.appendChild(span);
-            button.appendChild(li);
-            nav.appendChild(button);
-
-            //add function to the button
-            button.addEventListener("click", () => {
+            element("a").e("click", () => {
                 //make button look selected
                 document.getElementsByClassName("active")[0].removeAttribute("class");
                 document.getElementById("active").setAttribute("class", "active");
@@ -278,7 +226,11 @@
                 display.childNodes[0].style.display = "none";
                 display.childNodes[1].style.display = "none";
                 document.getElementById("___gcse_0").style.display = "block";
-            }, false);
+            }, false)
+            .append(element("li").a("id", "active")
+                   .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
+                   .append(element("span").t("Google")))
+            .ap(document.getElementsByClassName("sub-nav tabs")[0]);
         }
     }
     //adds dark theme button
@@ -930,7 +882,7 @@
         if (GM_getValue("extras", false) === "true") {
             create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
-            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+            //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
         }
     }
 
@@ -943,22 +895,6 @@
         }
         a (name, value) {
             this.dom.setAttribute(name, value);
-            return this;
-        }
-        o (options, selected) {
-            console.log(options);
-            for (let a in options) {
-                if (options.hasOwnProperty(a)) {
-                    console.log(a, options[a]);
-                    let b = document.createElement("option");
-                    b.setAttribute("value", a);
-                    b.appendChild(document.createTextNode(options[a]));
-                    if (selected == a) {
-                        b.setAttribute("selected", true);
-                    }
-                    this.dom.appendChild(b);
-                } 
-            }
             return this;
         }
         t (text) {
