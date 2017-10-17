@@ -86,7 +86,7 @@
                 .appendChild(but);
         } else if (document.getElementsByClassName("footer-col").length > 0) {
             element("li")
-            .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3])
                 .appendChild(but);
         }
@@ -97,7 +97,7 @@
             main.innerHTML = "";
             element("h4").t("Resurgence Userscript")
                 .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
-            
+
             element("p").t("Made By ")
                 .append(element("a").t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/"))
                 .ap(main);
@@ -112,9 +112,9 @@
             element("p")
                 .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
                 .ap(main);
-            
+
             element("h3").t("Features").ap(main);
-            
+
             element("ul")
                 .append(element("li").t("Forums tab instead of tips tab"))
                 .append(element("li").t("Adds messages to the main page"))
@@ -129,16 +129,16 @@
                 .append(element("li").t("Adds option for Dark Theme for Scratch"))
                 .append(element("li").t("Enlarge photos in forum posts"))
                 .ap(main);
-            
+
             element("h3").t("Special Features/Extras").ap(main);
-            
+
             element("Extras")
                 .append(element("li").t("Halloween countdown timer"))
                 .append(element("li").t("Falling leaves on the homepage"))
                 .append(element("li")
                         .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
                 .ap(main);
-                        
+
             element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
                 .e("click", () => {
                 if (GM_getValue("extras", false) === "false") {
@@ -194,11 +194,11 @@
                         break;
                 }
             }, false)
-            .append(element("option").t("Default").a("value", "D"))
-            .append(element("option").t("Phosphorus").a("value", "P"))
-            .append(element("option").t("Sulfurous").a("value", "S"))
-            .append(element("option").t("Scratch 3").a("value", "5"))
-            .ap(menu);
+                .append(element("option").t("Default").a("value", "D"))
+                .append(element("option").t("Phosphorus").a("value", "P"))
+                .append(element("option").t("Sulfurous").a("value", "S"))
+                .append(element("option").t("Scratch 3").a("value", "5"))
+                .ap(menu);
         }
     }
     function add_search () {
@@ -227,10 +227,10 @@
                 display.childNodes[1].style.display = "none";
                 document.getElementById("___gcse_0").style.display = "block";
             }, false)
-            .append(element("li").a("id", "active")
-                   .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
-                   .append(element("span").t("Google")))
-            .ap(document.getElementsByClassName("sub-nav tabs")[0]);
+                .append(element("li").a("id", "active")
+                        .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
+                        .append(element("span").t("Google")))
+                .ap(document.getElementsByClassName("sub-nav tabs")[0]);
         }
     }
     //adds dark theme button
@@ -325,150 +325,101 @@
         let html = JSON.parse(users.messages);
         GM_setValue("username", users.username);
         GM_setValue("message", users.messages);
-        let ul = document.createElement("ul");
+        let ul = element("ul");
         for (let a of html) {
-            let li = document.createElement("li");
-            let container = document.createElement("div");
-            let link, user;
-
             switch (a.type) {
                 case "forumpost":
-                    container.appendChild(document.createTextNode("There are new posts in the forum: "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/discuss/topic/"+a.topic_id+"/unread/");
-                    link.appendChild(document.createTextNode(a.topic_title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("span").t("There are new posts in the forum: "))
+                              .append(element("a").t(a.topic_title).a("href", "/discuss/topic/"+a.topic_id+"/unread/"))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "studioactivity":
-                    container.appendChild(document.createTextNode("There was new activity in "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("span").t("There was new activity in "))
+                              .append(element("a").t(a.title).a("href", "/studios/"+a.gallery_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "favoriteproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" favorited your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.project_title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" favorited your project "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "loveproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" loved your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" loved your project "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "followuser":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" followed you"));
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" followed you"))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "remixproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" remixed your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" remixed your project "))
+                              .append(element("a").t(a.parent_title).a("href", "/projects/"+a.parent_id))
+                              .append(element("span").t(" as "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "addcomment":
                     if (a.comment_type === 0) { //project
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your project '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your project '))
+                                  .append(element("a").a("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 1) { //profile page
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your profile '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your profile '))
+                                  .append(element("a").a("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 2) {
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" in the studio '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your studio '))
+                                  .append(element("a").a("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else {
                         console.warn("Comment type not found");
                     }
                     break;
                 case "curatorinvite":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(' invited you to curate '));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("span").t(' invited you to curate '))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "becomeownerstudio":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(' promoted you to manager in '));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("span").t(' promoted you to manager in '))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "userjoin":
-                    container.appendChild(document.createTextNode('Welcome to Scratch'));
+                    ul.append(element("li")
+                              .append("span").t('Welcome to Scratch')
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 default:
                     console.warn(a, "Not Found");
-
             }
-            container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
-            li.appendChild(container);
-            ul.appendChild(li);
         }
         timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
-        ul.setAttribute("id", "messages");
-        happening.childNodes[1].appendChild(ul);
+        ul.a("id", "messages").ap(happening.childNodes[1]);
 
         set_unread(users);
     }
