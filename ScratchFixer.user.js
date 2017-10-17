@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      3.6
+// @version      4.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
-// @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.css
+// @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -29,19 +29,23 @@
             ran_code = true;
             run();
         }
-    },5000);//6 second wait for the page
+    },5000);//5 second wait for the page
 
     function run () {
-        load_messages();
-        load_scratchblockcode();
         load_userinfo();
-        load_bbcode();
+        load_messages();
+        if (url.includes("discuss")) {
+            load_images();
+            load_scratchblockcode();
+            load_bbcode();
+        }
+        load_leaves();
     }
 
-    let url = window.location.href, count = null, users = [], userinfo = {}, l, ran_code = false, style = null;
+    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
     //adds my css to edit custom elements
     if (GM_getValue("theme", false) === "dark") {
-        GM_addStyle("html, body {background: none; background-color: #22252a !important;}");
+        GM_addStyle("html, body {background: none; background-color: #17191c !important;}");
     } 
     document.addEventListener("DOMContentLoaded", () => {
         GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
@@ -50,6 +54,7 @@
         load_newpage();
         add_player();
         add_search();
+        misc();
     });
 
     function fix_nav () {
@@ -169,6 +174,9 @@
             li = document.createElement("li");
             li.appendChild(document.createTextNode("Adds option for Dark Theme for Scratch"));
             ul.appendChild(li);
+            li = document.createElement("li");
+            li.appendChild(document.createTextNode("Enlarge photos in forum posts"));
+            ul.appendChild(li);
             main.appendChild(ul);
         }
     }
@@ -267,12 +275,12 @@
             let display = document.getElementById("projectBox");
             display.appendChild(search);
 
-            var cx = '005257552979626070807:ejqzgnmerl0';
-            var gcse = document.createElement('script');
+            let cx = '005257552979626070807:ejqzgnmerl0';
+            let gcse = document.createElement('script');
             gcse.type = 'text/javascript';
             gcse.async = true;
             gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-            var s = document.getElementsByTagName('script')[0];
+            let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
             //add the button to switch to it
@@ -322,7 +330,6 @@
                     if (xhttp.status == 200 && xhttp.readyState == 4) {
                         let html  = xhttp.responseText;
                         let js = JSON.parse(html);
-                        console.log(js.user);
                         resolve({
                             token: js.user.token,
                             username: js.user.username
@@ -336,20 +343,23 @@
                 xhttp.send(null);
             });
         },
+        //this should instead see if the newest messgae equals our newesst message
         check_unread: (user) => {
             return new Promise ((resolve, reject) => {
                 let r = new XMLHttpRequest();
                 r.onreadystatechange = () => {
                     if (r.status == 200 && r.readyState == 4) {
-                        count = JSON.parse(r.responseText).msg_count;
-                        user.has_messages = count > 0 || GM_getValue("message", true) === true || GM_getValue("username", true) != user.username;
+                        let rec = JSON.parse(r.responseText);
+                        let mes = JSON.parse(GM_getValue("message", true));
+                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
                         resolve(user);
                     }
                 };
                 r.onerror = (error) => {
                     reject("Error checking unread messgaes" + error);
                 };
-                r.open("GET", "https://api.scratch.mit.edu/proxy/users/"+user.username+"/activity/count", true);
+                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                r.setRequestHeader("X-Token", user.token);
                 r.send(null);
             });
         },
@@ -359,7 +369,6 @@
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            //load_message(xhttp.responseText, username);
                             user.messages = xhttp.responseText;
                             resolve(user);
                         }
@@ -383,16 +392,16 @@
             messages.get_session()
                 .then(user => messages.check_unread(user))
                 .then(user => messages.get_message(user))
-                .then(user => load_message(user.messages, user.username))
+                .then(user => load_message(user))
                 .catch((error) => console.warn(error));
         }
     }
 
-    function load_message (json, username) {
+    function load_message (users) {
         GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
-        let html = JSON.parse(json);
-        GM_setValue("username", username);
-        GM_setValue("message", json);
+        let html = JSON.parse(users.messages);
+        GM_setValue("username", users.username);
+        GM_setValue("message", users.messages);
         let ul = document.createElement("ul");
         for (let a of html) {
             let li = document.createElement("li");
@@ -531,19 +540,35 @@
             li.appendChild(container);
             ul.appendChild(li);
         }
+        timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
         ul.setAttribute("id", "messages");
         happening.childNodes[1].appendChild(ul);
-        //then needs to see message count for the user
-        set_unread(username);
+
+        set_unread(users);
     }
 
-    function set_unread (username) {
-        let messages = document.getElementById("messages").getElementsByTagName("li");
-        for (let i = 0; i < count; i++) {
-            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+    function set_unread (user) {
+        if (user.has_messages) {
+            let x = new XMLHttpRequest();
+            x.onreadystatechange = () => {
+                if (x.readyState == 4 && x.status == 200) {
+                    let count = JSON.parse(x.responseText).count;
+                    let messages = document.getElementById("messages").getElementsByTagName("li");
+                    for (let i = 0; i < count; i++) {
+                        if (GM_getValue("theme", false) === "dark") {
+                            messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
+                        } else {
+                            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                        }
+
+                    }
+                }
+            };
+            x.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages/count", true);
+            x.send();
         }
     }
 
@@ -600,15 +625,17 @@
         GM_setValue("user", userinfo);
         //run final code here
         for (let a of links) {
-            if (userinfo.hasOwnProperty(a.getAttribute("href"))) {
-                //if (users.includes(a.getAttribute("href"))) {
+            if (userinfo.hasOwnProperty(a.getAttribute("href")) && !a.getAttribute("href").includes(GM_getValue("username", ""))) {
                 a.addEventListener("mouseenter", (event) => {
                     let div = document.createElement("div");
                     div.setAttribute("class", "userwindow");
-                    div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    if (GM_getValue("theme", false) === "dark") {
+                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: #000;");
+                    } else {
+                        div.setAttribute("style", "position: absolute; left: "+ event.pageX +"px; top: "+ (event.pageY + 10) +"px; width: inherit; height: 20px; background-color: white;");
+                    }
                     let info = userinfo[a.getAttribute("href")];
                     let date = new Date(Date.parse(info.history.joined));
-                    //date = new Date(date);
                     let dif = calcDate(new Date(), date);
                     div.appendChild(document.createTextNode(info.username + " joined " + dif +" from " + info.profile.country));
                     document.body.appendChild(div);
@@ -687,7 +714,7 @@
     }
     //adds scratchblockcode load support
     function load_scratchblockcode () {
-        if (url.includes("discuss") && document.getElementsByClassName("blocks")[0] !== null) {
+        if (document.getElementsByClassName("blocks")[0] !== null) {
             let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
             console.log("contains scratch blocks");
             let xhttp = new XMLHttpRequest();
@@ -756,37 +783,35 @@
     }
 
     function load_bbcode () {
-        if (url.includes("discuss")) {
-            console.log("load bbcode");
-            let bbarr = [];
-            let posts = document.getElementsByClassName("blockpost");
-            for (let a of posts) {
-                bbarr.push(load_mcode({
-                    url: a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"),
-                    index: posts[bbarr.length]
-                }));
-            }
-            Promise.all(bbarr)
-                .then((post) => {
-                post.forEach ((post) => {
-                    let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
-                    let button = document.createElement("button");
-                    button.setAttribute("style", "height: 15px; line-height: 14px;");
-                    button.appendChild(document.createTextNode("BBCode"));
-                    button.addEventListener("click", (event) => {
-                        if (event.currentTarget.innerHTML === "BBCode") {
-                            post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
-                            event.currentTarget.innerHTML = "Original";
-                        } else {
-                            post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
-                            event.currentTarget.innerHTML = "BBCode";
-                        }
-                    });
-                    post.index.getElementsByClassName("box-head")[0].appendChild(button);
-                });
-            })
-                .catch(error => console.warn(error));
+        console.log("load bbcode");
+        let bbarr = [];
+        let posts = document.getElementsByClassName("blockpost");
+        for (let a of posts) {
+            bbarr.push(load_mcode({
+                url: a.getElementsByClassName("box-head")[0].getElementsByTagName("a")[0].getAttribute("href"),
+                index: posts[bbarr.length]
+            }));
         }
+        Promise.all(bbarr)
+            .then((post) => {
+            post.forEach ((post) => {
+                let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
+                let button = document.createElement("button");
+                button.setAttribute("style", "height: 15px; line-height: 14px;");
+                button.appendChild(document.createTextNode("BBCode"));
+                button.addEventListener("click", (event) => {
+                    if (event.currentTarget.innerHTML === "BBCode") {
+                        post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
+                        event.currentTarget.innerHTML = "Original";
+                    } else {
+                        post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
+                        event.currentTarget.innerHTML = "BBCode";
+                    }
+                });
+                post.index.getElementsByClassName("box-head")[0].appendChild(button);
+            });
+        })
+            .catch(error => console.warn(error));
     }
     //using promises
     function load_mcode (post) {
@@ -804,5 +829,191 @@
             xhttp.open("GET", "https://scratch.mit.edu" + post.url + "source/", true);
             xhttp.send(null);
         });
+    }
+    //enlarging images on scratch
+    function load_images () {
+        console.log("load images");
+
+        GM_addStyle("#display_img {position: fixed; left: 0px; top: 51px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 51px); display: none;} #display_img_img {height: 100%; max-width: 100%;} .postright img {cursor: zoom-in;}");
+        //adds the faded background
+        let div = document.createElement("div");
+        div.setAttribute("id", "display_img");
+        document.getElementById("pagewrapper").appendChild(div);
+
+        let div1 = document.createElement("div");
+        div1.setAttribute("style", "position: fixed; left: 0px; top: 52px; width: 100%; height: calc(100% - 52px); text-align: center; display: none; cursor: zoom-out;");
+        let img = document.createElement("img");
+        img.setAttribute("src", "");
+        img.setAttribute("id", "display_img_img");
+        div1.appendChild(img);
+        document.getElementById("pagewrapper").appendChild(div1);
+        div1.addEventListener("click", (event) => {
+            div.style.display = "none";
+            div1.style.display = "none";
+        });
+
+        let posts = document.getElementsByClassName("postright");
+        for (let a of posts) {
+            let imgs = a.getElementsByTagName("img");
+            for (let b of imgs) {
+                b.addEventListener("click", (event) => {
+                    img.setAttribute("src", event.currentTarget.src);
+                    div.style.display = "block";
+                    div1.style.display = "block";
+                });
+            }
+        }
+    }
+
+    function timer () {
+        let event = new Date("Oct 31, 2017").getTime();
+        let span = document.createElement("span");
+        span.setAttribute("style", "float: right; color: #f6660d;");
+        span.appendChild(document.createTextNode("Halloween"));
+        document.getElementsByClassName("box-header")[0].appendChild(span);
+        let x = setInterval(() => {
+            let distance = event - new Date().getTime();
+
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
+            if (distance < 0) {
+                clearInterval(x);
+                if (days <= -2) {
+                    span.parentElement.removeChild(span);
+                } else {
+                    span.innerHTML = "Its Halloween";
+                }
+            }
+        });
+    }
+
+    function load_leaves () {
+        if (url == "https://scratch.mit.edu/") {
+            //I should instread make this so it keeps creating until one is delted and stops then the movemtn downward would also be controlled with css so it is always moving and hopefully it would look better that way
+            let we = [];
+            let leaves = function (i) {
+                this.x = Math.random() * 90;
+                this.y = Math.random() * 90;
+                this.z = Math.random() * 90;
+                this.px = Math.random() * window.innerWidth;
+                this.py = 40 * Math.random() * -1;
+                this.r = true;
+                this.index = i;
+
+                this.img = document.createElement("img");
+                let arr = ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"];
+                this.img.src = arr[Math.floor(Math.random() * arr.length)];
+                this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
+                document.body.appendChild(this.img);
+                this.render = () => {
+                    if (this.py > window.innerHeight) {
+                        this.r = false;
+                        document.body.removeChild(this.img);
+                    }
+                    this.x += Math.random() * 0.5;
+                    this.y += Math.random() * 0.5;
+                    this.z += Math.random() * 0.5;
+                    this.py += Math.random() * 0.5;
+                    this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
+
+                };
+            };
+            let create = true;
+            window.addEventListener("blur", () => {
+                create = false;
+            });
+            window.addEventListener("focus", () => {
+                create = true;
+            });
+            setInterval(() => {
+                if (create) {
+                    for (let i = 0; i < 5; i++) {
+                        we.push(new leaves(we.length));
+                    } 
+                }
+            }, 1000);
+            setInterval(() => {
+                we.forEach((a) => {
+                    if (a.r) {
+                        a.render();
+                    }
+                });
+            }, 1);
+        }
+    }
+
+    function misc () {
+        if (url == "https://scratch.mit.edu/users/DeleteThisAcount/") {
+            let div = document.createElement("div");
+            div.setAttribute("style", "position: fixed; width: 100%; height: calc(100% - 51px); left: 0px; top: 51px; text-align:center; background-color: #000;");
+            let img = document.createElement("img");
+            img.src = "https://pics.me.me/warning-visitors-with-no-sense-of-humor-are-advised-to-14064989.png";
+            img.setAttribute("style", "height: 100%;");
+            div.appendChild(img);
+            document.body.appendChild(div);
+            div.addEventListener("click", () => {
+                let d = new Audio("http://scriftj.x10host.com/Vaporwave.mp3");
+                d.play();
+                d.addEventListener("ended", () => {
+                    d.play(); 
+                });               
+                GM_addStyle("body,a:-webkit-any-link{cursor:url(http://i.cubeupload.com/gIEPOl.png),auto;cursor:url(http://i.cubeupload.com/gIEPOl.png),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
+                div.parentElement.removeChild(div);
+
+                let we = [];
+                let leaves = function (i) {
+                    this.x = Math.random() * 90;
+                    this.y = Math.random() * 90;
+                    this.z = Math.random() * 90;
+                    this.px = Math.random() * window.innerWidth;
+                    this.py = 40 * Math.random() * -1;
+                    this.r = true;
+                    this.index = i;
+
+                    this.img = document.createElement("img");
+                    let arr = ["http://scriftj.x10host.com/2aa.png"];
+                    this.img.src = arr[Math.floor(Math.random() * arr.length)];
+                    this.img.setAttribute("style", "position: absolute; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px;");
+                    document.body.appendChild(this.img);
+                    this.render = () => {
+                        if (this.py > window.innerHeight) {
+                            this.r = false;
+                            document.body.removeChild(this.img);
+                        }
+                        this.x += Math.random() * 0.5;
+                        this.y += Math.random() * 0.5;
+                        this.z += Math.random() * 0.5;
+                        this.py += Math.random() * 1;
+                        this.img.setAttribute("style", "position: fixed; index: -1; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
+
+                    };
+                };
+                let create = true;
+                window.addEventListener("blur", () => {
+                    create = false;
+                });
+                window.addEventListener("focus", () => {
+                    create = true;
+                });
+                setInterval(() => {
+                    if (create) {
+                        for (let i = 0; i < 5; i++) {
+                            we.push(new leaves(we.length));
+                        } 
+                    }
+                }, 1000);
+                setInterval(() => {
+                    we.forEach((a) => {
+                        if (a.r) {
+                            a.render();
+                        }
+                    });
+                }, 1);
+            });
+        }
     }
 })();
