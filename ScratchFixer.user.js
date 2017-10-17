@@ -39,7 +39,6 @@
             load_scratchblockcode();
             load_bbcode();
         }
-        load_leaves();
     }
 
     let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
@@ -54,7 +53,7 @@
         load_newpage();
         add_player();
         add_search();
-        misc();
+        load_extras();
     });
 
     function fix_nav () {
@@ -71,126 +70,85 @@
     }
     function load_newpage () {
         console.log("load newpage");
-        let but = document.createElement("button");
-        but.addEventListener("click", () => {
+        let but = element("button").a("title", "Must refresh page for theme change to take effect").t("Switch Theme")
+        .e("click", () => {
             if (GM_getValue("theme", false) === "dark") {
                 GM_setValue("theme", "light");
             } else {
                 GM_setValue("theme", "dark");
             }
             dark_theme();
-        });
-        but.setAttribute("title", "Must refresh page for theme change to take effect");
-        but.appendChild(document.createTextNode("Switch Theme"));
+        }).dom;
         if (document.getElementsByClassName("lists").length > 0) {
-            let dd = document.createElement("dd");
-            let a = document.createElement("a");
-            a.setAttribute("href", "/resurgence");
-            a.appendChild(document.createTextNode("Resurgence Userscript"));
-            dd.appendChild(a);
-            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
-            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(but);
+            element("dd")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1])
+                .appendChild(but);
         } else if (document.getElementsByClassName("footer-col").length > 0) {
-            let li = document.createElement("li");
-            let a = document.createElement("a");
-            a.setAttribute("href", "/resurgence");
-            a.appendChild(document.createTextNode("Resurgence Userscript"));
-            li.appendChild(a);
-            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
-            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(but);
+            element("li")
+            .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3])
+                .appendChild(but);
         }
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
             let main = document.getElementsByClassName("box-content")[0];
             main.innerHTML = "";
-            let h4 = document.createElement("h4");
-            h4.appendChild(document.createTextNode("Resurgence Userscript"));
-            document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;");
-            document.getElementsByClassName("box-head")[0].appendChild(h4);
-            let p = document.createElement("p");
-            p.appendChild(document.createTextNode("Made By "));
-            let a = document.createElement("a");
-            a.setAttribute("href", "https://scratch.mit.edu/users/Wetbikeboy2500/");
-            a.appendChild(document.createTextNode("Wetbikeboy2500"));
-            p.appendChild(a);
-            main.appendChild(p);   
-            p = document.createElement("p");
-            p.appendChild(document.createTextNode("Special thanks to "));
-            let a2 = document.createElement("a");
-            a2.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
-            a2.appendChild(document.createTextNode("NitroCipher"));
-            p.appendChild(a2);
-            main.appendChild(p);
-            p = document.createElement("p");
-            p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
-            main.appendChild(p);
-            p = document.createElement("p");
-            a = document.createElement("a");
-            a.setAttribute("href", "https://scratch.mit.edu/discuss/topic/274665/");
-            a.appendChild(document.createTextNode("Click this to go to the forum post"));
-            p.appendChild(a);
-            main.appendChild(p);
-            p = document.createElement("p");
-            a = document.createElement("a");
-            a.setAttribute("href", "https://github.com/Wetbikeboy2500/ScratchFixer");
-            a.appendChild(document.createTextNode("Click this to go to the Github repo"));
-            p.appendChild(a);
-            main.appendChild(p);
-            let h3 = document.createElement("h3");
-            h3.appendChild(document.createTextNode("Features"));
-            main.appendChild(h3);
-            let ul = document.createElement("ul");
-            let li = document.createElement("li");
-            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds messages to the main page"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds google search so you can search the whole Scratch site with google"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Quick info when hovering over usernames"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Click on a new button “BBCode” to switch between the BBCode and the original post"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Changes the messages area to look like how it use to look"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds this page to Scratch"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds option for Dark Theme for Scratch"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Enlarge photos in forum posts"));
-            ul.appendChild(li);
-            let but2 = document.createElement("button");
-            but2.addEventListener("click", () => {
-            if (GM_getValue("extras", false) === "false") {
-                GM_setValue("extras", "true");
-                alert('Extras are now enabled.');
-            } else {
-                GM_setValue("extras", "false");
-                alert('Extras have been disabled.');
-            }
-            });
-            but2.setAttribute("title", "Enables/disables display of leaves/deletos");
-            but2.appendChild(document.createTextNode("Extras"));
-            ul.appendChild(but2);
-            main.appendChild(ul);
+            element("h4").t("Resurgence Userscript")
+                .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
+            
+            element("p").t("Made By ")
+                .append(element("a").t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/"))
+                .ap(main);
+            element("p").t("Special thanks to ")
+                .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
+                .ap(main);
+            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future.")
+                .ap(main);
+            element("p")
+                .append(element("a").t("Click this to go to the forum post").a("href", "https://scratch.mit.edu/discuss/topic/274665/"))
+                .ap(main);
+            element("p")
+                .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
+                .ap(main);
+            
+            element("h3").t("Features").ap(main);
+            
+            element("ul")
+                .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Adds messages to the main page"))
+                .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
+                .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
+                .append(element("li").t("Quick info when hovering over usernames"))
+                .append(element("li").t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"))
+                .append(element("li").t("Click on a new button “BBCode” to switch between the BBCode and the original post"))
+                .append(element("li").t("Changes the messages area to look like how it use to look"))
+                .append(element("li").t("Adds this page to Scratch"))
+                .append(element("li").t("Adds option for Dark Theme for Scratch"))
+                .append(element("li").t("Enlarge photos in forum posts"))
+                .ap(main);
+            
+            element("h3").t("Special Features/Extras").ap(main);
+            
+            element("Extras")
+                .append(element("li").t("Halloween countdown timer"))
+                .append(element("li").t("Falling leaves on the homepage"))
+                .append(element("li")
+                        .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
+                .ap(main);
+                        
+            element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
+                .e("click", () => {
+                if (GM_getValue("extras", false) === "false") {
+                    GM_setValue("extras", "true");
+                    alert('Extras are now enabled.');
+                } else {
+                    GM_setValue("extras", "false");
+                    alert('Extras have been disabled.');
+                }
+            }).ap(main);
         }
     }
     function add_player () {
@@ -904,133 +862,124 @@
         });
     }
 
-    function load_leaves () {
-        if (GM_getValue("extras", false) === "true") {
-            if (url == "https://scratch.mit.edu/") {
-                //I should instread make this so it keeps creating until one is delted and stops then the movemtn downward would also be controlled with css so it is always moving and hopefully it would look better that way
-                let we = [];
-                let leaves = function (i) {
-                    this.x = Math.random() * 90;
-                    this.y = Math.random() * 90;
-                    this.z = Math.random() * 90;
-                    this.px = Math.random() * window.innerWidth;
-                    this.py = 40 * Math.random() * -1;
-                    this.r = true;
-                    this.index = i;
+    function create_falling(link, img, extreme, cursor = null, audio = false) {
+        if (url == link) {
+            let we = [];
+            let leaves = function (i) {
+                this.x = Math.random() * 90;
+                this.y = Math.random() * 90;
+                this.z = Math.random() * 90;
+                this.px = Math.random() * window.innerWidth;
+                this.py = 40 * Math.random() * -1;
+                this.r = true;
+                this.index = i;
 
-                    this.img = document.createElement("img");
-                    let arr = ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"];
-                    this.img.src = arr[Math.floor(Math.random() * arr.length)];
-                    this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
-                    document.body.appendChild(this.img);
-                    this.render = () => {
-                        if (this.py > window.innerHeight) {
-                            this.r = false;
-                            document.body.removeChild(this.img);
-                        }
-                        this.x += Math.random() * 0.5;
-                        this.y += Math.random() * 0.5;
-                        this.z += Math.random() * 0.5;
-                        this.py += Math.random() * 0.5;
-                        this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
-
-                    };
-                };
-                let create = true;
-                window.addEventListener("blur", () => {
-                    create = false;
-                });
-                window.addEventListener("focus", () => {
-                    create = true;
-                });
-                setInterval(() => {
-                    if (create) {
-                        for (let i = 0; i < 5; i++) {
-                            we.push(new leaves(we.length));
-                        }
+                this.img = document.createElement("img");
+                this.img.src = img[Math.floor(Math.random() * img.length)];
+                this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
+                document.body.appendChild(this.img);
+                this.render = () => {
+                    if (this.py > window.innerHeight) {
+                        this.r = false;
+                        document.body.removeChild(this.img);
                     }
-                }, 1000);
-                setInterval(() => {
-                    we.forEach((a) => {
-                        if (a.r) {
-                            a.render();
-                        }
-                    });
-                }, 1);
-            }
-        }
-    }
+                    this.x += Math.random() * 0.5;
+                    this.y += Math.random() * 0.5;
+                    this.z += Math.random() * 0.5;
+                    this.py += Math.random() * 0.5;
+                    this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
 
-    function misc () {
-        if (GM_getValue("extras", false) === "true") {
-            if (url == "https://scratch.mit.edu/users/DeleteThisAcount/") {
-                let div = document.createElement("div");
-                div.setAttribute("style", "position: fixed; width: 100%; height: calc(100% - 51px); left: 0px; top: 51px; text-align:center; background-color: #000;");
-                let img = document.createElement("img");
-                img.src = "https://pics.me.me/warning-visitors-with-no-sense-of-humor-are-advised-to-14064989.png";
-                img.setAttribute("style", "height: 100%;");
-                div.appendChild(img);
-                document.body.appendChild(div);
-                div.addEventListener("click", () => {
-                    let d = new Audio("http://scriftj.x10host.com/Vaporwave.mp3");
+                };
+            };
+            let create = true;
+            window.addEventListener("blur", () => {
+                create = false;
+            });
+            window.addEventListener("focus", () => {
+                create = true;
+            });
+            setInterval(() => {
+                if (create) {
+                    for (let i = 0; i < 5; i++) {
+                        we.push(new leaves(we.length));
+                    }
+                }
+            }, 1000);
+            setInterval(() => {
+                we.forEach((a) => {
+                    if (a.r) {
+                        a.render();
+                    }
+                });
+            }, 1);
+
+            if (extreme) {
+                if (audio) {
+                    let d = new Audio(audio);
                     d.play();
                     d.addEventListener("ended", () => {
                         d.play();
                     });
-                    GM_addStyle("body,a:-webkit-any-link{cursor:url(http://i.cubeupload.com/gIEPOl.png),auto;cursor:url(http://i.cubeupload.com/gIEPOl.png),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
-                    div.parentElement.removeChild(div);
-
-                    let we = [];
-                    let leaves = function (i) {
-                        this.x = Math.random() * 90;
-                        this.y = Math.random() * 90;
-                        this.z = Math.random() * 90;
-                        this.px = Math.random() * window.innerWidth;
-                        this.py = 40 * Math.random() * -1;
-                        this.r = true;
-                        this.index = i;
-
-                        this.img = document.createElement("img");
-                        let arr = ["http://scriftj.x10host.com/2aa.png"];
-                        this.img.src = arr[Math.floor(Math.random() * arr.length)];
-                        this.img.setAttribute("style", "position: absolute; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px;");
-                        document.body.appendChild(this.img);
-                        this.render = () => {
-                            if (this.py > window.innerHeight) {
-                                this.r = false;
-                                document.body.removeChild(this.img);
-                            }
-                            this.x += Math.random() * 0.5;
-                            this.y += Math.random() * 0.5;
-                            this.z += Math.random() * 0.5;
-                            this.py += Math.random() * 1;
-                            this.img.setAttribute("style", "position: fixed; index: -1; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
-
-                        };
-                    };
-                    let create = true;
-                    window.addEventListener("blur", () => {
-                        create = false;
-                    });
-                    window.addEventListener("focus", () => {
-                        create = true;
-                    });
-                    setInterval(() => {
-                        if (create) {
-                            for (let i = 0; i < 5; i++) {
-                                we.push(new leaves(we.length));
-                            }
-                        }
-                    }, 1000);
-                    setInterval(() => {
-                        we.forEach((a) => {
-                            if (a.r) {
-                                a.render();
-                            }
-                        });
-                    }, 1);
-                });
+                }
+                GM_addStyle("body,a:-webkit-any-link{cursor:url("+cursor+"),auto;cursor:url("+cursor+"),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
             }
+        }
+    }
+
+    function load_extras () {
+        if (GM_getValue("extras", false) === "true") {
+            create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
+            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+        }
+    }
+
+    function element (name) {
+        return new _element(name);
+    }
+    class _element {
+        constructor (name) {
+            this.dom = document.createElement(name);
+        }
+        a (name, value) {
+            this.dom.setAttribute(name, value);
+            return this;
+        }
+        o (options, selected) {
+            console.log(options);
+            for (let a in options) {
+                if (options.hasOwnProperty(a)) {
+                    console.log(a, options[a]);
+                    let b = document.createElement("option");
+                    b.setAttribute("value", a);
+                    b.appendChild(document.createTextNode(options[a]));
+                    if (selected == a) {
+                        b.setAttribute("selected", true);
+                    }
+                    this.dom.appendChild(b);
+                } 
+            }
+            return this;
+        }
+        t (text) {
+            this.dom.appendChild(document.createTextNode(text));
+            return this;
+        }
+        e (trigger, callback) {
+            this.dom.addEventListener(trigger, callback);
+            return this;
+        }
+        append (element2) {
+            this.dom.appendChild(element2.dom);
+            return this;
+        }
+        ap (dom) {
+            dom.appendChild(this.dom);
+            return dom;
+        }
+        apthis (dom) {
+            dom.appendChild(this.dom);
+            return this.dom;
         }
     }
 })();
