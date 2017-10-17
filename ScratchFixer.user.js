@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.4
+// @version      4.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -70,25 +70,14 @@
     }
     function load_newpage () {
         console.log("load newpage");
-        let but = element("button").a("title", "Must refresh page for theme change to take effect").t("Switch Theme")
-        .e("click", () => {
-            if (GM_getValue("theme", false) === "dark") {
-                GM_setValue("theme", "light");
-            } else {
-                GM_setValue("theme", "dark");
-            }
-            dark_theme();
-        }).dom;
         if (document.getElementsByClassName("lists").length > 0) {
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1])
-                .appendChild(but);
+                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
         } else if (document.getElementsByClassName("footer-col").length > 0) {
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3])
-                .appendChild(but);
+                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
         }
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
@@ -141,13 +130,23 @@
 
             element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
                 .e("click", () => {
-                if (GM_getValue("extras", false) === "false") {
-                    GM_setValue("extras", "true");
-                    alert('Extras are now enabled.');
+                if (GM_getValue("extras", true)) {
+                    GM_setValue("extras", false);
+                    alert('Extras are now disabled.');
                 } else {
-                    GM_setValue("extras", "false");
-                    alert('Extras have been disabled.');
+                    GM_setValue("extras", true);
+                    alert('Extras are now enabled.');
                 }
+            }).ap(main);
+
+            element("button").a("title", "Must refresh page for theme change to take effect").t("Switch Theme")
+                .e("click", () => {
+                if (GM_getValue("theme", false) === "dark") {
+                    GM_setValue("theme", "light");
+                } else {
+                    GM_setValue("theme", "dark");
+                }
+                dark_theme();
             }).ap(main);
         }
     }
@@ -670,10 +669,8 @@
             .then((post) => {
             post.forEach ((post) => {
                 let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
-                let button = document.createElement("button");
-                button.setAttribute("style", "height: 15px; line-height: 14px;");
-                button.appendChild(document.createTextNode("BBCode"));
-                button.addEventListener("click", (event) => {
+                element("button").a("style", "height: 15px; line-height: 14px;").t("BBCode")
+                    .e("click", (event) => {
                     if (event.currentTarget.innerHTML === "BBCode") {
                         post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
                         event.currentTarget.innerHTML = "Original";
@@ -681,8 +678,8 @@
                         post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
                         event.currentTarget.innerHTML = "BBCode";
                     }
-                });
-                post.index.getElementsByClassName("box-head")[0].appendChild(button);
+                })
+                    .ap(post.index.getElementsByClassName("box-head")[0]);
             });
         })
             .catch(error => console.warn(error));
@@ -830,7 +827,7 @@
     }
 
     function load_extras () {
-        if (GM_getValue("extras", false) === "true") {
+        if (GM_getValue("extras", true)) {
             create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
             //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
