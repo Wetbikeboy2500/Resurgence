@@ -36,6 +36,21 @@ input color #1f2229
 .project-status-bar .buttons input.small {
     color: #000 !important;
 }
+.button.grey,
+button {
+    border-radius: 0px;
+    border: 0px;
+    background-color: #2196f3;
+    background-image: none;
+    text-shadow: none;
+    color: #fff;
+    box-shadow: none;
+}
+.button.grey:hover,
+button:hover {
+    background-image: none;
+    background-color: #1976d2;
+}
 .markItUp .browser-os-button a,
 .markItUp .markItUpButton1 a,
 .markItUp .markItUpButton2 a,
