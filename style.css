@@ -36,20 +36,29 @@ input color #1f2229
 .project-status-bar .buttons input.small {
     color: #000 !important;
 }
+.dropdown .dropdown-menu ul {
+    color: #000;
+}
 .button.grey,
 button {
     border-radius: 0px;
-    border: 0px;
-    background-color: #2196f3;
+    background-color: #2d3035;
+    border: 1px solid #1f2227;
     background-image: none;
     text-shadow: none;
-    color: #fff;
+    color: #fff !important;
     box-shadow: none;
+}
+.button.grey>span,
+button>span,
+.button.small>span,
+button.small>span {
+    color: #fff !important;
 }
 .button.grey:hover,
 button:hover {
     background-image: none;
-    background-color: #1976d2;
+    background-color: #1f2227;
 }
 .markItUp .browser-os-button a,
 .markItUp .markItUpButton1 a,
