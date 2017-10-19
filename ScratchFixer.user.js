@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.5
+// @version      4.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -325,6 +325,11 @@
     function load_message (users) {
         GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(users.messages);
+        let decodetext = (text) => {
+            let txt = element("textarea").dom;
+            txt.innerHTML = text;
+            return txt.value;
+        };
         GM_setValue("username", users.username);
         GM_setValue("message", users.messages);
         let ul = element("ul");
@@ -375,20 +380,20 @@
                     if (a.comment_type === 0) { //project
                         ul.append(element("li")
                                   .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your project '))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your project '))
                                   .append(element("a").a("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
                                   .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 1) { //profile page
                         ul.append(element("li")
                                   .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your profile '))
-                                  .append(element("a").a("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your profile '))
+                                  .append(element("a").a("href", "/users/"+a.comment_obj_title+"/#comments-"+a.comment_id).t(a.comment_obj_title))
                                   .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 2) {
                         ul.append(element("li")
                                   .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                                  .append(element("span").t(' commented "'+a.comment_fragment+'" on your studio '))
-                                  .append(element("a").a("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your studio '))
+                                  .append(element("a").a("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
                                   .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else {
                         console.warn("Comment type not found");
