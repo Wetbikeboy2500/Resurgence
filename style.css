@@ -581,6 +581,10 @@ textarea {
 #language-selection {
     color: #000!important;
 }
+#navigation .inner>ul>li.search .btn-search {
+    background-color: transparent !important;
+    background-image: url(/images/nav-search-glass.png) !important;
+}
 body>#pagewrapper {
     background-color: #17191c!important;
 }
