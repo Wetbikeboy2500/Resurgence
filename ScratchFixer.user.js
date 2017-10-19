@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.6
+// @version      4.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -41,10 +41,10 @@
         }
     }
 
-    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1;
+    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null;
     //adds my css to edit custom elements
     if (GM_getValue("theme", false) === "dark") {
-        style1 = GM_addStyle("html, body {background: none; background-color: #17191c !important;}");
+        style1 = GM_addStyle(GM_getResourceText("CSS"));
     } 
     document.addEventListener("DOMContentLoaded", () => {
         GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
@@ -152,7 +152,7 @@
     }
     function add_player () {
         //adds the different players using a dropdown menu
-        if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
+        if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
             let player = 0, menu; //0 is default, 1 is phosphorous, 2 is sulforus
             console.log("Project page");
             if (document.getElementById("share-bar") === null) {
