@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.4
+// @version      4.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -39,13 +39,12 @@
             load_scratchblockcode();
             load_bbcode();
         }
-        load_leaves();
     }
 
-    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null;
+    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null;
     //adds my css to edit custom elements
     if (GM_getValue("theme", false) === "dark") {
-        GM_addStyle("html, body {background: none; background-color: #17191c !important;}");
+        style1 = GM_addStyle(GM_getResourceText("CSS"));
     } 
     document.addEventListener("DOMContentLoaded", () => {
         GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
@@ -54,7 +53,7 @@
         load_newpage();
         add_player();
         add_search();
-        misc();
+        load_extras();
     });
 
     function fix_nav () {
@@ -71,141 +70,97 @@
     }
     function load_newpage () {
         console.log("load newpage");
-        let but = document.createElement("button");
-        but.addEventListener("click", () => {
-            if (GM_getValue("theme", false) === "dark") {
-                GM_setValue("theme", "light");
-            } else {
-                GM_setValue("theme", "dark");
-            }
-            dark_theme();
-        });
-        but.setAttribute("title", "Must refresh page for theme change to take effect");
-        but.appendChild(document.createTextNode("Switch Theme"));
         if (document.getElementsByClassName("lists").length > 0) {
-            let dd = document.createElement("dd");
-            let a = document.createElement("a");
-            a.setAttribute("href", "/resurgence");
-            a.appendChild(document.createTextNode("Resurgence Userscript"));
-            dd.appendChild(a);
-            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(dd);
-            document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1].appendChild(but);
+            element("dd")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
         } else if (document.getElementsByClassName("footer-col").length > 0) {
-            let li = document.createElement("li");
-            let a = document.createElement("a");
-            a.setAttribute("href", "/resurgence");
-            a.appendChild(document.createTextNode("Resurgence Userscript"));
-            li.appendChild(a);
-            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(li);
-            document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3].appendChild(but);
+            element("li")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
         }
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
             let main = document.getElementsByClassName("box-content")[0];
             main.innerHTML = "";
-            let h4 = document.createElement("h4");
-            h4.appendChild(document.createTextNode("Resurgence Userscript"));
-            document.getElementsByClassName("box-head")[0].setAttribute("style", "padding: 10px 0px 0px 7px !important;");
-            document.getElementsByClassName("box-head")[0].appendChild(h4);
-            let p = document.createElement("p");
-            p.appendChild(document.createTextNode("Made By "));
-            let a = document.createElement("a");
-            a.setAttribute("href", "https://scratch.mit.edu/users/Wetbikeboy2500/");
-            a.appendChild(document.createTextNode("Wetbikeboy2500"));
-            p.appendChild(a);
-            main.appendChild(p);   
-            p = document.createElement("p");
-            p.appendChild(document.createTextNode("Special thanks to "));
-            let a2 = document.createElement("a");
-            a2.setAttribute("href", "https://scratch.mit.edu/users/NitroCipher/");
-            a2.appendChild(document.createTextNode("NitroCipher"));
-            p.appendChild(a2);
-            main.appendChild(p);
-            p = document.createElement("p");
-            p.appendChild(document.createTextNode("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future."));
-            main.appendChild(p);
-            p = document.createElement("p");
-            a = document.createElement("a");
-            a.setAttribute("href", "https://scratch.mit.edu/discuss/topic/274665/");
-            a.appendChild(document.createTextNode("Click this to go to the forum post"));
-            p.appendChild(a);
-            main.appendChild(p);
-            p = document.createElement("p");
-            a = document.createElement("a");
-            a.setAttribute("href", "https://github.com/Wetbikeboy2500/ScratchFixer");
-            a.appendChild(document.createTextNode("Click this to go to the Github repo"));
-            p.appendChild(a);
-            main.appendChild(p);
-            let h3 = document.createElement("h3");
-            h3.appendChild(document.createTextNode("Features"));
-            main.appendChild(h3);
-            let ul = document.createElement("ul");
-            let li = document.createElement("li");
-            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds messages to the main page"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Forums tab instead of tips tab"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds google search so you can search the whole Scratch site with google"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Quick info when hovering over usernames"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Click on a new button “BBCode” to switch between the BBCode and the original post"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Changes the messages area to look like how it use to look"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds this page to Scratch"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Adds option for Dark Theme for Scratch"));
-            ul.appendChild(li);
-            li = document.createElement("li");
-            li.appendChild(document.createTextNode("Enlarge photos in forum posts"));
-            ul.appendChild(li);
-            let but2 = document.createElement("button");
-            but2.addEventListener("click", () => {
-            if (GM_getValue("extras", false) === "false") {
-                GM_setValue("extras", "true");
-                alert('Extras are now enabled.');
-            } else {
-                GM_setValue("extras", "false");
-                alert('Extras have been disabled.');
-            }
-            });
-            but2.setAttribute("title", "Enables/disables display of leaves/deletos");
-            but2.appendChild(document.createTextNode("Extras"));
-            ul.appendChild(but2);
-            main.appendChild(ul);
+            element("h4").t("Resurgence Userscript")
+                .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
+
+            element("p").t("Made By ")
+                .append(element("a").t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/"))
+                .ap(main);
+            element("p").t("Special thanks to ")
+                .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
+                .ap(main);
+            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future.")
+                .ap(main);
+            element("p")
+                .append(element("a").t("Click this to go to the forum post").a("href", "https://scratch.mit.edu/discuss/topic/274665/"))
+                .ap(main);
+            element("p")
+                .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
+                .ap(main);
+
+            element("h3").t("Features").ap(main);
+
+            element("ul")
+                .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Adds messages to the main page"))
+                .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
+                .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
+                .append(element("li").t("Quick info when hovering over usernames"))
+                .append(element("li").t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"))
+                .append(element("li").t("Click on a new button “BBCode” to switch between the BBCode and the original post"))
+                .append(element("li").t("Changes the messages area to look like how it use to look"))
+                .append(element("li").t("Adds this page to Scratch"))
+                .append(element("li").t("Adds option for Dark Theme for Scratch"))
+                .append(element("li").t("Enlarge photos in forum posts"))
+                .ap(main);
+
+            element("h3").t("Special Features/Extras").ap(main);
+
+            element("Extras")
+                .append(element("li").t("Halloween countdown timer"))
+                .append(element("li").t("Falling leaves on the homepage"))
+                .append(element("li")
+                        .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
+                .ap(main);
+
+            element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
+                .e("click", () => {
+                if (GM_getValue("extras", true)) {
+                    GM_setValue("extras", false);
+                    alert('Extras are now disabled.');
+                } else {
+                    GM_setValue("extras", true);
+                    alert('Extras are now enabled.');
+                }
+            }).ap(main);
+
+            element("button").a("title", "Must refresh page for theme change to take effect").t("Switch Theme")
+                .e("click", () => {
+                if (GM_getValue("theme", false) === "dark") {
+                    GM_setValue("theme", "light");
+                } else {
+                    GM_setValue("theme", "dark");
+                }
+                dark_theme();
+            }).ap(main);
         }
     }
     function add_player () {
         //adds the different players using a dropdown menu
-        if (url.includes("projects") && !url.includes("all") && !url.includes("search")) {
-            let player = 0, project, number, script, menu; //0 is default, 1 is phosphorous, 2 is sulforus
+        if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
+            let player = 0, menu; //0 is default, 1 is phosphorous, 2 is sulforus
             console.log("Project page");
             if (document.getElementById("share-bar") === null) {
                 menu = document.getElementsByClassName("buttons")[0];
             } else {
                 menu = document.getElementsByClassName("buttons")[1];
             }
-            let select = document.createElement("select");
-            select.setAttribute("class", "my_select");
-            select.addEventListener("change", (event) => {
+            element("select").a("class", "my_select").e("change", (event) => {
                 if (player === 1 || player === 2 || player === 3) {
                     document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
                 } else if (player === 0) {
@@ -217,37 +172,19 @@
                         player = 0;
                         break;
                     case "P":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        script = document.createElement("script");
-                        script.src = "https://phosphorus.github.io/embed.js?id="+number+"&auto-start=false&light-content=false";
-                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        element("script").a("src", "https://phosphorus.github.io/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&auto-start=false&light-content=false")
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 1;
                         break;
                     case "S":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        script = document.createElement("script");
-                        script.src = "https://sulfurous.aau.at/js/embed.js?id="+number+"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false";
-                        document.getElementsByClassName("stage")[0].appendChild(script);
+                        element("script").a("src", "https://sulfurous.aau.at/js/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false")
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 2;
                         break;
                     case "5":
-                        project = document.getElementById("project");
-                        number = project.getAttribute("data-project-id");
-                        let div = document.createElement("div");
-                        div.setAttribute("id", "player");
-                        div.setAttribute("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;");
-                        div.setAttribute("class", "phosphorus");
-                        let obj = document.createElement("object");
-                        obj.setAttribute("style", "position:absolute;top:-51px;left:-2065px");
-                        obj.setAttribute("class", "int-player");
-                        obj.setAttribute("width", "2560");
-                        obj.setAttribute("height", "1440");
-                        obj.setAttribute("data", "https://llk.github.io/scratch-gui/#" + number);
-                        obj.setAttribute("scrolling", "no");
-                        div.appendChild(obj);
-                        document.getElementsByClassName("stage")[0].appendChild(div);
+                        element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
+                            .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
+                            .ap(document.getElementsByClassName("stage")[0]);
                         player = 3;
                         break;
                     default:
@@ -255,28 +192,12 @@
                         player = 0;
                         break;
                 }
-            }, false);
-            let option = document.createElement("option");
-            option.appendChild(document.createTextNode("Default"));
-            option.setAttribute("value", "D");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Phosphorus"));
-            option.setAttribute("value", "P");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Sulfurous"));
-            option.setAttribute("value", "S");
-            select.appendChild(option);
-
-            option = document.createElement("option");
-            option.appendChild(document.createTextNode("Scratch 3"));
-            option.setAttribute("value", "5");
-            select.appendChild(option);
-
-            menu.appendChild(select);
+            }, false)
+                .append(element("option").t("Default").a("value", "D"))
+                .append(element("option").t("Phosphorus").a("value", "P"))
+                .append(element("option").t("Sulfurous").a("value", "S"))
+                .append(element("option").t("Scratch 3").a("value", "5"))
+                .ap(menu);
         }
     }
     function add_search () {
@@ -284,7 +205,7 @@
         if (url.includes("/search/")) {
             console.log("search");
             //first load new search
-            let search = document.createElement("gcse:searchresults-only");//<gcse:searchresults-only></gcse:searchresults-only>
+            let search = document.createElement("gcse:searchresults-only");
             let display = document.getElementById("projectBox");
             display.appendChild(search);
 
@@ -296,23 +217,7 @@
             let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
-            //add the button to switch to it
-            let nav = document.getElementsByClassName("sub-nav tabs")[0];
-            let button = document.createElement("a");
-            let li = document.createElement("li");
-            li.setAttribute("id", "active");
-            let img = document.createElement("img");
-            img.setAttribute("class", "tab-icon");
-            img.setAttribute("style", "height: 24px;");
-            li.appendChild(img);
-            let span = document.createElement("span");
-            span.appendChild(document.createTextNode("Google"));
-            li.appendChild(span);
-            button.appendChild(li);
-            nav.appendChild(button);
-
-            //add function to the button
-            button.addEventListener("click", () => {
+            element("a").e("click", () => {
                 //make button look selected
                 document.getElementsByClassName("active")[0].removeAttribute("class");
                 document.getElementById("active").setAttribute("class", "active");
@@ -320,7 +225,11 @@
                 display.childNodes[0].style.display = "none";
                 display.childNodes[1].style.display = "none";
                 document.getElementById("___gcse_0").style.display = "block";
-            }, false);
+            }, false)
+                .append(element("li").a("id", "active")
+                        .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
+                        .append(element("span").t("Google")))
+                .ap(document.getElementsByClassName("sub-nav tabs")[0]);
         }
     }
     //adds dark theme button
@@ -330,7 +239,10 @@
             //want dark theme
             style = GM_addStyle(GM_getResourceText("CSS"));
         } else if (style !== null) {
-            style.parentNode.removeChild(style);
+            style.parentElement.removeChild(style);
+            if (style1 != null) {
+                style1.parentElement.removeChild(style1);
+            }
             style = null;
         }
     }
@@ -413,152 +325,108 @@
     function load_message (users) {
         GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(users.messages);
+        let decodetext = (text) => {
+            let txt = element("textarea").dom;
+            txt.innerHTML = text;
+            return txt.value;
+        };
         GM_setValue("username", users.username);
         GM_setValue("message", users.messages);
-        let ul = document.createElement("ul");
+        let ul = element("ul");
         for (let a of html) {
-            let li = document.createElement("li");
-            let container = document.createElement("div");
-            let link, user;
-
             switch (a.type) {
                 case "forumpost":
-                    container.appendChild(document.createTextNode("There are new posts in the forum: "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/discuss/topic/"+a.topic_id+"/unread/");
-                    link.appendChild(document.createTextNode(a.topic_title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("span").t("There are new posts in the forum: "))
+                              .append(element("a").t(a.topic_title).a("href", "/discuss/topic/"+a.topic_id+"/unread/"))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "studioactivity":
-                    container.appendChild(document.createTextNode("There was new activity in "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("span").t("There was new activity in "))
+                              .append(element("a").t(a.title).a("href", "/studios/"+a.gallery_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "favoriteproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" favorited your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.project_title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" favorited your project "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "loveproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" loved your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" loved your project "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "followuser":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" followed you"));
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" followed you"))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "remixproject":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(" remixed your project "));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/projects/"+a.project_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
+                              .append(element("span").t(" remixed your project "))
+                              .append(element("a").t(a.parent_title).a("href", "/projects/"+a.parent_id))
+                              .append(element("span").t(" as "))
+                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "addcomment":
                     if (a.comment_type === 0) { //project
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your project '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your project '))
+                                  .append(element("a").a("href", "/projects/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 1) { //profile page
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" on your profile '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/users/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your profile '))
+                                  .append(element("a").a("href", "/users/"+a.comment_obj_title+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else if (a.comment_type === 2) {
-                        user = document.createElement("a");
-                        user.setAttribute("href", "/users/" + a.actor_username);
-                        user.setAttribute("class", "username_link");
-                        user.appendChild(document.createTextNode(a.actor_username));
-                        container.appendChild(user);
-                        container.appendChild(document.createTextNode(' commented "'+a.comment_fragment+'" in the studio '));
-                        link = document.createElement("a");
-                        link.setAttribute("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id);
-                        link.appendChild(document.createTextNode(a.comment_obj_title));
-                        container.appendChild(link);
+                        ul.append(element("li")
+                                  .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
+                                  .append(element("span").t(' commented "'+decodetext(a.comment_fragment)+'" on your studio '))
+                                  .append(element("a").a("href", "/studios/"+a.comment_obj_id+"/#comments-"+a.comment_id).t(a.comment_obj_title))
+                                  .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     } else {
                         console.warn("Comment type not found");
                     }
                     break;
                 case "curatorinvite":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(' invited you to curate '));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("span").t(' invited you to curate '))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "becomeownerstudio":
-                    user = document.createElement("a");
-                    user.setAttribute("href", "/users/" + a.actor_username);
-                    user.setAttribute("class", "username_link");
-                    user.appendChild(document.createTextNode(a.actor_username));
-                    container.appendChild(user);
-                    container.appendChild(document.createTextNode(' promoted you to manager in '));
-                    link = document.createElement("a");
-                    link.setAttribute("href", "/studios/"+a.gallery_id);
-                    link.appendChild(document.createTextNode(a.title));
-                    container.appendChild(link);
+                    ul.append(element("li")
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("span").t(' promoted you to manager in '))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "userjoin":
-                    container.appendChild(document.createTextNode('Welcome to Scratch'));
+                    ul.append(element("li")
+                              .append("span").t('Welcome to Scratch')
+                              .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 default:
                     console.warn(a, "Not Found");
-
             }
-            container.appendChild(document.createTextNode(calcSmallest(new Date(Date.parse(a.datetime_created)))));
-            li.appendChild(container);
-            ul.appendChild(li);
         }
         timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
-        ul.setAttribute("id", "messages");
-        happening.childNodes[1].appendChild(ul);
+        ul.a("id", "messages").ap(happening.childNodes[1]);
 
         set_unread(users);
     }
@@ -809,10 +677,8 @@
             .then((post) => {
             post.forEach ((post) => {
                 let current = post.index.getElementsByClassName("post_body_html")[0].innerHTML;
-                let button = document.createElement("button");
-                button.setAttribute("style", "height: 15px; line-height: 14px;");
-                button.appendChild(document.createTextNode("BBCode"));
-                button.addEventListener("click", (event) => {
+                element("button").a("style", "height: 15px; line-height: 14px;").t("BBCode")
+                    .e("click", (event) => {
                     if (event.currentTarget.innerHTML === "BBCode") {
                         post.index.getElementsByClassName("post_body_html")[0].innerText = post.response;
                         event.currentTarget.innerHTML = "Original";
@@ -820,8 +686,8 @@
                         post.index.getElementsByClassName("post_body_html")[0].innerHTML = current;
                         event.currentTarget.innerHTML = "BBCode";
                     }
-                });
-                post.index.getElementsByClassName("box-head")[0].appendChild(button);
+                })
+                    .ap(post.index.getElementsByClassName("box-head")[0]);
             });
         })
             .catch(error => console.warn(error));
@@ -904,133 +770,108 @@
         });
     }
 
-    function load_leaves () {
-        if (GM_getValue("extras", false) === "true") {
-            if (url == "https://scratch.mit.edu/") {
-                //I should instread make this so it keeps creating until one is delted and stops then the movemtn downward would also be controlled with css so it is always moving and hopefully it would look better that way
-                let we = [];
-                let leaves = function (i) {
-                    this.x = Math.random() * 90;
-                    this.y = Math.random() * 90;
-                    this.z = Math.random() * 90;
-                    this.px = Math.random() * window.innerWidth;
-                    this.py = 40 * Math.random() * -1;
-                    this.r = true;
-                    this.index = i;
+    function create_falling(link, img, extreme, cursor = null, audio = false) {
+        if (url == link) {
+            let we = [];
+            let leaves = function (i) {
+                this.x = Math.random() * 90;
+                this.y = Math.random() * 90;
+                this.z = Math.random() * 90;
+                this.px = Math.random() * window.innerWidth;
+                this.py = 40 * Math.random() * -1;
+                this.r = true;
+                this.index = i;
 
-                    this.img = document.createElement("img");
-                    let arr = ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"];
-                    this.img.src = arr[Math.floor(Math.random() * arr.length)];
-                    this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
-                    document.body.appendChild(this.img);
-                    this.render = () => {
-                        if (this.py > window.innerHeight) {
-                            this.r = false;
-                            document.body.removeChild(this.img);
-                        }
-                        this.x += Math.random() * 0.5;
-                        this.y += Math.random() * 0.5;
-                        this.z += Math.random() * 0.5;
-                        this.py += Math.random() * 0.5;
-                        this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
-
-                    };
-                };
-                let create = true;
-                window.addEventListener("blur", () => {
-                    create = false;
-                });
-                window.addEventListener("focus", () => {
-                    create = true;
-                });
-                setInterval(() => {
-                    if (create) {
-                        for (let i = 0; i < 5; i++) {
-                            we.push(new leaves(we.length));
-                        }
+                this.img = document.createElement("img");
+                this.img.src = img[Math.floor(Math.random() * img.length)];
+                this.img.setAttribute("style", "position: absolute; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px;");
+                document.body.appendChild(this.img);
+                this.render = () => {
+                    if (this.py > window.innerHeight) {
+                        this.r = false;
+                        document.body.removeChild(this.img);
                     }
-                }, 1000);
-                setInterval(() => {
-                    we.forEach((a) => {
-                        if (a.r) {
-                            a.render();
-                        }
-                    });
-                }, 1);
-            }
-        }
-    }
+                    this.x += Math.random() * 0.5;
+                    this.y += Math.random() * 0.5;
+                    this.z += Math.random() * 0.5;
+                    this.py += Math.random() * 0.5;
+                    this.img.setAttribute("style", "position: fixed; index: -1; width: 25px; height: 25px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
 
-    function misc () {
-        if (GM_getValue("extras", false) === "true") {
-            if (url == "https://scratch.mit.edu/users/DeleteThisAcount/") {
-                let div = document.createElement("div");
-                div.setAttribute("style", "position: fixed; width: 100%; height: calc(100% - 51px); left: 0px; top: 51px; text-align:center; background-color: #000;");
-                let img = document.createElement("img");
-                img.src = "https://pics.me.me/warning-visitors-with-no-sense-of-humor-are-advised-to-14064989.png";
-                img.setAttribute("style", "height: 100%;");
-                div.appendChild(img);
-                document.body.appendChild(div);
-                div.addEventListener("click", () => {
-                    let d = new Audio("http://scriftj.x10host.com/Vaporwave.mp3");
+                };
+            };
+            let create = true;
+            window.addEventListener("blur", () => {
+                create = false;
+            });
+            window.addEventListener("focus", () => {
+                create = true;
+            });
+            setInterval(() => {
+                if (create) {
+                    for (let i = 0; i < 5; i++) {
+                        we.push(new leaves(we.length));
+                    }
+                }
+            }, 1000);
+            setInterval(() => {
+                we.forEach((a) => {
+                    if (a.r) {
+                        a.render();
+                    }
+                });
+            }, 1);
+
+            if (extreme) {
+                if (audio) {
+                    let d = new Audio(audio);
                     d.play();
                     d.addEventListener("ended", () => {
                         d.play();
                     });
-                    GM_addStyle("body,a:-webkit-any-link{cursor:url(http://i.cubeupload.com/gIEPOl.png),auto;cursor:url(http://i.cubeupload.com/gIEPOl.png),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
-                    div.parentElement.removeChild(div);
-
-                    let we = [];
-                    let leaves = function (i) {
-                        this.x = Math.random() * 90;
-                        this.y = Math.random() * 90;
-                        this.z = Math.random() * 90;
-                        this.px = Math.random() * window.innerWidth;
-                        this.py = 40 * Math.random() * -1;
-                        this.r = true;
-                        this.index = i;
-
-                        this.img = document.createElement("img");
-                        let arr = ["http://scriftj.x10host.com/2aa.png"];
-                        this.img.src = arr[Math.floor(Math.random() * arr.length)];
-                        this.img.setAttribute("style", "position: absolute; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px;");
-                        document.body.appendChild(this.img);
-                        this.render = () => {
-                            if (this.py > window.innerHeight) {
-                                this.r = false;
-                                document.body.removeChild(this.img);
-                            }
-                            this.x += Math.random() * 0.5;
-                            this.y += Math.random() * 0.5;
-                            this.z += Math.random() * 0.5;
-                            this.py += Math.random() * 1;
-                            this.img.setAttribute("style", "position: fixed; index: -1; width: 100px; height: 100px; left: "+this.px+"px; top:"+this.py+"px; transform: rotateX("+this.x+"deg) rotateY("+this.y+"deg) rotateZ("+this.z+"deg);");
-
-                        };
-                    };
-                    let create = true;
-                    window.addEventListener("blur", () => {
-                        create = false;
-                    });
-                    window.addEventListener("focus", () => {
-                        create = true;
-                    });
-                    setInterval(() => {
-                        if (create) {
-                            for (let i = 0; i < 5; i++) {
-                                we.push(new leaves(we.length));
-                            }
-                        }
-                    }, 1000);
-                    setInterval(() => {
-                        we.forEach((a) => {
-                            if (a.r) {
-                                a.render();
-                            }
-                        });
-                    }, 1);
-                });
+                }
+                GM_addStyle("body,a:-webkit-any-link{cursor:url("+cursor+"),auto;cursor:url("+cursor+"),pointer;}#pagewrapper{background:linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-moz-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ff3232),color-stop(16%,#fcf528),color-stop(32%,#28fc28),color-stop(50%,#28fcf8),color-stop(66%,#272ef9),color-stop(82%,#ff28fb),color-stop(100%,#ff3232));background:-webkit-linear-gradient(top,#ff3232 0,#fcf528 16%,#28fc28 32%,#28fcf8 50%,#272ef9 66%,#ff28fb 82%,#ff3232 100%);background-size:1000%;-moz-background-size:1000%;-webkit-background-size:1000%;animation-name:fun-time-awesome;animation-duration:15s;animation-timing-function:linear;animation-iteration-count:infinite;animation-direction:alternate;animation-play-state:running;-moz-animation-name:fun-time-awesome;-moz-animation-duration:15s;-moz-animation-timing-function:linear;-moz-animation-iteration-count:infinite;-moz-animation-direction:alternate;-moz-animation-play-state:running;-webkit-animation-name:fun-time-awesome;-webkit-animation-duration:20s;-webkit-animation-timing-function:linear;-webkit-animation-iteration-count:infinite;-webkit-animation-direction:alternate;-webkit-animation-play-state:running}@keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-moz-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}@-webkit-keyframes fun-time-awesome{0%{background-position:left top}100%{background-position:left bottom}}");
             }
+        }
+    }
+
+    function load_extras () {
+        if (GM_getValue("extras", true)) {
+            create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
+            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+            //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+        }
+    }
+
+    function element (name) {
+        return new _element(name);
+    }
+    class _element {
+        constructor (name) {
+            this.dom = document.createElement(name);
+        }
+        a (name, value) {
+            this.dom.setAttribute(name, value);
+            return this;
+        }
+        t (text) {
+            this.dom.appendChild(document.createTextNode(text));
+            return this;
+        }
+        e (trigger, callback) {
+            this.dom.addEventListener(trigger, callback);
+            return this;
+        }
+        append (element2) {
+            this.dom.appendChild(element2.dom);
+            return this;
+        }
+        ap (dom) {
+            dom.appendChild(this.dom);
+            return dom;
+        }
+        apthis (dom) {
+            dom.appendChild(this.dom);
+            return this.dom;
         }
     }
 })();
