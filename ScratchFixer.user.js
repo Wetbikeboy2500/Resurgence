@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.7
+// @version      4.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -148,25 +148,30 @@
                 }
                 dark_theme();
             }).ap(main);
+
+            element("select").a("style", "color: #fff !important; border-color: #1f2227!important; background-color: #2d3035!important; height: 30px;")
+                .e("change", (event) => {
+                GM_setValue("player", event.currentTarget.value);
+            })
+                .o({
+                D: "Default",
+                P: "Phosphorus",
+                S: "Sulfurous",
+                "S3": "Scratch 3"
+            }, GM_getValue("player", "D"))
+                .ap(main);
         }
     }
     function add_player () {
         //adds the different players using a dropdown menu
         if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
-            let player = 0, menu; //0 is default, 1 is phosphorous, 2 is sulforus
-            console.log("Project page");
-            if (document.getElementById("share-bar") === null) {
-                menu = document.getElementsByClassName("buttons")[0];
-            } else {
-                menu = document.getElementsByClassName("buttons")[1];
-            }
-            element("select").a("class", "my_select").e("change", (event) => {
-                if (player === 1 || player === 2 || player === 3) {
+            let menu, change = (a) => {
+                if (document.getElementsByClassName("phosphorus")[0] != null) {
                     document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
-                } else if (player === 0) {
+                } else {
                     document.getElementById("player").style = "display: none;";
                 }
-                switch (document.getElementsByClassName("my_select")[0].value) {
+                switch (a) {
                     case "D":
                         document.getElementById("player").style = "display: block;";
                         player = 0;
@@ -181,7 +186,7 @@
                             .ap(document.getElementsByClassName("stage")[0]);
                         player = 2;
                         break;
-                    case "5":
+                    case "S3":
                         element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
                             .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
                             .ap(document.getElementsByClassName("stage")[0]);
@@ -192,12 +197,26 @@
                         player = 0;
                         break;
                 }
+            }, select = (a, b) => {
+                return a == b;
+            }; //0 is default, 1 is phosphorous, 2 is sulforus
+            console.log("Project page");
+            if (document.getElementById("share-bar") === null) {
+                menu = document.getElementsByClassName("buttons")[0];
+            } else {
+                menu = document.getElementsByClassName("buttons")[1];
+            }
+            element("select").a("class", "my_select").e("change", (event) => {
+                change(document.getElementsByClassName("my_select")[0].value);
             }, false)
-                .append(element("option").t("Default").a("value", "D"))
-                .append(element("option").t("Phosphorus").a("value", "P"))
-                .append(element("option").t("Sulfurous").a("value", "S"))
-                .append(element("option").t("Scratch 3").a("value", "5"))
+                .o({
+                D: "Default",
+                P: "Phosphorus",
+                S: "Sulfurous",
+                "S3": "Scratch 3"
+            }, GM_getValue("player", "D"))
                 .ap(menu);
+            change(GM_getValue("player", "D"));
         }
     }
     function add_search () {
@@ -351,7 +370,7 @@
                     ul.append(element("li")
                               .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
                               .append(element("span").t(" favorited your project "))
-                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("a").t(a.project_title).a("href", "/projects/"+a.project_id))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "loveproject":
@@ -872,6 +891,21 @@
         apthis (dom) {
             dom.appendChild(this.dom);
             return this.dom;
+        }
+        o (options, selected) {
+            for (let a in options) {
+                if (options.hasOwnProperty(a)) {
+                    console.log(a, options[a]);
+                    let b = document.createElement("option");
+                    b.setAttribute("value", a);
+                    b.appendChild(document.createTextNode(options[a]));
+                    if (selected == a) {
+                        b.setAttribute("selected", true);
+                    }
+                    this.dom.appendChild(b);
+                } 
+            }
+            return this;
         }
     }
 })();
