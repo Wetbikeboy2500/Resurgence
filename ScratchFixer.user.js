@@ -74,10 +74,12 @@
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
+            $('<li><a href="/resurgence">Resurgence Settings</a></li>').insertAfter('ul.dropdown production open>li:last');
         } else if (document.getElementsByClassName("footer-col").length > 0) {
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
+            $('<li><a href="/resurgence">Resurgence Settings</a></li>').insertAfter('ul.user-nav>li:last');
         }
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
