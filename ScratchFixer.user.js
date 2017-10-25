@@ -86,7 +86,7 @@
         GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
         let displaySettingsModal = false;
         $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').load('https://cors-anywhere.herokuapp.com/https://gist.githubusercontent.com/NitroCipher/505efc815ff653ff6e9c6a736767db96/raw/785063e5ef898648818c3be2c2fa6b986242a1ab/resurge.html');
+        $('#res-set-modal').load('https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/NitroCipher/ScratchFixer/master/modal.html');
         //$('#res-set-modal').append('<span style="font-size: 40px;">Resurgence Settings');
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         function toggleModal () {
