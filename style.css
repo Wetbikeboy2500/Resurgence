@@ -23,6 +23,9 @@ input color #1f2229
     border-top: 0!important;
     background-color: #2d3035!important;
 }
+.slider-carousel-control {
+    background-color: transparent!important;
+}
 #profile-data .footer,
 .button.grey,
 .tabs-index li,
