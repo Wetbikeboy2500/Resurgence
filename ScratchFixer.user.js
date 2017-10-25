@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.6
+// @version      5.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -123,7 +123,7 @@
         $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
 
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
-        $('#res-set-modal').blur(toggleModal);
+        $('#res-set-modal-back').click(toggleModal);
         //IO for sliders
         $(document).on("click", "#themeIO", function(event){
             if (GM_getValue("theme", false) === "dark") {
@@ -147,6 +147,7 @@
                 GM_setValue("msg", true);
             }
         });
+        
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
