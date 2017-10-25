@@ -114,10 +114,6 @@ button:hover {
 input {
     background-color: #1f2229!important;
 }
-.button.small>span,
-button.small>span {
-    color: #000!important;
-}
 #navigation .link>a,
 #topnav ul.account-nav ul.user-nav li a,
 #topnav ul.site-nav li a {
