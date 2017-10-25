@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.5
+// @version      5.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -71,26 +71,7 @@
     }
     function load_newpage () {
         console.log("load newpage");
-        //adds link at bottom of page and adds settings button to menu
-        if (document.getElementsByClassName("lists").length > 0) {
-            element("dd")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
-            $('ul.dropdown.production').append('<li id="res-set"><a>Resurgence Settings');
-        } else if (document.getElementsByClassName("footer-col").length > 0) {
-            element("li")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
-            $('.user-nav').append('<li id="res-set"><a>Resurgence Settings');
-        }
-        //adds popup settings modal
-        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
-        let displaySettingsModal = false;
-        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
-        
-        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
-        function toggleModal () {
+        let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
                 $('body').attr('style', 'overflow-y:scroll;');
                 $('#res-set-modal').hide(500);
@@ -112,7 +93,36 @@
                 displaySettingsModal = true;
             }
         }
-        $('#res-set').click(toggleModal);
+        //adds link at bottom of page and adds settings button to menu
+        if (document.getElementsByClassName("lists").length > 0) {
+            element("dd")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
+            let test = setInterval(() => {
+                if (document.getElementsByClassName("ul.dropdown.production") != null) {
+                    $('.divider').before('<li id="res-set"><a>Resurgence Settings');
+                    $('#res-set').click(toggleModal);
+                    clearInterval(test);
+                }
+            }, 1000);
+        } else if (document.getElementsByClassName("footer-col").length > 0) {
+            element("li")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
+            let test = setInterval(() => {
+                if (document.getElementById("logout") != null) {
+                    $('#logout').before('<li id="res-set"><a>Resurgence Settings');
+                    $('#res-set').click(toggleModal);
+                    clearInterval(test);
+                }
+            }, 1000);
+        }
+        //adds popup settings modal
+        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
+        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
+        $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
+
+        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal').blur(toggleModal);
         //IO for sliders
         $(document).on("click", "#themeIO", function(event){
