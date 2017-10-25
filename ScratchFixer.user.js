@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.4
+// @version      5.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -231,27 +231,22 @@
                 switch (a) {
                     case "D":
                         document.getElementById("player").style = "display: block;";
-                        player = 0;
                         break;
                     case "P":
                         element("script").a("src", "https://phosphorus.github.io/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&auto-start=false&light-content=false")
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 1;
                         break;
                     case "S":
                         element("script").a("src", "https://sulfurous.aau.at/js/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false")
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 2;
                         break;
                     case "S3":
                         element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
                             .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 3;
                         break;
                     default:
                         document.getElementById("player").style = "display: block;";
-                        player = 0;
                         break;
                 }
             }, select = (a, b) => {
@@ -322,76 +317,73 @@
             style = null;
         }
     }
-    //add messages to main page
-    if (GM_getValue("msg", true)) {
-        let messages = {
-            get_session: () => {
-                return new Promise ((resolve, reject) => {
+    let messages = {
+        get_session: () => {
+            return new Promise ((resolve, reject) => {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let html  = xhttp.responseText;
+                        let js = JSON.parse(html);
+                        resolve({
+                            token: js.user.token,
+                            username: js.user.username
+                        });
+                    }
+                };
+                xhttp.onerror = (err) => {
+                    reject("Error getting userinfo " + err);
+                };
+                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                xhttp.send(null);
+            });
+        },
+        //this should instead see if the newest messgae equals our newesst message
+        check_unread: (user) => {
+            return new Promise ((resolve, reject) => {
+                let r = new XMLHttpRequest();
+                r.onreadystatechange = () => {
+                    if (r.status == 200 && r.readyState == 4) {
+                        let rec = JSON.parse(r.responseText);
+                        let mes = JSON.parse(GM_getValue("message", true));
+                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
+                        resolve(user);
+                    }
+                };
+                r.onerror = (error) => {
+                    reject("Error checking unread messgaes" + error);
+                };
+                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                r.setRequestHeader("X-Token", user.token);
+                r.send(null);
+            });
+        },
+        get_message: (user) => {
+            return new Promise((resolve, reject) => {
+                if (user.has_messages) { //load new messages
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            let html  = xhttp.responseText;
-                            let js = JSON.parse(html);
-                            resolve({
-                                token: js.user.token,
-                                username: js.user.username
-                            });
-                        }
-                    };
-                    xhttp.onerror = (err) => {
-                        reject("Error getting userinfo " + err);
-                    };
-                    xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-                    xhttp.send(null);
-                });
-            },
-            //this should instead see if the newest messgae equals our newesst message
-            check_unread: (user) => {
-                return new Promise ((resolve, reject) => {
-                    let r = new XMLHttpRequest();
-                    r.onreadystatechange = () => {
-                        if (r.status == 200 && r.readyState == 4) {
-                            let rec = JSON.parse(r.responseText);
-                            let mes = JSON.parse(GM_getValue("message", true));
-                            user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
+                            user.messages = xhttp.responseText;
                             resolve(user);
                         }
                     };
-                    r.onerror = (error) => {
-                        reject("Error checking unread messgaes" + error);
+                    xhttp.onerror = (error) => {
+                        reject("Error loading messages" + error);
                     };
-                    r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
-                    r.setRequestHeader("X-Token", user.token);
-                    r.send(null);
-                });
-            },
-            get_message: (user) => {
-                return new Promise((resolve, reject) => {
-                    if (user.has_messages) { //load new messages
-                        let xhttp = new XMLHttpRequest();
-                        xhttp.onreadystatechange = () => {
-                            if (xhttp.status == 200 && xhttp.readyState == 4) {
-                                user.messages = xhttp.responseText;
-                                resolve(user);
-                            }
-                        };
-                        xhttp.onerror = (error) => {
-                            reject("Error loading messages" + error);
-                        };
-                        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
-                        xhttp.setRequestHeader("X-Token", user.token);
-                        xhttp.send(null);
-                    } else { //load form presave
-                        user.messages = GM_getValue("message", {});
-                        resolve(user);
-                    }
-                });
-            }
-        };
-    }
+                    xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
+                    xhttp.setRequestHeader("X-Token", user.token);
+                    xhttp.send(null);
+                } else { //load form presave
+                    user.messages = GM_getValue("message", {});
+                    resolve(user);
+                }
+            });
+        }
+    };
 
     function load_messages () {
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
+        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null && GM_getValue("msg", true)) {
             messages.get_session()
                 .then(user => messages.check_unread(user))
                 .then(user => messages.get_message(user))
