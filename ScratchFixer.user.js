@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.7
+// @version      5.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -34,7 +34,6 @@
 
     function run () {
         load_userinfo();
-        load_messages();
         if (url.includes("discuss")) {
             load_images();
             load_scratchblockcode();
@@ -55,6 +54,7 @@
         add_player();
         add_search();
         load_extras();
+        load_messages();
     });
 
     function fix_nav () {
@@ -89,6 +89,9 @@
                 }
                 if (GM_getValue("msg", true)) {
                     $("#msgIO").prop('checked', "checked");
+                }
+                if (GM_getValue("timer", true)) {
+                    $("#halloweenIO").prop('checked', "checked");
                 }
                 displaySettingsModal = true;
             }
@@ -125,7 +128,7 @@
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
         //IO for sliders
-        $(document).on("click", "#themeIO", function(event){
+        $(document).on("click", "#themeIO", (event) => {
             if (GM_getValue("theme", false) === "dark") {
                 GM_setValue("theme", "light");
             } else {
@@ -133,21 +136,28 @@
             }
             dark_theme();
         });
-        $(document).on("click", "#extrasIO", function(event){
+        $(document).on("click", "#extrasIO", (event) => {
             if (GM_getValue("extras", true)) {
                 GM_setValue("extras", false);
             } else {
                 GM_setValue("extras", true);
             }
         });
-        $(document).on("click", "#msgIO", function(event){
+        $(document).on("click", "#msgIO", (event) => {
             if (GM_getValue("msg", true)) {
                 GM_setValue("msg", false);
             } else {
                 GM_setValue("msg", true);
             }
         });
-        
+        $(document).on("click", "#halloweenIO", (event) => {
+            if (GM_getValue("timer", true)) {
+                GM_setValue("timer", false);
+            } else {
+                GM_setValue("timer", true);
+            }
+        });
+
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
@@ -393,12 +403,17 @@
     };
 
     function load_messages () {
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null && GM_getValue("msg", true)) {
-            messages.get_session()
-                .then(user => messages.check_unread(user))
-                .then(user => messages.get_message(user))
-                .then(user => load_message(user))
-                .catch((error) => console.warn(error));
+        if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
+            let load = setInterval(() => {
+                if (document.getElementsByClassName("box activity")[0] !== null) {
+                    messages.get_session()
+                        .then(user => messages.check_unread(user))
+                        .then(user => messages.get_message(user))
+                        .then(user => load_message(user))
+                        .catch((error) => console.warn(error));
+                }
+            }, 1000);
+
         }
     }
 
@@ -502,7 +517,6 @@
                     console.warn(a, "Not Found");
             }
         }
-        timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
@@ -826,28 +840,31 @@
 
     function timer () {
         let event = new Date("Oct 31, 2017").getTime();
-        let span = document.createElement("span");
-        span.setAttribute("style", "float: right; color: #f6660d;");
-        span.appendChild(document.createTextNode("Halloween"));
-        document.getElementsByClassName("box-header")[0].appendChild(span);
-        let x = setInterval(() => {
-            let distance = event - new Date().getTime();
+        let span = element("span").a("style", "float: right; color: #f6660d;").t("Halloween").dom;
+        let load = setInterval(() => {
+            if (document.getElementsByClassName("box-header")[0] != null) {
+                document.getElementsByClassName("box-header")[0].appendChild(span);
+                let x = setInterval(() => {
+                    let distance = event - new Date().getTime();
 
-            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
-            if (distance < 0) {
-                clearInterval(x);
-                if (days <= -2) {
-                    span.parentElement.removeChild(span);
-                } else {
-                    span.innerHTML = "Its Halloween";
-                }
+                    span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
+                    if (distance < 0) {
+                        clearInterval(x);
+                        if (days <= -2) {
+                            span.parentElement.removeChild(span);
+                        } else {
+                            span.innerHTML = "Its Halloween";
+                        }
+                    }
+                });
+                clearInterval(load);
             }
-        });
+        }, 1000);
     }
 
     function create_falling(link, img, extreme, cursor = null, audio = false) {
@@ -919,6 +936,9 @@
             create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
             //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+        }
+        if (GM_getValue("timer", true)) {
+            timer();
         }
     }
 
