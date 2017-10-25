@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.7
+// @version      5.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -45,7 +46,7 @@
     //adds my css to edit custom elements
     if (GM_getValue("theme", false) === "dark") {
         style1 = GM_addStyle(GM_getResourceText("CSS"));
-    } 
+    }
     document.addEventListener("DOMContentLoaded", () => {
         GM_addStyle('.tips a span { display: none; position: absolute; } .tips a:after { content: "Forums"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}');
         dark_theme();
@@ -74,13 +75,67 @@
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
-            $('<li><a href="/resurgence">Resurgence Settings</a></li>').insertAfter('ul.dropdown production open>li:last');
+            $('ul.dropdown.production').append('<li id="res-set"><a>Resurgence Settings');
         } else if (document.getElementsByClassName("footer-col").length > 0) {
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
-            $('<li><a href="/resurgence">Resurgence Settings</a></li>').insertAfter('ul.user-nav>li:last');
+            $('.user-nav').append('<li id="res-set"><a>Resurgence Settings');
         }
+        //adds popup settings modal
+        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
+        let displaySettingsModal = false;
+        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
+        $('#res-set-modal').load('https://cors-anywhere.herokuapp.com/https://gist.githubusercontent.com/NitroCipher/505efc815ff653ff6e9c6a736767db96/raw/785063e5ef898648818c3be2c2fa6b986242a1ab/resurge.html');
+        //$('#res-set-modal').append('<span style="font-size: 40px;">Resurgence Settings');
+        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
+        function toggleModal () {
+            if (displaySettingsModal) {
+                $('body').attr('style', 'overflow-y:scroll;');
+                $('#res-set-modal').hide(500);
+                $('#res-set-modal-back').toggleClass('modal-hidden');
+                displaySettingsModal = false;
+            } else {
+                $('body').attr('style', 'overflow-y:hidden;');
+                $('#res-set-modal').show(500);
+                $('#res-set-modal-back').toggleClass('modal-hidden');
+                if (GM_getValue("theme", false) === "dark") {
+                    $("#themeIO").prop('checked', "checked");
+                }
+                if (GM_getValue("extras", true)) {
+                    $("#extrasIO").prop('checked', "checked");
+                }
+                if (GM_getValue("msg", true)) {
+                    $("#msgIO").prop('checked', "checked");
+                }
+                displaySettingsModal = true;
+            }
+        }
+        $('#res-set').click(toggleModal);
+        $('#res-set-modal').blur(toggleModal);
+        //IO for sliders
+        $(document).on("click", "#themeIO", function(event){
+            if (GM_getValue("theme", false) === "dark") {
+                GM_setValue("theme", "light");
+            } else {
+                GM_setValue("theme", "dark");
+            }
+            dark_theme();
+        });
+        $(document).on("click", "#extrasIO", function(event){
+            if (GM_getValue("extras", true)) {
+                GM_setValue("extras", false);
+            } else {
+                GM_setValue("extras", true);
+            }
+        });
+        $(document).on("click", "#msgIO", function(event){
+            if (GM_getValue("msg", true)) {
+                GM_setValue("msg", false);
+            } else {
+                GM_setValue("msg", true);
+            }
+        });
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
@@ -114,7 +169,7 @@
                 .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
                 .append(element("li").t("Quick info when hovering over usernames"))
                 .append(element("li").t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"))
-                .append(element("li").t("Click on a new button “BBCode” to switch between the BBCode and the original post"))
+                .append(element("li").t("Click on a new button â€œBBCodeâ€ to switch between the BBCode and the original post"))
                 .append(element("li").t("Changes the messages area to look like how it use to look"))
                 .append(element("li").t("Adds this page to Scratch"))
                 .append(element("li").t("Adds option for Dark Theme for Scratch"))
@@ -150,25 +205,30 @@
                 }
                 dark_theme();
             }).ap(main);
+
+            element("select").a("style", "color: #fff !important; border-color: #1f2227!important; background-color: #2d3035!important; height: 30px;")
+                .e("change", (event) => {
+                GM_setValue("player", event.currentTarget.value);
+            })
+                .o({
+                D: "Default",
+                P: "Phosphorus",
+                S: "Sulfurous",
+                "S3": "Scratch 3"
+            }, GM_getValue("player", "D"))
+                .ap(main);
         }
     }
     function add_player () {
         //adds the different players using a dropdown menu
         if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
-            let player = 0, menu; //0 is default, 1 is phosphorous, 2 is sulforus
-            console.log("Project page");
-            if (document.getElementById("share-bar") === null) {
-                menu = document.getElementsByClassName("buttons")[0];
-            } else {
-                menu = document.getElementsByClassName("buttons")[1];
-            }
-            element("select").a("class", "my_select").e("change", (event) => {
-                if (player === 1 || player === 2 || player === 3) {
+            let menu, change = (a) => {
+                if (document.getElementsByClassName("phosphorus")[0] != null) {
                     document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
-                } else if (player === 0) {
+                } else {
                     document.getElementById("player").style = "display: none;";
                 }
-                switch (document.getElementsByClassName("my_select")[0].value) {
+                switch (a) {
                     case "D":
                         document.getElementById("player").style = "display: block;";
                         player = 0;
@@ -183,7 +243,7 @@
                             .ap(document.getElementsByClassName("stage")[0]);
                         player = 2;
                         break;
-                    case "5":
+                    case "S3":
                         element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
                             .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
                             .ap(document.getElementsByClassName("stage")[0]);
@@ -194,12 +254,26 @@
                         player = 0;
                         break;
                 }
+            }, select = (a, b) => {
+                return a == b;
+            }; //0 is default, 1 is phosphorous, 2 is sulforus
+            console.log("Project page");
+            if (document.getElementById("share-bar") === null) {
+                menu = document.getElementsByClassName("buttons")[0];
+            } else {
+                menu = document.getElementsByClassName("buttons")[1];
+            }
+            element("select").a("class", "my_select").e("change", (event) => {
+                change(document.getElementsByClassName("my_select")[0].value);
             }, false)
-                .append(element("option").t("Default").a("value", "D"))
-                .append(element("option").t("Phosphorus").a("value", "P"))
-                .append(element("option").t("Sulfurous").a("value", "S"))
-                .append(element("option").t("Scratch 3").a("value", "5"))
+                .o({
+                D: "Default",
+                P: "Phosphorus",
+                S: "Sulfurous",
+                "S3": "Scratch 3"
+            }, GM_getValue("player", "D"))
                 .ap(menu);
+            change(GM_getValue("player", "D"));
         }
     }
     function add_search () {
@@ -249,70 +323,72 @@
         }
     }
     //add messages to main page
-    let messages = {
-        get_session: () => {
-            return new Promise ((resolve, reject) => {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        let html  = xhttp.responseText;
-                        let js = JSON.parse(html);
-                        resolve({
-                            token: js.user.token,
-                            username: js.user.username
-                        });
-                    }
-                };
-                xhttp.onerror = (err) => {
-                    reject("Error getting userinfo " + err);
-                };
-                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-                xhttp.send(null);
-            });
-        },
-        //this should instead see if the newest messgae equals our newesst message
-        check_unread: (user) => {
-            return new Promise ((resolve, reject) => {
-                let r = new XMLHttpRequest();
-                r.onreadystatechange = () => {
-                    if (r.status == 200 && r.readyState == 4) {
-                        let rec = JSON.parse(r.responseText);
-                        let mes = JSON.parse(GM_getValue("message", true));
-                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
-                        resolve(user);
-                    }
-                };
-                r.onerror = (error) => {
-                    reject("Error checking unread messgaes" + error);
-                };
-                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
-                r.setRequestHeader("X-Token", user.token);
-                r.send(null);
-            });
-        },
-        get_message: (user) => {
-            return new Promise((resolve, reject) => {
-                if (user.has_messages) { //load new messages
+    if (GM_getValue("msg", true)) {
+        let messages = {
+            get_session: () => {
+                return new Promise ((resolve, reject) => {
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            user.messages = xhttp.responseText;
+                            let html  = xhttp.responseText;
+                            let js = JSON.parse(html);
+                            resolve({
+                                token: js.user.token,
+                                username: js.user.username
+                            });
+                        }
+                    };
+                    xhttp.onerror = (err) => {
+                        reject("Error getting userinfo " + err);
+                    };
+                    xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                    xhttp.send(null);
+                });
+            },
+            //this should instead see if the newest messgae equals our newesst message
+            check_unread: (user) => {
+                return new Promise ((resolve, reject) => {
+                    let r = new XMLHttpRequest();
+                    r.onreadystatechange = () => {
+                        if (r.status == 200 && r.readyState == 4) {
+                            let rec = JSON.parse(r.responseText);
+                            let mes = JSON.parse(GM_getValue("message", true));
+                            user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
                             resolve(user);
                         }
                     };
-                    xhttp.onerror = (error) => {
-                        reject("Error loading messages" + error);
+                    r.onerror = (error) => {
+                        reject("Error checking unread messgaes" + error);
                     };
-                    xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
-                    xhttp.setRequestHeader("X-Token", user.token);
-                    xhttp.send(null);
-                } else { //load form presave
-                    user.messages = GM_getValue("message", {});
-                    resolve(user);
-                }
-            });
-        }
-    };
+                    r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                    r.setRequestHeader("X-Token", user.token);
+                    r.send(null);
+                });
+            },
+            get_message: (user) => {
+                return new Promise((resolve, reject) => {
+                    if (user.has_messages) { //load new messages
+                        let xhttp = new XMLHttpRequest();
+                        xhttp.onreadystatechange = () => {
+                            if (xhttp.status == 200 && xhttp.readyState == 4) {
+                                user.messages = xhttp.responseText;
+                                resolve(user);
+                            }
+                        };
+                        xhttp.onerror = (error) => {
+                            reject("Error loading messages" + error);
+                        };
+                        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
+                        xhttp.setRequestHeader("X-Token", user.token);
+                        xhttp.send(null);
+                    } else { //load form presave
+                        user.messages = GM_getValue("message", {});
+                        resolve(user);
+                    }
+                });
+            }
+        };
+    }
 
     function load_messages () {
         if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
@@ -353,7 +429,7 @@
                     ul.append(element("li")
                               .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
                               .append(element("span").t(" favorited your project "))
-                              .append(element("a").t(a.title).a("href", "/projects/"+a.project_id))
+                              .append(element("a").t(a.project_title).a("href", "/projects/"+a.project_id))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "loveproject":
@@ -589,7 +665,7 @@
             unit = " year";
         }
         if (time == 1) {
-            return " " + time + unit + " ago"; 
+            return " " + time + unit + " ago";
         } else {
             return " " + time + unit + "s ago";
         }
@@ -874,6 +950,21 @@
         apthis (dom) {
             dom.appendChild(this.dom);
             return this.dom;
+        }
+        o (options, selected) {
+            for (let a in options) {
+                if (options.hasOwnProperty(a)) {
+                    console.log(a, options[a]);
+                    let b = document.createElement("option");
+                    b.setAttribute("value", a);
+                    b.appendChild(document.createTextNode(options[a]));
+                    if (selected == a) {
+                        b.setAttribute("selected", true);
+                    }
+                    this.dom.appendChild(b);
+                }
+            }
+            return this;
         }
     }
 })();
