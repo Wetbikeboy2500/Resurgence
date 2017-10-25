@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      4.8
+// @version      5.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -74,11 +75,67 @@
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
+            $('ul.dropdown.production').append('<li id="res-set"><a>Resurgence Settings');
         } else if (document.getElementsByClassName("footer-col").length > 0) {
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
+            $('.user-nav').append('<li id="res-set"><a>Resurgence Settings');
         }
+        //adds popup settings modal
+        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
+        let displaySettingsModal = false;
+        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
+        $('#res-set-modal').load('https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/NitroCipher/ScratchFixer/master/modal.html');
+        //$('#res-set-modal').append('<span style="font-size: 40px;">Resurgence Settings');
+        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
+        function toggleModal () {
+            if (displaySettingsModal) {
+                $('body').attr('style', 'overflow-y:scroll;');
+                $('#res-set-modal').hide(500);
+                $('#res-set-modal-back').toggleClass('modal-hidden');
+                displaySettingsModal = false;
+            } else {
+                $('body').attr('style', 'overflow-y:hidden;');
+                $('#res-set-modal').show(500);
+                $('#res-set-modal-back').toggleClass('modal-hidden');
+                if (GM_getValue("theme", false) === "dark") {
+                    $("#themeIO").prop('checked', "checked");
+                }
+                if (GM_getValue("extras", true)) {
+                    $("#extrasIO").prop('checked', "checked");
+                }
+                if (GM_getValue("msg", true)) {
+                    $("#msgIO").prop('checked', "checked");
+                }
+                displaySettingsModal = true;
+            }
+        }
+        $('#res-set').click(toggleModal);
+        $('#res-set-modal').blur(toggleModal);
+        //IO for sliders
+        $(document).on("click", "#themeIO", function(event){
+            if (GM_getValue("theme", false) === "dark") {
+                GM_setValue("theme", "light");
+            } else {
+                GM_setValue("theme", "dark");
+            }
+            dark_theme();
+        });
+        $(document).on("click", "#extrasIO", function(event){
+            if (GM_getValue("extras", true)) {
+                GM_setValue("extras", false);
+            } else {
+                GM_setValue("extras", true);
+            }
+        });
+        $(document).on("click", "#msgIO", function(event){
+            if (GM_getValue("msg", true)) {
+                GM_setValue("msg", false);
+            } else {
+                GM_setValue("msg", true);
+            }
+        });
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
@@ -266,70 +323,72 @@
         }
     }
     //add messages to main page
-    let messages = {
-        get_session: () => {
-            return new Promise ((resolve, reject) => {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        let html  = xhttp.responseText;
-                        let js = JSON.parse(html);
-                        resolve({
-                            token: js.user.token,
-                            username: js.user.username
-                        });
-                    }
-                };
-                xhttp.onerror = (err) => {
-                    reject("Error getting userinfo " + err);
-                };
-                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-                xhttp.send(null);
-            });
-        },
-        //this should instead see if the newest messgae equals our newesst message
-        check_unread: (user) => {
-            return new Promise ((resolve, reject) => {
-                let r = new XMLHttpRequest();
-                r.onreadystatechange = () => {
-                    if (r.status == 200 && r.readyState == 4) {
-                        let rec = JSON.parse(r.responseText);
-                        let mes = JSON.parse(GM_getValue("message", true));
-                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
-                        resolve(user);
-                    }
-                };
-                r.onerror = (error) => {
-                    reject("Error checking unread messgaes" + error);
-                };
-                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
-                r.setRequestHeader("X-Token", user.token);
-                r.send(null);
-            });
-        },
-        get_message: (user) => {
-            return new Promise((resolve, reject) => {
-                if (user.has_messages) { //load new messages
+    if (GM_getValue("msg", true)) {
+        let messages = {
+            get_session: () => {
+                return new Promise ((resolve, reject) => {
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            user.messages = xhttp.responseText;
+                            let html  = xhttp.responseText;
+                            let js = JSON.parse(html);
+                            resolve({
+                                token: js.user.token,
+                                username: js.user.username
+                            });
+                        }
+                    };
+                    xhttp.onerror = (err) => {
+                        reject("Error getting userinfo " + err);
+                    };
+                    xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                    xhttp.send(null);
+                });
+            },
+            //this should instead see if the newest messgae equals our newesst message
+            check_unread: (user) => {
+                return new Promise ((resolve, reject) => {
+                    let r = new XMLHttpRequest();
+                    r.onreadystatechange = () => {
+                        if (r.status == 200 && r.readyState == 4) {
+                            let rec = JSON.parse(r.responseText);
+                            let mes = JSON.parse(GM_getValue("message", true));
+                            user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
                             resolve(user);
                         }
                     };
-                    xhttp.onerror = (error) => {
-                        reject("Error loading messages" + error);
+                    r.onerror = (error) => {
+                        reject("Error checking unread messgaes" + error);
                     };
-                    xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
-                    xhttp.setRequestHeader("X-Token", user.token);
-                    xhttp.send(null);
-                } else { //load form presave
-                    user.messages = GM_getValue("message", {});
-                    resolve(user);
-                }
-            });
-        }
-    };
+                    r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                    r.setRequestHeader("X-Token", user.token);
+                    r.send(null);
+                });
+            },
+            get_message: (user) => {
+                return new Promise((resolve, reject) => {
+                    if (user.has_messages) { //load new messages
+                        let xhttp = new XMLHttpRequest();
+                        xhttp.onreadystatechange = () => {
+                            if (xhttp.status == 200 && xhttp.readyState == 4) {
+                                user.messages = xhttp.responseText;
+                                resolve(user);
+                            }
+                        };
+                        xhttp.onerror = (error) => {
+                            reject("Error loading messages" + error);
+                        };
+                        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
+                        xhttp.setRequestHeader("X-Token", user.token);
+                        xhttp.send(null);
+                    } else { //load form presave
+                        user.messages = GM_getValue("message", {});
+                        resolve(user);
+                    }
+                });
+            }
+        };
+    }
 
     function load_messages () {
         if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
