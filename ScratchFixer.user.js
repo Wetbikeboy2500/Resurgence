@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.8
+// @version      5.9
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -93,6 +93,7 @@
                 if (GM_getValue("timer", true)) {
                     $("#halloweenIO").prop('checked', "checked");
                 }
+                $("#playerIO").val(GM_getValue("player", "D"));
                 displaySettingsModal = true;
             }
         }
@@ -156,6 +157,10 @@
             } else {
                 GM_setValue("timer", true);
             }
+        });
+        $(document).on("change", "#playerIO", (event) => {
+            console.log(document.getElementById("playerIO").value);
+            GM_setValue("player", document.getElementById("playerIO").value);
         });
 
         //adds the new page
@@ -412,6 +417,7 @@
                         .then(user => load_message(user))
                         .catch((error) => console.warn(error));
                 }
+                clearInterval(load);
             }, 1000);
 
         }

@@ -96,6 +96,11 @@ button:hover {
 .markItUp .markItUpButton9 a {
     filter: invert(100%)!important;
 }
+select {
+    color: #fff !important; 
+    border-color: #1f2227!important; 
+    background-color: #2d3035!important;
+}
 .v-tabs li:hover {
     background-color: #22252a!important;
 }
