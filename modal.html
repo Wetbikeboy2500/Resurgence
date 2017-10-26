@@ -5,34 +5,44 @@
     <div id="brdmenu" class="box-content">
         <div class="box-head">
             <h4>Countdown until Halloween</h4>
-            <div class="switch">
+            <label class="switch">
                 <input type="checkbox" id="halloweenIO">
                 <span class="slider round"></span>
-            </div>
+            </label>
         </div>
 
         <div class="box-head">
             <h4>Messages on Frontpage</h4>
-            <div class="switch">
+            <label class="switch">
                 <input type="checkbox" id="msgIO">
                 <span class="slider round"></span>
-            </div>
+            </label>
         </div>
 
         <div class="box-head">
             <h4>Extras</h4>
-            <div class="switch">
+            <label class="switch">
                 <input type="checkbox" id="extrasIO">
                 <span class="slider round"></span>
-            </div>
+            </label>
         </div>
 
         <div class="box-head">
             <h4>Dark Theme</h4>
-            <div class="switch">
+            <label class="switch">
                 <input type="checkbox" id="themeIO">
                 <span class="slider round"></span>
-            </div>
+            </label>
+        </div>
+        
+        <div class="box-head">
+            <h4>Default Player</h4>
+            <select id="playerIO">
+                <option value="D">Default</option>
+                <option value="P">Phosphorus</option>
+                <option value="S">Sulfurous</option>
+                <option value="S3">Scratch 3</option>
+            </select>
         </div>
 
         <div class="box-head">
@@ -101,9 +111,9 @@
     }
 
     input:checked + .slider:before {
-        -webkit-transform: translateX(26px);
-        -ms-transform: translateX(26px);
-        transform: translateX(26px);
+        -webkit-transform: translateX(12px);
+        -ms-transform: translateX(12px);
+        transform: translateX(12px);
     }
 
     #brdheader {
