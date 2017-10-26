@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.9
+// @version      5.10
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -65,7 +65,7 @@
         } else {
             let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
             tips.setAttribute("href", "/discuss");
-            tips.innerHTML = "Forums";
+            tips.innerHTML = GM_getValue("forumTitle", "Forums");
             console.log("Old Theme");
         }
     }
@@ -94,6 +94,7 @@
                     $("#halloweenIO").prop('checked', "checked");
                 }
                 $("#playerIO").val(GM_getValue("player", "D"));
+                $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
             }
         }
@@ -124,7 +125,7 @@
         //adds popup settings modal
         GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
         $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
+        $('#res-set-modal').load("https://raw.githubusercontent.com/NitroCipher/Resurgence/master/modal.html");
 
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
@@ -161,6 +162,11 @@
         $(document).on("change", "#playerIO", (event) => {
             console.log(document.getElementById("playerIO").value);
             GM_setValue("player", document.getElementById("playerIO").value);
+            
+        });
+        $(document).on("change", "#disText", (event) => {
+            console.log(document.getElementById("playerIO").value);
+            GM_setValue("forumTitle", document.getElementById("disText").value);
         });
 
         //adds the new page
