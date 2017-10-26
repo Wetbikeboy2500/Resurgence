@@ -1,336 +1,361 @@
 <div id="brdheader" class="box">
-	<div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-	    <h2>Resurgence Userscript</h2></div>
-	<br>
-	<div id="brdmenu" class="box-content">
-		<div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-		    <h4>Countdown until Halloween</h4></div>
-		<label class="switch">
-		  <input type="checkbox" id="halloweenIO">
-		  <span class="slider round"></span>
-		</label>
-		<br>
-		<div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-		    <h4>Messages on frontpage</h4></div>
-		<label class="switch">
-		  <input type="checkbox" id="msgIO">
-		  <span class="slider round"></span>
-		</label>
-		<br>
-		<div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-		    <h4>Extras</h4></div>
-		<label class="switch">
-		  <input type="checkbox" id="extrasIO">
-		  <span class="slider round"></span>
-		</label>
-		<br>
-		<div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-		    <h4>Dark Theme</h4></div>
-		<label class="switch">
-		  <input type="checkbox" id="themeIO">
-		  <span class="slider round"></span>
-		</label>
-		<br>
-	</div>
+    <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <h2>Resurgence Userscript</h2></div>
+    <div id="brdmenu" class="box-content">
+        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+            <h4>Countdown until Halloween</h4>
+        </div>
+        <br>
+        <label class="switch">
+            <input type="checkbox" id="halloweenIO">
+            <span class="slider round"></span>
+        </label>
+
+        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+            <h4>Messages on Frontpage</h4>
+        </div>
+        <br>
+        <label class="switch">
+            <input type="checkbox" id="msgIO">
+            <span class="slider round"></span>
+        </label>
+
+        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+            <h4>Extras</h4>
+        </div>
+        <br>
+        <label class="switch">
+            <input type="checkbox" id="extrasIO">
+            <span class="slider round"></span>
+        </label>
+
+        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+            <h4>Dark Theme</h4>
+        </div>
+        <br>
+        <label class="switch">
+            <input type="checkbox" id="themeIO">
+            <span class="slider round"></span>
+        </label>
+
+        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+            <h4>Default Player</h4>
+        </div>
+        <br>
+        <select id="playerIO">
+            <option value="D">Default</option>
+            <option value="P">Phosphorus</option>
+            <option value="S">Sulfurous</option>
+            <option value="S3">Scratch 3</option>
+        </select>
+    </div>
 </div>
 <style>
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 35px;
-  height: 20px;
-  bottom: 20px;
-  align-self: right;
-}
+    #brdmenu {
+        text-align: left;
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+    #playerIO {
+        margin-left: 20px;
+    }
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 35px;
+        height: 20px;
+        bottom: 20px;
+        align-self: right;
+        margin-left: 20px;
+        margin-top: 6px;
+        margin-bottom: -15px;
+    }
 
-/* Hide default HTML checkbox */
-.switch input {display:none;}
+    /* Hide default HTML checkbox */
+    .switch input {display:none;}
 
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 15px;
-  width: 15px;
-  left: 3px;
-  bottom: 2.5px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 15px;
+        width: 15px;
+        left: 3px;
+        bottom: 2.5px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
 
-input:checked + .slider {
-  background-color: #2196F3;
-}
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
 
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
 
-input:checked + .slider:before {
-  -webkit-transform: translateX(14px);
-  -ms-transform: translateX(14px);
-  transform: translateX(14px);
-}
+    input:checked + .slider:before {
+        -webkit-transform: translateX(14px);
+        -ms-transform: translateX(14px);
+        transform: translateX(14px);
+    }
 
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
 
-.slider.round:before {
-  border-radius: 50%;
-}
-	
-div #brdheader .box {
-	/* Font & Text */
-	font-family: "helvetica neue", arial, sans-serif;
-	font-size: 13px;
-	font-style: normal;
-	font-variant: normal;
-	font-weight: normal;
-	letter-spacing: normal;
-	line-height: normal;
-	text-decoration: none solid rgb(50, 47, 49);
-	text-align: left;
-	text-indent: 0px;
-	text-transform: none;
-	vertical-align: baseline;
-	white-space: normal;
-	word-spacing: 0px;
+    .slider.round:before {
+        border-radius: 50%;
+    }
 
-	/* Color & Background */
-	background-attachment: scroll;
-	background-color: rgb(247, 247, 247);
-	background-image: none;
-	background-position: 0% 0%;
-	background-repeat: repeat;
-	color: rgb(50, 47, 49);
+    div #brdheader .box {
+        /* Font & Text */
+        font-family: "helvetica neue", arial, sans-serif;
+        font-size: 13px;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: normal;
+        letter-spacing: normal;
+        line-height: normal;
+        text-decoration: none solid rgb(50, 47, 49);
+        text-align: left;
+        text-indent: 0px;
+        text-transform: none;
+        vertical-align: baseline;
+        white-space: normal;
+        word-spacing: 0px;
 
-	/* Box */
-	height: 69px;
-	width: 938px;
-	border: 1px solid rgb(224, 224, 224);
-	border-top: 1px solid rgb(224, 224, 224);
-	border-right: 1px solid rgb(224, 224, 224);
-	border-bottom: 1px solid rgb(224, 224, 224);
-	border-left: 1px solid rgb(224, 224, 224);
-	margin: 0px 0px 20px;
-	padding: 0px;
-	max-height: none;
-	min-height: 0px;
-	max-width: none;
-	min-width: 0px;
+        /* Color & Background */
+        background-attachment: scroll;
+        background-color: rgb(247, 247, 247);
+        background-image: none;
+        background-position: 0% 0%;
+        background-repeat: repeat;
+        color: rgb(50, 47, 49);
 
-	/* Positioning */
-	position: static;
-	top: auto;
-	bottom: auto;
-	right: auto;
-	left: auto;
-	float: none;
-	display: block;
-	clear: none;
-	z-index: auto;
+        /* Box */
+        height: 69px;
+        width: 938px;
+        border: 1px solid rgb(224, 224, 224);
+        border-top: 1px solid rgb(224, 224, 224);
+        border-right: 1px solid rgb(224, 224, 224);
+        border-bottom: 1px solid rgb(224, 224, 224);
+        border-left: 1px solid rgb(224, 224, 224);
+        margin: 0px 0px 20px;
+        padding: 0px;
+        max-height: none;
+        min-height: 0px;
+        max-width: none;
+        min-width: 0px;
 
-	/* List */
-	list-style-image: none;
-	list-style-type: disc;
-	list-style-position: outside;
+        /* Positioning */
+        position: static;
+        top: auto;
+        bottom: auto;
+        right: auto;
+        left: auto;
+        float: none;
+        display: block;
+        clear: none;
+        z-index: auto;
 
-	/* Table */
-	border-collapse: separate;
-	border-spacing: 0px 0px;
-	caption-side: top;
-	empty-cells: show;
-	table-layout: auto;
+        /* List */
+        list-style-image: none;
+        list-style-type: disc;
+        list-style-position: outside;
 
-	/* Miscellaneous */
-	overflow: hidden;
-	cursor: auto;
-	visibility: visible;
+        /* Table */
+        border-collapse: separate;
+        border-spacing: 0px 0px;
+        caption-side: top;
+        empty-cells: show;
+        table-layout: auto;
 
-	/* Effects */
-	transform: none;
-	transition: all 0s ease 0s;
-	outline: rgb(255, 0, 0) dashed 1px;
-	outline-offset: 0px;
-	box-sizing: content-box;
-	resize: none;
-	text-shadow: rgb(255, 255, 255) 0px 1px 0px;
-	text-overflow: clip;
-	word-wrap: normal;
-	box-shadow: rgba(34, 25, 25, 0.3) 0px 2px 3px 0px;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	border-bottom-left-radius: 0px;
-	border-bottom-right-radius: 0px;
-}
-.box-head {
-	/* Font & Text */
-	font-family: "helvetica neue", arial, sans-serif;
-	font-size: 13px;
-	font-style: normal;
-	font-variant: normal;
-	font-weight: normal;
-	letter-spacing: normal;
-	line-height: 20.0005px;
-	text-decoration: none solid rgb(50, 47, 49);
-	text-align: start;
-	text-indent: 0px;
-	text-transform: none;
-	vertical-align: baseline;
-	white-space: normal;
-	word-spacing: 0px;
+        /* Miscellaneous */
+        overflow: hidden;
+        cursor: auto;
+        visibility: visible;
 
-	/* Color & Background */
-	background-attachment: scroll;
-	background-color: rgba(0, 0, 0, 0);
-	background-image: none;
-	background-position: 0% 0%;
-	background-repeat: repeat;
-	color: rgb(50, 47, 49);
+        /* Effects */
+        transform: none;
+        transition: all 0s ease 0s;
+        outline: rgb(255, 0, 0) dashed 1px;
+        outline-offset: 0px;
+        box-sizing: content-box;
+        resize: none;
+        text-overflow: clip;
+        word-wrap: normal;
+        box-shadow: rgba(34, 25, 25, 0.3) 0px 2px 3px 0px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+    }
+    div #brdmenu .box-head {
+        /* Font & Text */
+        font-family: "helvetica neue", arial, sans-serif;
+        font-size: 13px;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: normal;
+        letter-spacing: normal;
+        line-height: 20.0005px;
+        text-decoration: none solid rgb(50, 47, 49);
+        text-align: start;
+        text-indent: 0px;
+        text-transform: none;
+        vertical-align: baseline;
+        white-space: normal;
+        word-spacing: 0px;
 
+        /* Color & Background */
+        background-attachment: scroll;
+        background-color: rgba(0, 0, 0, 0);
+        background-image: none;
+        background-position: 0% 0%;
+        background-repeat: repeat;
+        color: rgb(50, 47, 49);
 
 
-	/* Positioning */
-	position: relative;
-	top: 0px;
-	bottom: 0px;
-	right: 0px;
-	left: 0px;
-	float: none;
-	display: block;
-	clear: none;
-	z-index: auto;
 
-	/* List */
-	list-style-image: none;
-	list-style-type: disc;
-	list-style-position: outside;
+        /* Positioning */
+        position: relative;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        left: 0px;
+        float: none;
+        display: block;
+        clear: none;
+        z-index: auto;
 
-	/* Table */
-	border-collapse: separate;
-	border-spacing: 0px 0px;
-	caption-side: top;
-	empty-cells: show;
-	table-layout: auto;
+        /* List */
+        list-style-image: none;
+        list-style-type: disc;
+        list-style-position: outside;
 
-	/* Miscellaneous */
-	overflow: hidden;
-	cursor: auto;
-	visibility: visible;
+        /* Table */
+        border-collapse: separate;
+        border-spacing: 0px 0px;
+        caption-side: top;
+        empty-cells: show;
+        table-layout: auto;
 
-	/* Effects */
-	transform: none;
-	transition: all 0s ease 0s;
-	outline-offset: 0px;
-	box-sizing: content-box;
-	resize: none;
-	text-shadow: rgb(255, 255, 255) 0px 1px 0px;
-	text-overflow: clip;
-	word-wrap: normal;
-	box-shadow: none;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	border-bottom-left-radius: 10px;
-	border-bottom-right-radius: 10px;
-}
-div #brdmenu .box-content {
-	/* Font & Text */
-	font-family: "helvetica neue", arial, sans-serif;
-	font-size: 13px;
-	font-style: normal;
-	font-variant: normal;
-	font-weight: normal;
-	letter-spacing: normal;
-	line-height: normal;
-	text-decoration: none solid rgb(50, 47, 49);
-	text-align: left;
-	text-indent: 0px;
-	text-transform: none;
-	vertical-align: baseline;
-	white-space: normal;
-	word-spacing: 0px;
+        /* Miscellaneous */
+        overflow: hidden;
+        cursor: auto;
+        visibility: visible;
 
-	/* Color & Background */
-	background-attachment: scroll;
-	background-color: rgb(255, 255, 255);
-	background-image: none;
-	background-position: 0% 0%;
-	background-repeat: repeat;
-	color: rgb(50, 47, 49);
+        /* Effects */
+        transform: none;
+        transition: all 0s ease 0s;
+        outline-offset: 0px;
+        box-sizing: content-box;
+        resize: none;
+        text-overflow: clip;
+        word-wrap: normal;
+        box-shadow: none;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    div #brdmenu .box-content {
+        /* Font & Text */
+        font-family: "helvetica neue", arial, sans-serif;
+        font-size: 13px;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: normal;
+        letter-spacing: normal;
+        line-height: normal;
+        text-decoration: none solid rgb(50, 47, 49);
+        text-align: left;
+        text-indent: 0px;
+        text-transform: none;
+        vertical-align: baseline;
+        white-space: normal;
+        word-spacing: 0px;
 
-	/* Box */
-	height: 16px;
-	width: 898px;
-	border: ;
-	border-top: 1px solid rgb(224, 224, 224);
-	border-right: 0px none rgb(50, 47, 49);
-	border-bottom: 0px none rgb(50, 47, 49);
-	border-left: 0px none rgb(50, 47, 49);
-	margin: 0px;
-	padding: 6px 20px;
-	max-height: none;
-	min-height: 0px;
-	max-width: none;
-	min-width: 0px;
+        /* Color & Background */
+        background-attachment: scroll;
+        background-color: rgb(255, 255, 255);
+        background-image: none;
+        background-position: 0% 0%;
+        background-repeat: repeat;
+        color: rgb(50, 47, 49);
 
-	/* Positioning */
-	position: relative;
-	top: 0px;
-	bottom: 0px;
-	right: 0px;
-	left: 0px;
-	float: none;
-	display: block;
-	clear: none;
-	z-index: auto;
+        /* Box */
+        height: 16px;
+        width: 898px;
+        border: ;
+        border-top: 1px solid rgb(224, 224, 224);
+        border-right: 0px none rgb(50, 47, 49);
+        border-bottom: 0px none rgb(50, 47, 49);
+        border-left: 0px none rgb(50, 47, 49);
+        margin: 0px;
+        padding-top: 6px;
+        max-height: none;
+        min-height: 0px;
+        max-width: none;
+        min-width: 0px;
 
-	/* List */
-	list-style-image: none;
-	list-style-type: disc;
-	list-style-position: outside;
+        /* Positioning */
+        position: relative;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        left: 0px;
+        float: none;
+        display: block;
+        clear: none;
+        z-index: auto;
 
-	/* Table */
-	border-collapse: separate;
-	border-spacing: 0px 0px;
-	caption-side: top;
-	empty-cells: show;
-	table-layout: auto;
+        /* List */
+        list-style-image: none;
+        list-style-type: disc;
+        list-style-position: outside;
 
-	/* Miscellaneous */
-	overflow: visible;
-	cursor: auto;
-	visibility: visible;
+        /* Table */
+        border-collapse: separate;
+        border-spacing: 0px 0px;
+        caption-side: top;
+        empty-cells: show;
+        table-layout: auto;
 
-	/* Effects */
-	transform: none;
-	transition: all 0s ease 0s;
-	outline: rgb(255, 0, 0) dashed 1px;
-	outline-offset: 0px;
-	box-sizing: content-box;
-	resize: none;
-	text-shadow: rgb(255, 255, 255) 0px 1px 0px;
-	text-overflow: clip;
-	word-wrap: normal;
-	box-shadow: none;
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;
-	border-bottom-left-radius: 0px;
-	border-bottom-right-radius: 0px;
-}
+        /* Miscellaneous */
+        overflow: visible;
+        cursor: auto;
+        visibility: visible;
+
+        /* Effects */
+        transform: none;
+        transition: all 0s ease 0s;
+        outline: rgb(255, 0, 0) dashed 1px;
+        outline-offset: 0px;
+        box-sizing: content-box;
+        resize: none;
+        text-overflow: clip;
+        word-wrap: normal;
+        box-shadow: none;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+    }
 </style>

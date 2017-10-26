@@ -23,6 +23,9 @@ input color #1f2229
     border-top: 0!important;
     background-color: #2d3035!important;
 }
+.slider-carousel-control {
+    background-color: transparent!important;
+}
 #profile-data .footer,
 .button.grey,
 .tabs-index li,
@@ -96,6 +99,11 @@ button:hover {
 .markItUp .markItUpButton9 a {
     filter: invert(100%)!important;
 }
+select {
+    color: #fff !important; 
+    border-color: #1f2227!important; 
+    background-color: #2d3035!important;
+}
 .v-tabs li:hover {
     background-color: #22252a!important;
 }
@@ -113,10 +121,6 @@ button:hover {
 }
 input {
     background-color: #1f2229!important;
-}
-.button.small>span,
-button.small>span {
-    color: #000!important;
 }
 #navigation .link>a,
 #topnav ul.account-nav ul.user-nav li a,

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.4
+// @version      5.9
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -34,7 +34,6 @@
 
     function run () {
         load_userinfo();
-        load_messages();
         if (url.includes("discuss")) {
             load_images();
             load_scratchblockcode();
@@ -55,6 +54,7 @@
         add_player();
         add_search();
         load_extras();
+        load_messages();
     });
 
     function fix_nav () {
@@ -71,25 +71,7 @@
     }
     function load_newpage () {
         console.log("load newpage");
-        if (document.getElementsByClassName("lists").length > 0) {
-            element("dd")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
-            $('ul.dropdown.production').append('<li id="res-set"><a>Resurgence Settings');
-        } else if (document.getElementsByClassName("footer-col").length > 0) {
-            element("li")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
-            $('.user-nav').append('<li id="res-set"><a>Resurgence Settings');
-        }
-        //adds popup settings modal
-        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
-        let displaySettingsModal = false;
-        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').load('https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/NitroCipher/ScratchFixer/master/modal.html');
-        //$('#res-set-modal').append('<span style="font-size: 40px;">Resurgence Settings');
-        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
-        function toggleModal () {
+        let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
                 $('body').attr('style', 'overflow-y:scroll;');
                 $('#res-set-modal').hide(500);
@@ -108,13 +90,46 @@
                 if (GM_getValue("msg", true)) {
                     $("#msgIO").prop('checked', "checked");
                 }
+                if (GM_getValue("timer", true)) {
+                    $("#halloweenIO").prop('checked', "checked");
+                }
+                $("#playerIO").val(GM_getValue("player", "D"));
                 displaySettingsModal = true;
             }
         }
-        $('#res-set').click(toggleModal);
-        $('#res-set-modal').blur(toggleModal);
+        //adds link at bottom of page and adds settings button to menu
+        if (document.getElementsByClassName("lists").length > 0) {
+            element("dd")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
+            let test = setInterval(() => {
+                if (document.getElementsByClassName("ul.dropdown.production") != null) {
+                    $('.divider').before('<li id="res-set"><a>Resurgence Settings');
+                    $('#res-set').click(toggleModal);
+                    clearInterval(test);
+                }
+            }, 1000);
+        } else if (document.getElementsByClassName("footer-col").length > 0) {
+            element("li")
+                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
+                .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
+            let test = setInterval(() => {
+                if (document.getElementById("logout") != null) {
+                    $('#logout').before('<li id="res-set"><a>Resurgence Settings');
+                    $('#res-set').click(toggleModal);
+                    clearInterval(test);
+                }
+            }, 1000);
+        }
+        //adds popup settings modal
+        GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
+        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
+        $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
+
+        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
+        $('#res-set-modal-back').click(toggleModal);
         //IO for sliders
-        $(document).on("click", "#themeIO", function(event){
+        $(document).on("click", "#themeIO", (event) => {
             if (GM_getValue("theme", false) === "dark") {
                 GM_setValue("theme", "light");
             } else {
@@ -122,20 +137,32 @@
             }
             dark_theme();
         });
-        $(document).on("click", "#extrasIO", function(event){
+        $(document).on("click", "#extrasIO", (event) => {
             if (GM_getValue("extras", true)) {
                 GM_setValue("extras", false);
             } else {
                 GM_setValue("extras", true);
             }
         });
-        $(document).on("click", "#msgIO", function(event){
+        $(document).on("click", "#msgIO", (event) => {
             if (GM_getValue("msg", true)) {
                 GM_setValue("msg", false);
             } else {
                 GM_setValue("msg", true);
             }
         });
+        $(document).on("click", "#halloweenIO", (event) => {
+            if (GM_getValue("timer", true)) {
+                GM_setValue("timer", false);
+            } else {
+                GM_setValue("timer", true);
+            }
+        });
+        $(document).on("change", "#playerIO", (event) => {
+            console.log(document.getElementById("playerIO").value);
+            GM_setValue("player", document.getElementById("playerIO").value);
+        });
+
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
@@ -231,31 +258,24 @@
                 switch (a) {
                     case "D":
                         document.getElementById("player").style = "display: block;";
-                        player = 0;
                         break;
                     case "P":
                         element("script").a("src", "https://phosphorus.github.io/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&auto-start=false&light-content=false")
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 1;
                         break;
                     case "S":
                         element("script").a("src", "https://sulfurous.aau.at/js/embed.js?id="+ document.getElementById("project").getAttribute("data-project-id") +"&resolution-x=480&resolution-y=360&auto-start=true&light-content=false")
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 2;
                         break;
                     case "S3":
                         element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
                             .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
                             .ap(document.getElementsByClassName("stage")[0]);
-                        player = 3;
                         break;
                     default:
                         document.getElementById("player").style = "display: block;";
-                        player = 0;
                         break;
                 }
-            }, select = (a, b) => {
-                return a == b;
             }; //0 is default, 1 is phosphorous, 2 is sulforus
             console.log("Project page");
             if (document.getElementById("share-bar") === null) {
@@ -322,81 +342,84 @@
             style = null;
         }
     }
-    //add messages to main page
-    if (GM_getValue("msg", true)) {
-        let messages = {
-            get_session: () => {
-                return new Promise ((resolve, reject) => {
+    let messages = {
+        get_session: () => {
+            return new Promise ((resolve, reject) => {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let html  = xhttp.responseText;
+                        let js = JSON.parse(html);
+                        resolve({
+                            token: js.user.token,
+                            username: js.user.username
+                        });
+                    }
+                };
+                xhttp.onerror = (err) => {
+                    reject("Error getting userinfo " + err);
+                };
+                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                xhttp.send(null);
+            });
+        },
+        //this should instead see if the newest messgae equals our newesst message
+        check_unread: (user) => {
+            return new Promise ((resolve, reject) => {
+                let r = new XMLHttpRequest();
+                r.onreadystatechange = () => {
+                    if (r.status == 200 && r.readyState == 4) {
+                        let rec = JSON.parse(r.responseText);
+                        let mes = JSON.parse(GM_getValue("message", true));
+                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
+                        resolve(user);
+                    }
+                };
+                r.onerror = (error) => {
+                    reject("Error checking unread messgaes" + error);
+                };
+                r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
+                r.setRequestHeader("X-Token", user.token);
+                r.send(null);
+            });
+        },
+        get_message: (user) => {
+            return new Promise((resolve, reject) => {
+                if (user.has_messages) { //load new messages
                     let xhttp = new XMLHttpRequest();
                     xhttp.onreadystatechange = () => {
                         if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            let html  = xhttp.responseText;
-                            let js = JSON.parse(html);
-                            resolve({
-                                token: js.user.token,
-                                username: js.user.username
-                            });
-                        }
-                    };
-                    xhttp.onerror = (err) => {
-                        reject("Error getting userinfo " + err);
-                    };
-                    xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-                    xhttp.send(null);
-                });
-            },
-            //this should instead see if the newest messgae equals our newesst message
-            check_unread: (user) => {
-                return new Promise ((resolve, reject) => {
-                    let r = new XMLHttpRequest();
-                    r.onreadystatechange = () => {
-                        if (r.status == 200 && r.readyState == 4) {
-                            let rec = JSON.parse(r.responseText);
-                            let mes = JSON.parse(GM_getValue("message", true));
-                            user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
+                            user.messages = xhttp.responseText;
                             resolve(user);
                         }
                     };
-                    r.onerror = (error) => {
-                        reject("Error checking unread messgaes" + error);
+                    xhttp.onerror = (error) => {
+                        reject("Error loading messages" + error);
                     };
-                    r.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=1&offset=0", true);
-                    r.setRequestHeader("X-Token", user.token);
-                    r.send(null);
-                });
-            },
-            get_message: (user) => {
-                return new Promise((resolve, reject) => {
-                    if (user.has_messages) { //load new messages
-                        let xhttp = new XMLHttpRequest();
-                        xhttp.onreadystatechange = () => {
-                            if (xhttp.status == 200 && xhttp.readyState == 4) {
-                                user.messages = xhttp.responseText;
-                                resolve(user);
-                            }
-                        };
-                        xhttp.onerror = (error) => {
-                            reject("Error loading messages" + error);
-                        };
-                        xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
-                        xhttp.setRequestHeader("X-Token", user.token);
-                        xhttp.send(null);
-                    } else { //load form presave
-                        user.messages = GM_getValue("message", {});
-                        resolve(user);
-                    }
-                });
-            }
-        };
-    }
+                    xhttp.open("GET", "https://api.scratch.mit.edu/users/"+user.username+"/messages?limit=40&offset=0", true);
+                    xhttp.setRequestHeader("X-Token", user.token);
+                    xhttp.send(null);
+                } else { //load form presave
+                    user.messages = GM_getValue("message", {});
+                    resolve(user);
+                }
+            });
+        }
+    };
 
     function load_messages () {
-        if (url == "https://scratch.mit.edu/" && document.getElementsByClassName("box activity")[0] !== null) {
-            messages.get_session()
-                .then(user => messages.check_unread(user))
-                .then(user => messages.get_message(user))
-                .then(user => load_message(user))
-                .catch((error) => console.warn(error));
+        if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
+            let load = setInterval(() => {
+                if (document.getElementsByClassName("box activity")[0] !== null) {
+                    messages.get_session()
+                        .then(user => messages.check_unread(user))
+                        .then(user => messages.get_message(user))
+                        .then(user => load_message(user))
+                        .catch((error) => console.warn(error));
+                }
+                clearInterval(load);
+            }, 1000);
+
         }
     }
 
@@ -500,7 +523,6 @@
                     console.warn(a, "Not Found");
             }
         }
-        timer();//run it here since it has issues with running right after page loads
         let happening = document.getElementsByClassName("box activity")[0];
         happening.childNodes[0].childNodes[0].innerHTML = "Messages";
         happening.childNodes[1].childNodes[0].style.display = "none";
@@ -824,28 +846,31 @@
 
     function timer () {
         let event = new Date("Oct 31, 2017").getTime();
-        let span = document.createElement("span");
-        span.setAttribute("style", "float: right; color: #f6660d;");
-        span.appendChild(document.createTextNode("Halloween"));
-        document.getElementsByClassName("box-header")[0].appendChild(span);
-        let x = setInterval(() => {
-            let distance = event - new Date().getTime();
+        let span = element("span").a("style", "float: right; color: #f6660d;").t("Halloween").dom;
+        let load = setInterval(() => {
+            if (document.getElementsByClassName("box-header")[0] != null) {
+                document.getElementsByClassName("box-header")[0].appendChild(span);
+                let x = setInterval(() => {
+                    let distance = event - new Date().getTime();
 
-            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-            span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
-            if (distance < 0) {
-                clearInterval(x);
-                if (days <= -2) {
-                    span.parentElement.removeChild(span);
-                } else {
-                    span.innerHTML = "Its Halloween";
-                }
+                    span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
+                    if (distance < 0) {
+                        clearInterval(x);
+                        if (days <= -2) {
+                            span.parentElement.removeChild(span);
+                        } else {
+                            span.innerHTML = "Its Halloween";
+                        }
+                    }
+                });
+                clearInterval(load);
             }
-        });
+        }, 1000);
     }
 
     function create_falling(link, img, extreme, cursor = null, audio = false) {
@@ -917,6 +942,9 @@
             create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
             //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+        }
+        if (GM_getValue("timer", true)) {
+            timer();
         }
     }
 
