@@ -590,7 +590,7 @@ textarea {
 }
 #navigation .inner>ul>li.search .btn-search {
     background-color: transparent !important;
-    background-image: url(/images/nav-search-glass.png) !important;
+    background-image: url(https://scratch.mit.edu/images/nav-search-glass.png) !important;
 }
 body>#pagewrapper {
     background-color: #17191c!important;
