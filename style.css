@@ -43,6 +43,9 @@ button {
 .gallery-info {
  	background-color: #22252a !important;
 }
+#brdmenu>div, #brdheader .box-head{
+    background-color: #2d3035!important
+}
 .h-tabs>li.active a {
     border: 0!important;
 }
@@ -247,7 +250,7 @@ ul.curators li {
     border-color: #1f2227!important;
     background: #22252a!important;
 }
-.blockpost label,
+.blockpost div,
 .postfootleft,
 .postfootright,
 .postleft,
@@ -265,7 +268,7 @@ ul.curators li {
 .tclcon,
 .username_link,
 input,
-label,
+div,
 p,
 pre,
 select,
@@ -587,7 +590,7 @@ textarea {
 }
 #navigation .inner>ul>li.search .btn-search {
     background-color: transparent !important;
-    background-image: url(/images/nav-search-glass.png) !important;
+    background-image: url(https://scratch.mit.edu/images/nav-search-glass.png) !important;
 }
 body>#pagewrapper {
     background-color: #17191c!important;

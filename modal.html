@@ -1,59 +1,54 @@
 <div id="brdheader" class="box">
     <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
-        <h2>Resurgence Userscript</h2></div>
+        <h2>Resurgence Userscript</h2>
+    </div>
     <div id="brdmenu" class="box-content">
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <div class="box-head">
             <h4>Countdown until Halloween</h4>
+            <label class="switch">
+                <input type="checkbox" id="halloweenIO">
+                <span class="slider round"></span>
+            </label>
         </div>
-        <br>
-        <label class="switch">
-            <input type="checkbox" id="halloweenIO">
-            <span class="slider round"></span>
-        </label>
 
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <div class="box-head">
             <h4>Messages on Frontpage</h4>
+            <label class="switch">
+                <input type="checkbox" id="msgIO">
+                <span class="slider round"></span>
+            </label>
         </div>
-        <br>
-        <label class="switch">
-            <input type="checkbox" id="msgIO">
-            <span class="slider round"></span>
-        </label>
 
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <div class="box-head">
             <h4>Extras</h4>
+            <label class="switch">
+                <input type="checkbox" id="extrasIO">
+                <span class="slider round"></span>
+            </label>
         </div>
-        <br>
-        <label class="switch">
-            <input type="checkbox" id="extrasIO">
-            <span class="slider round"></span>
-        </label>
 
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <div class="box-head">
             <h4>Dark Theme</h4>
+            <label class="switch">
+                <input type="checkbox" id="themeIO">
+                <span class="slider round"></span>
+            </label>
         </div>
-        <br>
-        <label class="switch">
-            <input type="checkbox" id="themeIO">
-            <span class="slider round"></span>
-        </label>
-
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        
+        <div class="box-head">
             <h4>Default Player</h4>
+            <select id="playerIO">
+                <option value="D">Default</option>
+                <option value="P">Phosphorus</option>
+                <option value="S">Sulfurous</option>
+                <option value="S3">Scratch 3</option>
+            </select>
         </div>
-        <br>
-        <select id="playerIO">
-            <option value="D">Default</option>
-            <option value="P">Phosphorus</option>
-            <option value="S">Sulfurous</option>
-            <option value="S3">Scratch 3</option>
-        </select>
 
-        <div class="box-head" style="padding: 10px 0px 0px 7px !important;">
+        <div class="box-head">
             <h4>Forum Title</h4>
+            <input type="text" id="disText" value="Forums" style="margin-left: 0.5cm;"></input>
         </div>
-        <br>
-        <input type="text" id="disText" value="Forums" style="margin-left: 0.5cm;"></input>
     </div>
 </div>
 <style>
@@ -65,61 +60,67 @@
     #playerIO {
         margin-left: 20px;
     }
+    .box-head h4 {
+        display: inline-block;
+    }
     /* The switch - the box around the slider */
     .switch {
         position: relative;
         display: inline-block;
-        width: 35px;
-        height: 20px;
-        bottom: 20px;
-        align-self: right;
-        margin-left: 20px;
-        margin-top: 6px;
-        margin-bottom: -15px;
+        left: 10px;
+        width: 30px;
+        height: 17px;
     }
+
     /* Hide default HTML checkbox */
     .switch input {display:none;}
+
     /* The slider */
     .slider {
         position: absolute;
         cursor: pointer;
         top: 0;
+        left: 0;
         right: 0;
         bottom: 0;
-        left: 0;
+        border-radius: 34px;
         background-color: #ccc;
         -webkit-transition: .4s;
         transition: .4s;
     }
+
     .slider:before {
         position: absolute;
         content: "";
-        height: 15px;
-        width: 15px;
-        left: 3px;
-        bottom: 2.5px;
+        height: 12px;
+        width: 12px;
+        left: 4px;
+        bottom: 3px;
+        border-radius: 50%;
         background-color: white;
         -webkit-transition: .4s;
         transition: .4s;
     }
+
     input:checked + .slider {
         background-color: #2196F3;
     }
+
     input:focus + .slider {
         box-shadow: 0 0 1px #2196F3;
     }
+
     input:checked + .slider:before {
-        -webkit-transform: translateX(14px);
-        -ms-transform: translateX(14px);
-        transform: translateX(14px);
+        -webkit-transform: translateX(12px);
+        -ms-transform: translateX(12px);
+        transform: translateX(12px);
     }
-    /* Rounded sliders */
-    .slider.round {
-        border-radius: 34px;
+
+    #brdheader {
+        width: inherit;
+        max-width: 938px;
     }
-    .slider.round:before {
-        border-radius: 50%;
-    }
+
     div #brdheader .box {
         /* Font & Text */
         font-family: "helvetica neue", arial, sans-serif;
@@ -136,6 +137,7 @@
         vertical-align: baseline;
         white-space: normal;
         word-spacing: 0px;
+
         /* Color & Background */
         background-attachment: scroll;
         background-color: rgb(247, 247, 247);
@@ -143,6 +145,7 @@
         background-position: 0% 0%;
         background-repeat: repeat;
         color: rgb(50, 47, 49);
+
         /* Box */
         height: 69px;
         width: 938px;
@@ -157,6 +160,7 @@
         min-height: 0px;
         max-width: none;
         min-width: 0px;
+
         /* Positioning */
         position: static;
         top: auto;
@@ -167,20 +171,24 @@
         display: block;
         clear: none;
         z-index: auto;
+
         /* List */
         list-style-image: none;
         list-style-type: disc;
         list-style-position: outside;
+
         /* Table */
         border-collapse: separate;
         border-spacing: 0px 0px;
         caption-side: top;
         empty-cells: show;
         table-layout: auto;
+
         /* Miscellaneous */
         overflow: hidden;
         cursor: auto;
         visibility: visible;
+
         /* Effects */
         transform: none;
         transition: all 0s ease 0s;
@@ -212,6 +220,7 @@
         vertical-align: baseline;
         white-space: normal;
         word-spacing: 0px;
+
         /* Color & Background */
         background-attachment: scroll;
         background-color: rgba(0, 0, 0, 0);
@@ -219,6 +228,7 @@
         background-position: 0% 0%;
         background-repeat: repeat;
         color: rgb(50, 47, 49);
+
         /* Positioning */
         position: relative;
         top: 0px;
@@ -229,20 +239,24 @@
         display: block;
         clear: none;
         z-index: auto;
+
         /* List */
         list-style-image: none;
         list-style-type: disc;
         list-style-position: outside;
+
         /* Table */
         border-collapse: separate;
         border-spacing: 0px 0px;
         caption-side: top;
         empty-cells: show;
         table-layout: auto;
+
         /* Miscellaneous */
         overflow: hidden;
         cursor: auto;
         visibility: visible;
+
         /* Effects */
         transform: none;
         transition: all 0s ease 0s;
@@ -273,6 +287,7 @@
         vertical-align: baseline;
         white-space: normal;
         word-spacing: 0px;
+
         /* Color & Background */
         background-attachment: scroll;
         background-color: rgb(255, 255, 255);
@@ -280,20 +295,20 @@
         background-position: 0% 0%;
         background-repeat: repeat;
         color: rgb(50, 47, 49);
+
         /* Box */
         height: 16px;
-        width: 898px;
-        border: ;
+        width: 100%;
         border-top: 1px solid rgb(224, 224, 224);
         border-right: 0px none rgb(50, 47, 49);
         border-bottom: 0px none rgb(50, 47, 49);
         border-left: 0px none rgb(50, 47, 49);
         margin: 0px;
         padding-top: 6px;
+        padding-left: 6px;
         max-height: none;
         min-height: 0px;
-        max-width: none;
-        min-width: 0px;
+
         /* Positioning */
         position: relative;
         top: 0px;
@@ -304,20 +319,24 @@
         display: block;
         clear: none;
         z-index: auto;
+
         /* List */
         list-style-image: none;
         list-style-type: disc;
         list-style-position: outside;
+
         /* Table */
         border-collapse: separate;
         border-spacing: 0px 0px;
         caption-side: top;
         empty-cells: show;
         table-layout: auto;
+
         /* Miscellaneous */
         overflow: visible;
         cursor: auto;
         visibility: visible;
+
         /* Effects */
         transform: none;
         transition: all 0s ease 0s;
