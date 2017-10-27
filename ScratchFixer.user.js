@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.12
+// @version      5.13
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -94,6 +94,9 @@
                 if (GM_getValue("timer", true)) {
                     $("#halloweenIO").prop('checked', "checked");
                 }
+                if (GM_getValue("blockCode", true)) {
+                    $("#blocksIO").prop('checked', "checked");
+                }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
@@ -160,10 +163,16 @@
                 GM_setValue("timer", true);
             }
         });
+        $(document).on("click", "#blocksIO", (event) => {
+            if (GM_getValue("blockCode", true)) {
+                GM_setValue("blockCode", false);
+            } else {
+                GM_setValue("blockCode", true);
+            }
+        });
         $(document).on("change", "#playerIO", (event) => {
             console.log(document.getElementById("playerIO").value);
-            GM_setValue("player", document.getElementById("playerIO").value);
-            
+            GM_setValue("player", document.getElementById("playerIO").value);        
         });
         $(document).on("change", "#disText", (event) => {
             console.log(document.getElementById("playerIO").value);
@@ -197,8 +206,8 @@
 
             element("ul")
                 .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Customization of Forum tab name"))
                 .append(element("li").t("Adds messages to the main page"))
-                .append(element("li").t("Forums tab instead of tips tab"))
                 .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
                 .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
                 .append(element("li").t("Quick info when hovering over usernames"))
@@ -208,6 +217,7 @@
                 .append(element("li").t("Adds this page to Scratch"))
                 .append(element("li").t("Adds option for Dark Theme for Scratch"))
                 .append(element("li").t("Enlarge photos in forum posts"))
+                .append(element("li").t("Settings pop-up on all pages"))
                 .ap(main);
 
             element("h3").t("Special Features/Extras").ap(main);
@@ -702,71 +712,73 @@
     }
     //adds scratchblockcode load support
     function load_scratchblockcode () {
-        if (document.getElementsByClassName("blocks")[0] !== null) {
-            let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
-            console.log("contains scratch blocks");
-            let xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = () => {
-                if (xhttp.status == 200 && xhttp.readyState == 4) {
-                    let doc = xhttp.responseXML;
-                    //only do the elements in post body html
-                    let posts = document.getElementsByClassName("post_body_html");
-                    let posts1 = doc.getElementsByClassName("post_body_html");
-                    for (let a of posts) {
-                        if (a.getElementsByClassName("blocks") !== null) {
-                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                blocks.push(a.getElementsByClassName("blocks")[l]);
+        if (GM_getValue("blockCode", true)) {
+            if (document.getElementsByClassName("blocks")[0] !== null) {
+                let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
+                console.log("contains scratch blocks");
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.status == 200 && xhttp.readyState == 4) {
+                        let doc = xhttp.responseXML;
+                        //only do the elements in post body html
+                        let posts = document.getElementsByClassName("post_body_html");
+                        let posts1 = doc.getElementsByClassName("post_body_html");
+                        for (let a of posts) {
+                            if (a.getElementsByClassName("blocks") !== null) {
+                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                    blocks.push(a.getElementsByClassName("blocks")[l]);
+                                }
                             }
                         }
-                    }
-                    for (let a of posts1) {
-                        if (a.getElementsByClassName("blocks") !== null) {
-                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                blocks1.push(a.getElementsByClassName("blocks")[l]);
+                        for (let a of posts1) {
+                            if (a.getElementsByClassName("blocks") !== null) {
+                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                    blocks1.push(a.getElementsByClassName("blocks")[l]);
+                                }
                             }
                         }
-                    }
-                    if (blocks.length > 0) {
-                        for (let i = 0; i < blocks1.length; i++) {
-                            blocks[i].setAttribute("id", i);
-                            blocks[i].addEventListener("click", (event) => {
-                                let target = event.currentTarget;
-                                target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
-                            }, false);
-                        }
-                    }
-                    //do elements for signatures
-                    posts = document.getElementsByClassName("postsignature");
-                    posts1 = doc.getElementsByClassName("postsignature");
-                    for (let a of posts) {
-                        if (a.getElementsByClassName("blocks") !== null) {
-                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                blocks2.push(a.getElementsByClassName("blocks")[l]);
+                        if (blocks.length > 0) {
+                            for (let i = 0; i < blocks1.length; i++) {
+                                blocks[i].setAttribute("id", i);
+                                blocks[i].addEventListener("click", (event) => {
+                                    let target = event.currentTarget;
+                                    target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
+                                }, false);
                             }
                         }
-                    }
-                    for (let a of posts1) {
-                        if (a.getElementsByClassName("blocks") !== null) {
-                            for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                blocks3.push(a.getElementsByClassName("blocks")[l]);
+                        //do elements for signatures
+                        posts = document.getElementsByClassName("postsignature");
+                        posts1 = doc.getElementsByClassName("postsignature");
+                        for (let a of posts) {
+                            if (a.getElementsByClassName("blocks") !== null) {
+                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                    blocks2.push(a.getElementsByClassName("blocks")[l]);
+                                }
                             }
                         }
-                    }
-                    if (blocks2.length > 0) {
-                        for (let i = 0; i < blocks3.length; i++) {
-                            blocks2[i].setAttribute("id", i);
-                            blocks2[i].addEventListener("click", (event) => {
-                                let target = event.currentTarget;
-                                target.parentElement.replaceChild(blocks3[target.id], blocks2[target.id]);
-                            }, false);
+                        for (let a of posts1) {
+                            if (a.getElementsByClassName("blocks") !== null) {
+                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
+                                    blocks3.push(a.getElementsByClassName("blocks")[l]);
+                                }
+                            }
                         }
+                        if (blocks2.length > 0) {
+                            for (let i = 0; i < blocks3.length; i++) {
+                                blocks2[i].setAttribute("id", i);
+                                blocks2[i].addEventListener("click", (event) => {
+                                    let target = event.currentTarget;
+                                    target.parentElement.replaceChild(blocks3[target.id], blocks2[target.id]);
+                                }, false);
+                            }
+                        }
+                        console.log("Finished ScratchBlocks");
                     }
-                    console.log("Finished ScratchBlocks");
-                }
-            };
-            xhttp.open("GET", url, true);
-            xhttp.responseType = "document";
-            xhttp.send(null);
+                };
+                xhttp.open("GET", url, true);
+                xhttp.responseType = "document";
+                xhttp.send(null);
+            }
         }
     }
 
