@@ -37,6 +37,9 @@ button {
 .box .box-content .action-bar.white .inner {
     background-color: #2d3035!important;
 }
+.gsc-control-cse {
+    background-color: #22252a!important;
+}
 .highlighted {
     background-color: #36393f!important;
 }
@@ -68,6 +71,16 @@ button,
 button.small>span,
 button>span {
     color: #fff!important;
+}
+.gsc-tabHeader,
+.gsc-selected-option-container,
+.gsc-option-menu {
+    filter: invert(100%)!important;
+    color: #000!important;
+    border: 0px!important;
+}
+.gsc-tabHeader.gsc-tabhActive {
+    border: 0px!important;
 }
 .button.grey,
 button {
@@ -168,6 +181,13 @@ ul.curators li img {
 }
 .box {
     background: 0 0!important;
+}
+.gsc-adBlock {
+    display: none!important;
+}
+.gsc-webResult {
+    background-color: #2d3035!important;
+    padding-left: 5px!important;
 }
 #topnav .logo span,
 #topnav .logo:hover span {
@@ -393,7 +413,12 @@ a,
 a:active,
 a:hover,
 a:link,
-a:visited {
+a:visited,
+a>b,
+a>b:active,
+a>b:hover,
+a>b:link,
+a>b:visited {
     color: #70FFFF!important;
 }
 .activity-stream .actor a,
@@ -453,6 +478,9 @@ html {
 }
 .v-tabs li.first {
     -webkit-border-top-left-radius: 0!important;
+}
+.gsc-cursor-page {
+    background-color: 
 }
 #topnav .innerwrap {
     box-shadow: none!important;
