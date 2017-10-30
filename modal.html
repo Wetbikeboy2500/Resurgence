@@ -44,6 +44,14 @@
         </div>
         
         <div class="box-head">
+            <h4>Featured projects embedded on user profiles</h4>
+            <label class="switch">
+                <input type="checkbox" id="embedIO">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        
+        <div class="box-head">
             <h4>Default Player</h4>
             <select id="playerIO">
                 <option value="D">Default</option>
@@ -62,14 +70,14 @@
 <style>
     #brdmenu {
         text-align: left;
-        padding-left: 0px;
+        padding-left: 6px;
         padding-right: 0px;
     }
     #playerIO {
         margin-left: 20px;
     }
     .box-head h4 {
-        display: inline-block;
+        display: inline-block !important;
     }
     /* The switch - the box around the slider */
     .switch {
@@ -125,7 +133,7 @@
     }
 
     #brdheader {
-        width: inherit;
+        width: 100%;
         max-width: 938px;
     }
 
@@ -247,6 +255,7 @@
         display: block;
         clear: none;
         z-index: auto;
+        padding: 0px !important;
 
         /* List */
         list-style-image: none;
