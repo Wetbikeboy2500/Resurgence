@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      5.13
+// @version      6.1
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -97,6 +97,9 @@
                 if (GM_getValue("blockCode", true)) {
                     $("#blocksIO").prop('checked', "checked");
                 }
+                if (GM_getValue("embedFeature", true)) {
+                    $("#embedIO").prop('checked', "checked");
+                }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
@@ -168,6 +171,13 @@
                 GM_setValue("blockCode", false);
             } else {
                 GM_setValue("blockCode", true);
+            }
+        });
+        $(document).on("click", "#embedIO", (event) => {
+            if (GM_getValue("embedFeature", true)) {
+                GM_setValue("blockCode", false);
+            } else {
+                GM_setValue("embedFeature", true);
             }
         });
         $(document).on("change", "#playerIO", (event) => {
@@ -261,6 +271,16 @@
                 "S3": "Scratch 3"
             }, GM_getValue("player", "D"))
                 .ap(main);
+        }
+
+        //embeds users featured project
+        if (GM_getValue("embedFeature", true)) {
+            if (url.includes("/users/")) {
+                var featProject = $("#featured-project").attr("href").substr(9);
+                var projectPlayer = '<iframe allowtransparency="true" width="282" height="220" src="//scratch.mit.edu/projects/embed' + featProject + '?autostart=false" frameborder="0" allowfullscreen>'
+                $("div.stage").replaceWith(projectPlayer);
+                //alert(featProject);
+            }
         }
     }
     function add_player () {
