@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      6.1
+// @version      6.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -92,7 +92,7 @@
                     $("#msgIO").prop('checked', "checked");
                 }
                 if (GM_getValue("timer", true)) {
-                    $("#halloweenIO").prop('checked', "checked");
+                    $("#timerIO").prop('checked', "checked");
                 }
                 if (GM_getValue("blockCode", true)) {
                     $("#blocksIO").prop('checked', "checked");
@@ -159,7 +159,7 @@
                 GM_setValue("msg", true);
             }
         });
-        $(document).on("click", "#halloweenIO", (event) => {
+        $(document).on("click", "#timerIO", (event) => {
             if (GM_getValue("timer", true)) {
                 GM_setValue("timer", false);
             } else {
@@ -233,7 +233,7 @@
             element("h3").t("Special Features/Extras").ap(main);
 
             element("Extras")
-                .append(element("li").t("Halloween countdown timer"))
+                .append(element("li").t("Holiday countdown timer"))
                 .append(element("li").t("Falling leaves on the homepage"))
                 .append(element("li")
                         .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
@@ -884,8 +884,9 @@
     }
 
     function timer () {
-        let event = new Date("Oct 31, 2017").getTime();
-        let span = element("span").a("style", "float: right; color: #f6660d;").t("Halloween").dom;
+        let event = new Date("Nov 23, 2017").getTime();
+        let Holiday = "Thanksgiving";
+        let span = element("span").a("style", "float: right; color: #f6660d;").t(Holiday).dom;
         let load = setInterval(() => {
             if (document.getElementsByClassName("box-header")[0] != null) {
                 document.getElementsByClassName("box-header")[0].appendChild(span);
@@ -897,13 +898,13 @@
                     let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                     let seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                    span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til Halloween";
+                    span.innerHTML = days + "d " + hours + "h "+ minutes + "m " + seconds + "s 'til " + Holiday;
                     if (distance < 0) {
                         clearInterval(x);
                         if (days <= -2) {
                             span.parentElement.removeChild(span);
                         } else {
-                            span.innerHTML = "Its Halloween";
+                            span.innerHTML = "Its " + Holiday;
                         }
                     }
                 });
@@ -978,9 +979,7 @@
 
     function load_extras () {
         if (GM_getValue("extras", true)) {
-            create_falling("https://scratch.mit.edu/", ["https://fthmb.tqn.com/Gp0yG59mcxZVY8ZDqzxd8rUy18k=/768x0/filters:no_upscale()/fall-leaves-57a8aa143df78cf4590d2362.png"], false);
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
-            //create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
         }
         if (GM_getValue("timer", true)) {
             timer();
