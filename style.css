@@ -525,7 +525,10 @@ html {
 }
 #topnav ul.account-nav .messages .messages-icon:hover,
 #topnav ul.account-nav .my-stuff .mystuff-icon:hover {
-    background-size: 50%
+    background-size: 50%!important;
+}
+#topnav .logo span:hover {
+    background-size: 100%!important;
 }
 #topnav form.search .glass {
     width: 40px!important;
