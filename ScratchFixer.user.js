@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      6.2
+// @version      7.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -38,6 +38,7 @@
             load_images();
             load_scratchblockcode();
             load_bbcode();
+            add_bbtags();
         }
     }
 
@@ -228,6 +229,8 @@
                 .append(element("li").t("Adds option for Dark Theme for Scratch"))
                 .append(element("li").t("Enlarge photos in forum posts"))
                 .append(element("li").t("Settings pop-up on all pages"))
+                .append(element("li").t("Add extras BBcode Features"))
+                .append(element("li").t("Embed Featured projects on user page"))
                 .ap(main);
 
             element("h3").t("Special Features/Extras").ap(main);
@@ -985,7 +988,63 @@
             timer();
         }
     }
-
+    //add extras bbcode features
+    function add_bbtags () {
+        $('<li class="markItUpButton markItUpButtonRes1" id="Res1"><a  title="Color" >Color</a></li>').insertAfter(".markItUpButton7")
+        .find("a").css("background-image", "url(https://png.icons8.com/color-wheel/office/14/000000)");
+        $('<li class="markItUpButton markItUpButtonRes2" id="Res2"><a  title="Code" >Code</a></li>').insertAfter(".markItUpButton11")
+        .find("a").css("background-image", "url(https://png.icons8.com/code/office/16/000000)");
+        $('<li class="markItUpButton markItUpButtonRes2" id="Res3"><a  title="Center" >Center</a></li>').insertAfter(".markItUpButton4")
+        .find("a").css("background-image", "url(https://png.icons8.com/align-center/office/16/000000)");
+        $('<li class="markItUpButton markItUpButtonRes2" id="Res4"><a  title="Project link" >Project Link</a></li>').insertAfter(".markItUpButton14")
+        .find("a").css("background-image", "url(https://png.icons8.com/prototype/office/16/000000)");
+        document.onselectionchange = function() {
+            document.stringyBB = getSelectionText();
+        };
+        $(document).on('click', '#Res1', function( event ) {
+            //alert(document.stringyBB);
+            var BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000");
+            var constBB = "[color=" +BBstart+ "]" +document.stringyBB+ "[/color]";
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res2', function( event ) {
+            //alert(document.stringyBB);
+            var BBstart = prompt("Enter a programming language:", "");
+            var constBB = "[code=" +BBstart+ "]" +document.stringyBB+ "[/code]";
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res3', function( event ) {
+            var constBB = "[center]" +document.stringyBB+ "[/center]";
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res4', function( event ) {
+            //alert(document.stringyBB);
+            var BBstart = prompt("Enter a project ID:", "");
+            var constBB = "[url=https://scratch.mit.edu/projects/" +BBstart+ "/][img]https://cdn2.scratch.mit.edu/get_image/project/" +BBstart+ "_282x210.png[/img][/url]";
+            replaceIt($('textarea')[0], constBB)
+        });
+    }
+    function getSelectionText() {
+        if (window.getSelection) {
+            try {
+                var ta = $('textarea').get(0);
+                return ta.value.substring(ta.selectionStart, ta.selectionEnd);
+            } catch (e) {
+                console.log('Cant get selection text')
+            }
+        }
+        // For IE
+        if (document.selection && document.selection.type != "Control") {
+            return document.selection.createRange().text;
+        }
+    }
+    function replaceIt(txtarea, newtxt) {
+        $(txtarea).val(
+            $(txtarea).val().substring(0, txtarea.selectionStart)+
+            newtxt+
+            $(txtarea).val().substring(txtarea.selectionEnd)
+        );
+    }
     function element (name) {
         return new _element(name);
     }
