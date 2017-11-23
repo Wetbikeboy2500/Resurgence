@@ -44,9 +44,13 @@ button {
     background-color: #36393f!important;
 }
 .gallery-info {
- 	background-color: #22252a !important;
+    background-color: #22252a !important;
 }
-#brdmenu>div, #brdheader .box-head{
+#galleries>.box-content {
+    height: 100%!important;
+}
+#brdmenu>div,
+#brdheader .box-head {
     background-color: #2d3035!important
 }
 .h-tabs>li.active a {
@@ -116,8 +120,8 @@ button:hover {
     filter: invert(100%)!important;
 }
 select {
-    color: #fff !important; 
-    border-color: #1f2227!important; 
+    color: #fff !important;
+    border-color: #1f2227!important;
     background-color: #2d3035!important;
 }
 .v-tabs li:hover {
@@ -480,7 +484,19 @@ html {
     -webkit-border-top-left-radius: 0!important;
 }
 .gsc-cursor-page {
-    background-color: 
+    background-color: #313439!important;
+}
+.hovertext {
+    display: none!important;
+}
+.studio-list {
+    background-color: #313439!important;
+}
+.player-box-footer-module {
+    background-color: #313439!important;
+}
+#logs td {
+    background-color: #313439!important;
 }
 #topnav .innerwrap {
     box-shadow: none!important;
