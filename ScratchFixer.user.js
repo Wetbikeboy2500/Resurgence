@@ -64,7 +64,7 @@
         if (document.getElementById("navigation") !== null) {
             document.getElementsByClassName("tips")[0].childNodes[0].setAttribute("href", "/discuss");
             console.log("New Theme");
-        } else if (document.getElementById("site-nav") !== null) {
+        } else {
             let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
             tips.setAttribute("href", "/discuss");
             tips.innerHTML = GM_getValue("forumTitle", "Forums");
