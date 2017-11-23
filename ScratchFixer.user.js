@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      7.5
+// @version      7.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -16,6 +16,7 @@
 // ==/UserScript==
 (function () {
     'use strict';
+    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null;
     if (inIframe() == false) {
         window.addEventListener("load", () => {
             if (ran_code == false) {
@@ -42,8 +43,6 @@
                 add_bbtags();
             }
         }
-
-        let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null;
         //adds my css to edit custom elements
         if (GM_getValue("theme", false) === "dark") {
             style1 = GM_addStyle(GM_getResourceText("CSS"));
