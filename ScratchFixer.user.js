@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      7.6
+// @version      7.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -48,7 +48,7 @@
             style1 = GM_addStyle(GM_getResourceText("CSS"));
         } 
         document.addEventListener("DOMContentLoaded", () => {
-            var styleTip ='.tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}';
+            var styleTip ='span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}';
             GM_addStyle(styleTip);
             dark_theme();
             fix_nav();
@@ -998,6 +998,8 @@
             .find("a").css("background-image", "url(https://png.icons8.com/align-center/office/16/000000)");
         $('<li class="markItUpButton markItUpButtonRes2" id="Res4"><a  title="Project link" >Project Link</a></li>').insertAfter(".markItUpButton14")
             .find("a").css("background-image", "url(https://png.icons8.com/prototype/office/16/000000)");
+        $('<li class="markItUpButton markItUpButtonRes1" id="Res5"><a  title="Very large" >Very Large</a></li>').insertAfter(".markItUpButton7")
+            .find("a").css("background-image", "url(https://png.icons8.com/enlarge/office/14/000000)");
         document.onselectionchange = function() {
             document.stringyBB = getSelectionText();
         };
@@ -1021,6 +1023,11 @@
             //alert(document.stringyBB);
             var BBstart = prompt("Enter a project ID:", "");
             var constBB = "[url=https://scratch.mit.edu/projects/" +BBstart+ "/][img]https://cdn2.scratch.mit.edu/get_image/project/" +BBstart+ "_282x210.png[/img][/url]";
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res5', function( event ) {
+            var constBB = "[color=res.large]" +document.stringyBB+ "[/color]";
+            alert("This will only appear on the main page, not the preview");
             replaceIt($('textarea')[0], constBB)
         });
     }
