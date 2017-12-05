@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      8.2
+// @version      8.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -1039,6 +1039,8 @@
             .find("a").css("background-image", "url(https://png.icons8.com/align-text-left/office/14/000000)");
         $('<li class="markItUpButton markItUpButtonRes8" id="Res8"><a  title="Align Right" >Align Right</a></li>').insertAfter(".markItUpButtonRes7")
             .find("a").css("background-image", "url(https://png.icons8.com/align-text-right/office/14/000000)");
+        $('<li class="markItUpButton markItUpButtonRes9" id="Res9"><a  title="Highlight" >Highlight</a></li>').insertAfter(".markItUpButtonRes1")
+            .find("a").css("background-image", "url(https://png.icons8.com/highlight/office/14/000000)");
         document.onselectionchange = function() {
             document.stringyBB = getSelectionText();
         };
@@ -1082,6 +1084,11 @@
         });
         $(document).on('click', '#Res8', function( event ) {
             var constBB = "[color=res.right]" +document.stringyBB+ "[/color]";
+            alert("This will only appear on the main page, not the preview");
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res9', function( event ) {
+            var constBB = "[color=res.highlight]" +document.stringyBB+ "[/color]";
             alert("This will only appear on the main page, not the preview");
             replaceIt($('textarea')[0], constBB)
         });
