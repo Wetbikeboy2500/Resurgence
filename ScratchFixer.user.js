@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      7.11
+// @version      8.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -40,7 +40,7 @@
                 load_images();
                 load_scratchblockcode();
                 load_bbcode();
-                add_bbtags();
+                add_bbbuttons();
             }
         }
         //adds my css to edit custom elements
@@ -52,6 +52,9 @@
                 var banner = '.title-banner{display:none;}';
             }else{
                 var banner = '.title-banner{}';
+            }
+            if (url.includes("discuss")) {
+                load_custombb();
             }
             var styleTip ='span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' +banner+ ' .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}';
             GM_addStyle(styleTip);
@@ -1003,18 +1006,39 @@
             timer();
         }
     }
-    //add extras bbcode features
-    function add_bbtags () {
+    //add custom bbcode tags
+    function load_custombb () {
+        document.querySelectorAll('span[style="color:resimg"]').forEach(e => {
+            $(e).replaceWith(`<img src="https://${e.innerHTML}"></img>`);
+        });
+        document.querySelectorAll('span[style="color:reshighlight"]').forEach(e => {
+            $(e).replaceWith(`<mark>${e.innerHTML}</mark>`);
+        });
+        document.querySelectorAll('span[style="color:resleft"]').forEach(e => {
+            $(e).replaceWith(`<p align="left">${e.innerHTML}</p>`);
+        });
+        document.querySelectorAll('span[style="color:resright"]').forEach(e => {
+            $(e).replaceWith(`<p align="right">${e.innerHTML}</p>`);
+        });
+    }
+    //add extras bbcode buttons
+    function add_bbbuttons () {
         $('<li class="markItUpButton markItUpButtonRes1" id="Res1"><a  title="Color" >Color</a></li>').insertAfter(".markItUpButton7")
             .find("a").css("background-image", "url(https://png.icons8.com/color-wheel/office/14/000000)");
         $('<li class="markItUpButton markItUpButtonRes2" id="Res2"><a  title="Code" >Code</a></li>').insertAfter(".markItUpButton11")
             .find("a").css("background-image", "url(https://png.icons8.com/code/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes2" id="Res3"><a  title="Center" >Center</a></li>').insertAfter(".markItUpButton4")
+        $('<li class="markItUpButton markItUpButtonRes3" id="Res3"><a  title="Center" >Center</a></li>').insertAfter(".markItUpButton4")
             .find("a").css("background-image", "url(https://png.icons8.com/align-center/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes2" id="Res4"><a  title="Project link" >Project Link</a></li>').insertAfter(".markItUpButton14")
+        $('<li class="markItUpButton markItUpButtonRes4" id="Res4"><a  title="Project link" >Project Link</a></li>').insertAfter(".markItUpButton14")
             .find("a").css("background-image", "url(https://png.icons8.com/prototype/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes1" id="Res5"><a  title="Very large" >Very Large</a></li>').insertAfter(".markItUpButton7")
+        $('<li class="markItUpButton markItUpButtonRes5" id="Res5"><a  title="Very large" >Very Large</a></li>').insertAfter(".markItUpButton7")
             .find("a").css("background-image", "url(https://png.icons8.com/enlarge/office/14/000000)");
+        $('<li class="markItUpButton markItUpButtonRes6" id="Res6"><a  title="Other IMG" >Other IMG</a></li>').insertAfter(".markItUpButton5")
+            .find("a").css("background-image", "url(https://png.icons8.com/picture/office/14/000000)");
+        $('<li class="markItUpButton markItUpButtonRes7" id="Res7"><a  title="Align Left" >Align Left</a></li>').insertAfter(".markItUpButtonRes3")
+            .find("a").css("background-image", "url(https://png.icons8.com/align-text-left/office/14/000000)");
+        $('<li class="markItUpButton markItUpButtonRes8" id="Res8"><a  title="Align Right" >Align Right</a></li>').insertAfter(".markItUpButtonRes7")
+            .find("a").css("background-image", "url(https://png.icons8.com/align-text-right/office/14/000000)");
         document.onselectionchange = function() {
             document.stringyBB = getSelectionText();
         };
@@ -1042,6 +1066,22 @@
         });
         $(document).on('click', '#Res5', function( event ) {
             var constBB = "[color=res.large]" +document.stringyBB+ "[/color]";
+            alert("This will only appear on the main page, not the preview");
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res6', function( event ) {
+            var BBstart = prompt("Enter an img URL without http tag:", "");
+            var constBB = "[color=transparent][color=res.img]" +BBstart+ "[/color][/color]";
+            alert("This will only appear on the main page, not the preview");
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res7', function( event ) {
+            var constBB = "[color=res.left]" +document.stringyBB+ "[/color]";
+            alert("This will only appear on the main page, not the preview");
+            replaceIt($('textarea')[0], constBB)
+        });
+        $(document).on('click', '#Res8', function( event ) {
+            var constBB = "[color=res.right]" +document.stringyBB+ "[/color]";
             alert("This will only appear on the main page, not the preview");
             replaceIt($('textarea')[0], constBB)
         });
