@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      8.3
+// @version      8.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -249,6 +249,7 @@
                 .append(element("li").t("Settings pop-up on all pages"))
                 .append(element("li").t("Add extras BBcode Features"))
                 .append(element("li").t("Embed Featured projects on user page"))
+                .append(element("li").t("Embed Gist content"))
                 .ap(main);
 
             element("h3").t("Special Features/Extras").ap(main);
@@ -1019,6 +1020,10 @@
         });
         document.querySelectorAll('span[style="color:resright"]').forEach(e => {
             $(e).replaceWith(`<p align="right">${e.innerHTML}</p>`);
+        });
+        document.querySelectorAll('a[href^="https://gist.github.com/"]').forEach(e => {
+            var url = encodeURI('data:text/html;charset=utf-8,<body><script src="' + $(e).attr("href") + ".js" + '"></script></body>');
+            $(e).append(`<br><iframe src='` +url+ `' width="100%" height="400" scrolling="auto" frameborder="no" align="center"></iframe>`);
         });
     }
     //add extras bbcode buttons
