@@ -68,6 +68,9 @@ button {
 .dropdown .dropdown-menu ul {
     color: #000!important;
 }
+#brdmenu {
+    padding: 6px 20px !important;
+}
 .button.grey,
 .button.grey>span,
 .button.small>span,
@@ -638,6 +641,9 @@ textarea {
 #navigation .inner>ul>li.search .btn-search {
     background-color: transparent !important;
     background-image: url(https://scratch.mit.edu/images/nav-search-glass.png) !important;
+}
+#navsearch {
+  display: none !important;
 }
 body>#pagewrapper {
     background-color: #17191c!important;
