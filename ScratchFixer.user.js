@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      8.7
+// @version      8.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -561,16 +561,16 @@
                     break;
                 case "curatorinvite":
                     ul.append(element("li")
-                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
                               .append(element("span").t(' invited you to curate '))
-                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.gallery_title))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "becomeownerstudio":
                     ul.append(element("li")
-                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
                               .append(element("span").t(' promoted you to manager in '))
-                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.gallery_title))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "userjoin":

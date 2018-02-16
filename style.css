@@ -71,6 +71,9 @@ button {
 #brdmenu {
     padding: 6px 20px !important;
 }
+.intro .sprite .text {
+    background-color: #2d3035!important;
+}
 .button.grey,
 .button.grey>span,
 .button.small>span,
