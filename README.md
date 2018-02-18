@@ -26,4 +26,4 @@
 - Created by **Wetbikeboy2500** [Scratch](https://scratch.mit.edu/users/Wetbikeboy2500/)   [Github](https://github.com/Wetbikeboy2500/)
 - **NitroCipher** [Scratch](https://scratch.mit.edu/users/Nitrocipher/)   [Github](https://github.com/NitroCipher/)
 
-[Forum Topic](https://scratch.mit.edu/discuss/topic/274665/)
+[Forum Topic](http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html)

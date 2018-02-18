@@ -250,7 +250,7 @@ SOFTWARE.
             element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future.")
                 .ap(main);
             element("p")
-                .append(element("a").t("Click this to go to the forum post").a("href", "https://scratch.mit.edu/discuss/topic/274665/"))
+                .append(element("a").t("Click this to go to the forum post").a("href", "http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html"))
                 .ap(main);
             element("p")
                 .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
