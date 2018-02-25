@@ -1,7 +1,30 @@
+/*
+MIT License
+
+Copyright (c) 2018 Matt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      8.7
+// @version      9.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -46,7 +69,9 @@
         //adds my css to edit custom elements
         if (GM_getValue("theme", false) === "dark") {
             style1 = GM_addStyle(GM_getResourceText("CSS"));
-        } 
+        } else {
+            GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
+        }
         document.addEventListener("DOMContentLoaded", () => {
             if (GM_getValue("bannerOff", true)) {
                 var banner = '.title-banner{display:none;}';
@@ -56,7 +81,7 @@
             if (url.includes("discuss")) {
                 load_custombb();
             }
-            var styleTip ='span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' +banner+ ' .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;}';
+            var styleTip ='span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' +banner+ ' .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
             GM_addStyle(styleTip);
             dark_theme();
             fix_nav();
@@ -225,7 +250,7 @@
             element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future.")
                 .ap(main);
             element("p")
-                .append(element("a").t("Click this to go to the forum post").a("href", "https://scratch.mit.edu/discuss/topic/274665/"))
+                .append(element("a").t("Click this to go to the forum post").a("href", "http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html"))
                 .ap(main);
             element("p")
                 .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
@@ -561,16 +586,16 @@
                     break;
                 case "curatorinvite":
                     ul.append(element("li")
-                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
                               .append(element("span").t(' invited you to curate '))
-                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.gallery_title))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "becomeownerstudio":
                     ul.append(element("li")
-                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").a(a.actor_username))
+                              .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
                               .append(element("span").t(' promoted you to manager in '))
-                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.title))
+                              .append(element("a").a("href", "/studios/"+a.gallery_id).t(a.gallery_title))
                               .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
                     break;
                 case "userjoin":

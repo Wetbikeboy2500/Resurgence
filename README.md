@@ -9,7 +9,7 @@
 - Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player
 - Adds google search so you can search the whole Scratch site with google
 - Quick info when hovering over usernames
-- When you click on Scratch Blocks in the forums it will show the original Scrachblock code
+- When you click on Scratch Blocks in the forums it will show the original Scratchblock code
 - A new button to view the BBcode behind any forum post
 - Adjusts the message page to a more familiar format
 - [Resurgence Page](https://scratch.mit.edu/resurgence)
@@ -26,4 +26,4 @@
 - Created by **Wetbikeboy2500** [Scratch](https://scratch.mit.edu/users/Wetbikeboy2500/)   [Github](https://github.com/Wetbikeboy2500/)
 - **NitroCipher** [Scratch](https://scratch.mit.edu/users/Nitrocipher/)   [Github](https://github.com/NitroCipher/)
 
-[Forum Topic](https://scratch.mit.edu/discuss/topic/274665/)
+[Forum Topic](http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html)
