@@ -9,7 +9,7 @@
 - Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player
 - Adds google search so you can search the whole Scratch site with google
 - Quick info when hovering over usernames
-- When you click on Scratch Blocks in the forums it will show the original Scrachblock code
+- When you click on Scratch Blocks in the forums it will show the original Scratchblock code
 - A new button to view the BBcode behind any forum post
 - Adjusts the message page to a more familiar format
 - [Resurgence Page](https://scratch.mit.edu/resurgence)
