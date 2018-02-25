@@ -13,6 +13,9 @@ input color #1f2229
 .box .box-header {
     border-color: #313439!important;
 }
+.nvd3 text {
+    fill: #fff!important;
+}
 .markItUp a:link,
 .markItUp a:visited,
 .project-status-bar .buttons input.small {
