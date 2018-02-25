@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.0
+// @version      9.1
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -899,18 +899,20 @@ SOFTWARE.
     function load_images () {
         console.log("load images");
 
-        GM_addStyle("#display_img {position: fixed; left: 0px; top: 51px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 51px); display: none;} #display_img_img {height: 100%; max-width: 100%;} .postright img {cursor: zoom-in;}");
+        GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
         //adds the faded background
         let div = document.createElement("div");
         div.setAttribute("id", "display_img");
         document.getElementById("pagewrapper").appendChild(div);
-
+        //div that holds the image
         let div1 = document.createElement("div");
-        div1.setAttribute("style", "position: fixed; left: 0px; top: 52px; width: 100%; height: calc(100% - 52px); text-align: center; display: none; cursor: zoom-out;");
+        div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
+        //the img element that will display the image
         let img = document.createElement("img");
         img.setAttribute("src", "");
         img.setAttribute("id", "display_img_img");
         div1.appendChild(img);
+        //this causes the faded background and image to disappear
         document.getElementById("pagewrapper").appendChild(div1);
         div1.addEventListener("click", (event) => {
             div.style.display = "none";
@@ -923,6 +925,29 @@ SOFTWARE.
             for (let b of imgs) {
                 b.addEventListener("click", (event) => {
                     img.setAttribute("src", event.currentTarget.src);
+                    //gets current image size
+                    let img_width = event.currentTarget.clientWidth;
+                    let img_height = event.currentTarget.clientHeight;
+                    //going to be used for the dialation
+                    let scale_factor = 1.5;//this is the maximun a small image can be scalled up
+                    const display_width = window.innerWidth;
+                    const display_height = window.innerHeight - 50;
+                    let final_height = 0, final_width = 0;
+
+                    final_height = img_height * scale_factor;
+                    final_width = img_width * scale_factor;
+
+                    //this is the best solution to deal with all different screen sizes and images sizes
+                    //It have tried making multilayer if/else statemanets but they don't work well for this
+                    while (final_height > display_height || final_width > display_width) {
+                        scale_factor -= .1;
+                        final_height = img_height * scale_factor;
+                        final_width = img_width * scale_factor;
+                    }
+                    //makes it cerntered vertically and makes sure it has right hieght and width
+                    img.setAttribute("style", "width:" + final_width+ "px; height:" +final_height+"px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
+
+
                     div.style.display = "block";
                     div1.style.display = "block";
                 });
