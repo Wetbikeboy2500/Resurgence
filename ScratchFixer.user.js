@@ -30,6 +30,7 @@ SOFTWARE.
 // @match        https://scratch.mit.edu/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
+// @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -119,6 +120,9 @@ SOFTWARE.
                 if (GM_getValue("theme", false) === "dark") {
                     $("#themeIO").prop('checked', "checked");
                 }
+                if (GM_getValue("theme", false) == "newLight") {
+                    $("#LthemeIO").prop("checked", "checked");
+                }
                 if (GM_getValue("extras", true)) {
                     $("#extrasIO").prop('checked', "checked");
                 }
@@ -181,6 +185,14 @@ SOFTWARE.
                 GM_setValue("theme", "dark");
             }
             dark_theme();
+        });
+        $(document).on("click", "#LthemeIO", (event) => {
+            if (GM_getValue("theme", false) === "newLight") {
+                GM_setValue("theme", "light");
+            } else {
+                GM_setValue("theme", "newLight");
+            }
+            light_theme();
         });
         $(document).on("click", "#extrasIO", (event) => {
             if (GM_getValue("extras", true)) {
@@ -247,7 +259,7 @@ SOFTWARE.
             element("p").t("Special thanks to ")
                 .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
                 .ap(main);
-            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension but I decided that a userscript was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscipt with more to come in the future.")
+            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
                 .ap(main);
             element("p")
                 .append(element("a").t("Click this to go to the forum post").a("href", "http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html"))
@@ -418,6 +430,8 @@ SOFTWARE.
         if (GM_getValue("theme", false) === "dark") {
             //want dark theme
             style = GM_addStyle(GM_getResourceText("CSS"));
+        } else if (GM_getValue("theme", false) === "newLight") {
+            style = GM_addStyle(GM_getResourceText("CSSlight"));
         } else if (style !== null) {
             style.parentElement.removeChild(style);
             if (style1 != null) {
