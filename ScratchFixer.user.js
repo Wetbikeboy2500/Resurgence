@@ -178,8 +178,12 @@ SOFTWARE.
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
         //IO for sliders
+        /*
         $(document).on("click", "#themeIO", (event) => {
-            if (GM_getValue("theme", false) === "dark") {
+            if (GM_getValue("theme", false) === "dark" || GM_getValue("theme", false) === "newLight") {
+                if (GM_getValue("theme", false) === "newLight") {
+                    $("#LthemeIO").prop('checked', "unchecked");
+                }
                 GM_setValue("theme", "light");
             } else {
                 GM_setValue("theme", "dark");
@@ -187,13 +191,16 @@ SOFTWARE.
             dark_theme();
         });
         $(document).on("click", "#LthemeIO", (event) => {
-            if (GM_getValue("theme", false) === "newLight") {
+            if (GM_getValue("theme", false) === "newLight" || GM_getValue("theme", false) === "dark") {
+                if (GM_getValue("theme", false) === "dark") {
+                    $("#themeIO").prop('checked', "unchecked");
+                }
                 GM_setValue("theme", "light");
             } else {
                 GM_setValue("theme", "newLight");
             }
-            light_theme();
-        });
+            dark_theme();
+        });*/
         $(document).on("click", "#extrasIO", (event) => {
             if (GM_getValue("extras", true)) {
                 GM_setValue("extras", false);
@@ -241,10 +248,12 @@ SOFTWARE.
             GM_setValue("player", document.getElementById("playerIO").value);        
         });
         $(document).on("change", "#disText", (event) => {
-            console.log(document.getElementById("playerIO").value);
             GM_setValue("forumTitle", document.getElementById("disText").value);
         });
-
+        $(document).on("change", "#themeIO", (event) => {
+            GM_setValue("theme", document.getElementById("themeIO").value);   
+            dark_theme();
+        });
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
@@ -307,16 +316,6 @@ SOFTWARE.
                     GM_setValue("extras", true);
                     alert('Extras are now enabled.');
                 }
-            }).ap(main);
-
-            element("button").a("title", "Must refresh page for theme change to take effect").t("Switch Theme")
-                .e("click", () => {
-                if (GM_getValue("theme", false) === "dark") {
-                    GM_setValue("theme", "light");
-                } else {
-                    GM_setValue("theme", "dark");
-                }
-                dark_theme();
             }).ap(main);
 
             element("select").a("style", "color: #fff !important; border-color: #1f2227!important; background-color: #2d3035!important; height: 30px;")
@@ -427,17 +426,18 @@ SOFTWARE.
     //adds dark theme button
     function dark_theme () {
         console.log(GM_getValue("theme", false));
-        if (GM_getValue("theme", false) === "dark") {
-            //want dark theme
-            style = GM_addStyle(GM_getResourceText("CSS"));
-        } else if (GM_getValue("theme", false) === "newLight") {
-            style = GM_addStyle(GM_getResourceText("CSSlight"));
-        } else if (style !== null) {
+        if (style !== null) { //remove any styles that are already in use
             style.parentElement.removeChild(style);
             if (style1 != null) {
                 style1.parentElement.removeChild(style1);
             }
             style = null;
+        }
+        if (GM_getValue("theme", false) === "dark") {
+            //want dark theme
+            style = GM_addStyle(GM_getResourceText("CSS"));
+        } else if (GM_getValue("theme", false) === "newLight") {
+            style = GM_addStyle(GM_getResourceText("CSSlight"));
         }
     }
     let messages = {
