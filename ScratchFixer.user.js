@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.1
+// @version      9.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -178,29 +178,6 @@ SOFTWARE.
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
         //IO for sliders
-        /*
-        $(document).on("click", "#themeIO", (event) => {
-            if (GM_getValue("theme", false) === "dark" || GM_getValue("theme", false) === "newLight") {
-                if (GM_getValue("theme", false) === "newLight") {
-                    $("#LthemeIO").prop('checked', "unchecked");
-                }
-                GM_setValue("theme", "light");
-            } else {
-                GM_setValue("theme", "dark");
-            }
-            dark_theme();
-        });
-        $(document).on("click", "#LthemeIO", (event) => {
-            if (GM_getValue("theme", false) === "newLight" || GM_getValue("theme", false) === "dark") {
-                if (GM_getValue("theme", false) === "dark") {
-                    $("#themeIO").prop('checked', "unchecked");
-                }
-                GM_setValue("theme", "light");
-            } else {
-                GM_setValue("theme", "newLight");
-            }
-            dark_theme();
-        });*/
         $(document).on("click", "#extrasIO", (event) => {
             if (GM_getValue("extras", true)) {
                 GM_setValue("extras", false);
