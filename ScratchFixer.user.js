@@ -24,11 +24,13 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.2
+// @version      9.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
+// @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
 // @grant        GM_setValue
@@ -117,12 +119,6 @@ SOFTWARE.
                 $('body').attr('style', 'overflow-y:hidden;');
                 $('#res-set-modal').show(500);
                 $('#res-set-modal-back').toggleClass('modal-hidden');
-                if (GM_getValue("theme", false) === "dark") {
-                    $("#themeIO").prop('checked', "checked");
-                }
-                if (GM_getValue("theme", false) == "newLight") {
-                    $("#LthemeIO").prop("checked", "checked");
-                }
                 if (GM_getValue("extras", true)) {
                     $("#extrasIO").prop('checked', "checked");
                 }
@@ -142,6 +138,7 @@ SOFTWARE.
                     $("#bannerIO").prop('checked', "checked");
                 }
                 $("#playerIO").val(GM_getValue("player", "D"));
+                $("#themeIO").val(GM_getValue("theme", "light"));
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
             }
@@ -366,6 +363,185 @@ SOFTWARE.
             }, GM_getValue("player", "D"))
                 .ap(menu);
             change(GM_getValue("player", "D"));
+
+            //add download button to page
+            element("button").a("class", "my_select").t("Download").e("click", (event) => {
+                //first going to get project id
+                let projectID = url.split("/")[url.split("/").indexOf("projects") + 1];
+
+                download_project(projectID);
+
+                //Welcome to my own scratch project downloader
+                var costumes = [], sounds = [], status = 0;
+                function download_project (id = 208512075) {
+                    costumes = [];
+                    sounds = [];
+                    status = 0;
+                    let xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = () => {
+                        if (xhttp.readyState == 4 && xhttp.status == 200) {
+                            let zip = new JSZip(), return_array = [];
+
+                            console.log(xhttp.responseText);
+                            let json = JSON.parse(xhttp.responseText);
+                            console.log(json);
+                            //I only need yo get the coustumes and sounds that is in the satge and in the sprite children
+
+                            //this is the order so the ids are correct for the svg and png images
+                            //pen layer
+                            costumes.push(json["penLayerMD5"]);
+                            json["penLayerID"] = 0;
+                            //all sprites
+                            json["children"].forEach((a, i) => { //all the sprites
+                                return_array = get_costumes(a, costumes);
+                                a = return_array[1];
+                                costumes = return_array[0]
+                            });
+                            return_array = get_costumes(json, costumes); //all the backdrops
+                            costumes = return_array[0];
+                            json = return_array[1];
+
+
+                            //sounds for sprites and stage
+                            json["children"].forEach((a, i) => {
+                                return_array = get_sounds(a, sounds);
+                                sounds = return_array[0];
+                                a = return_array[1];
+                            });
+                            return_array = get_sounds(json, sounds);
+                            sounds = return_array[0];
+                            json = return_array[1];
+
+                            let batch = [];
+                            costumes.forEach((a) => {
+                                batch.push(load_resource(a));
+                            });
+                            Promise.all(batch)
+                                .then((assets) => {
+                                assets.forEach((a) => {
+                                    zip.file(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
+                                    console.log(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
+                                });
+                                status++;
+                                if (status == 2) {
+                                    generateSB2(zip, json, id);
+                                }
+                            });
+
+                            batch = [];
+                            sounds.forEach((a) => {
+                                batch.push(load_resource(a));
+                            });
+                            Promise.all(batch)
+                                .then((assets) => {
+                                assets.forEach((a) => {
+                                    zip.file(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
+                                    console.log(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
+                                });
+                                status++;
+                                if (status == 2) {
+                                    generateSB2(zip, json, id);
+                                }
+                            });
+                        }
+                    }
+                    xhttp.open("GET", "https://projects.scratch.mit.edu/internalapi/project/"+id+"/get/?format=json", true);
+                    xhttp.send();
+                }
+
+                function get_costumes (json, array) {
+                    let total_sprites = array;
+                    if (json.hasOwnProperty("costumes")) {
+                        //go through each layer a sprite has and get the id and layer
+                        json["costumes"].forEach((a, i) => {
+                            if (total_sprites.includes(a["baseLayerMD5"]) == false) {
+                                total_sprites.push(a["baseLayerMD5"]);
+                            }
+                        });
+                        //go through each layer and set its id
+                        json["costumes"].forEach((a, i) => {
+                            a["baseLayerID"] = total_sprites.indexOf(a["baseLayerMD5"]);
+                        });
+                    }
+                    return [total_sprites, json];
+                }
+
+                function get_sounds (json, array) {
+                    let total_sounds = array;
+                    if (json.hasOwnProperty("sounds")) {
+                        //go through each layer a sprite has and get the id and layer
+                        json["sounds"].forEach((a, i) => {
+                            if (total_sounds.includes(a["md5"]) == false) {
+                                total_sounds.push(a["md5"]);
+                            }
+                        });
+
+                        json["sounds"].forEach((a, i) => {
+                            json["soundID"] = total_sounds.indexOf(a["md5"]);
+                        });
+                    }
+                    return [total_sounds, json];
+                }
+
+                function load_resource (name) {
+                    return new Promise ((resolve, reject) => {
+                        JSZipUtils.getBinaryContent("https://cdn.assets.scratch.mit.edu/internalapi/asset/"+name+"/get/", (err, data) => {
+                            if(err) {
+                                reject(err);
+                            } else {
+                                resolve({
+                                    name: name,
+                                    file: data
+                                });
+                            }
+                        });
+                    });
+                }
+
+                function load_project_info (id) {
+                    return new Promise ((resolve, reject) => {
+                        //just going to use the title name
+                        resolve(document.getElementsByTagName("title")[0].innerHTML + ".sb2");
+                        //if you know a url that supplies the title of a project consistently then please inform me
+                        /*let xhttp = new XMLHttpRequest();
+                        xhttp.onreadystatechange = () => {
+                            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                                let json = JSON.parse(xhttp.responseText);
+                                resolve(json.title + ".sb2");
+                            }
+                        }
+                        xhttp.onerror = () => {
+                            resolve("Untitled.sb2");
+                        }
+                        xhttp.open("GET", "https://scratch.mit.edu/api/v1/project/"+id+"/",true);
+                        xhttp.send();*/
+                    }); 
+                }
+
+                function generateSB2 (zip, json, id) {
+                    //turn json into a string
+                    zip.file("project.json", JSON.stringify(json));
+
+                    //generate final file
+                    let sb2 = zip.generate({type:"blob"});
+
+                    load_project_info(id)
+                        .then((a) => {
+                        save(sb2, a);
+                    });
+                }
+
+                function save (file, name) {
+                    let a = document.createElement("a");
+                    a.setAttribute("download", name);
+                    a.setAttribute("href", window.URL.createObjectURL(file));
+                    document.body.appendChild(a);
+                    a.addEventListener("click", () => {
+                        document.body.removeChild(a);
+                    });
+                    a.click();
+                }
+            }).ap(menu);
         }
     }
     function add_search () {
