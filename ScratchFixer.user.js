@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.3
+// @version      9.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -541,7 +541,9 @@ SOFTWARE.
                     });
                     a.click();
                 }
-            }).ap(menu);
+            }).ap(document.getElementsByClassName("stats")[0]);
+            document.getElementsByClassName("stats")[0].getElementsByClassName("last")[0].setAttribute("style", "padding: 5px 15px; border-right: 1px solid #bbb;");
+            document.getElementsByClassName("stats")[0].getElementsByClassName("last")[0].getElementsByTagName("a")[0].setAttribute("style", "margin: -7px;");
         }
     }
     function add_search () {
