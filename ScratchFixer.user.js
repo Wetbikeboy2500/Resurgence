@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.4
+// @version      9.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -419,13 +419,19 @@ SOFTWARE.
                             Promise.all(batch)
                                 .then((assets) => {
                                 assets.forEach((a) => {
-                                    zip.file(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
-                                    console.log(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
+                                    if (a != null) {
+                                        zip.file(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
+                                        console.log(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
+                                    }
+
                                 });
                                 status++;
                                 if (status == 2) {
                                     generateSB2(zip, json, id);
                                 }
+                            })
+                                .catch((e) => {
+                                console.warn(e);
                             });
 
                             batch = [];
@@ -435,13 +441,18 @@ SOFTWARE.
                             Promise.all(batch)
                                 .then((assets) => {
                                 assets.forEach((a) => {
-                                    zip.file(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
-                                    console.log(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
-                                });
+                                    if (a != null) {
+                                        zip.file(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
+                                        console.log(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
+                                    }
+                                });  
                                 status++;
                                 if (status == 2) {
                                     generateSB2(zip, json, id);
                                 }
+                            })
+                                .catch((e) => {
+                                console.warn(e);
                             });
                         }
                     }
@@ -487,7 +498,7 @@ SOFTWARE.
                     return new Promise ((resolve, reject) => {
                         JSZipUtils.getBinaryContent("https://cdn.assets.scratch.mit.edu/internalapi/asset/"+name+"/get/", (err, data) => {
                             if(err) {
-                                reject(err);
+                                resolve(null);
                             } else {
                                 resolve({
                                     name: name,
