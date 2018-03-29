@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.5
+// @version      9.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -43,9 +43,9 @@ SOFTWARE.
 (function () {
     'use strict';
     let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null;
-    if (inIframe() == false) {
+    if (inIframe() === false) {
         window.addEventListener("load", () => {
-            if (ran_code == false) {
+            if (ran_code === false) {
                 console.log("window loaded");
                 ran_code = true;
                 run();
@@ -53,7 +53,7 @@ SOFTWARE.
         }, false);
         //make sure code runs if window loading dosn't work
         setTimeout (() => {
-            if (ran_code == false) {
+            if (ran_code === false) {
                 console.log("load interval");
                 ran_code = true;
                 run();
@@ -76,10 +76,9 @@ SOFTWARE.
             GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
         }
         document.addEventListener("DOMContentLoaded", () => {
+            var banner = '.title-banner{}';
             if (GM_getValue("bannerOff", true)) {
-                var banner = '.title-banner{display:none;}';
-            }else{
-                var banner = '.title-banner{}';
+                banner = '.title-banner{display:none;}';
             }
             if (url.includes("discuss")) {
                 load_custombb();
@@ -142,14 +141,14 @@ SOFTWARE.
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
             }
-        }
+        };
         //adds link at bottom of page and adds settings button to menu
         if (document.getElementsByClassName("lists").length > 0) {
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("lists")[0].getElementsByTagName("dl")[1]);
             let test = setInterval(() => {
-                if (document.getElementsByClassName("ul.dropdown.production") != null) {
+                if (document.getElementsByClassName("ul.dropdown.production") !== null) {
                     $('.divider').before('<li id="res-set"><a>Resurgence Settings');
                     $('#res-set').click(toggleModal);
                     clearInterval(test);
@@ -160,7 +159,7 @@ SOFTWARE.
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.getElementsByClassName("footer-col")[0].childNodes[3].childNodes[3]);
             let test = setInterval(() => {
-                if (document.getElementById("logout") != null) {
+                if (document.getElementById("logout") !== null) {
                     $('#logout').before('<li id="res-set"><a>Resurgence Settings');
                     $('#res-set').click(toggleModal);
                     clearInterval(test);
@@ -309,7 +308,7 @@ SOFTWARE.
         if (GM_getValue("embedFeature", true)) {
             if (url.includes("/users/")) {
                 var featProject = $("#featured-project").attr("href").substr(9);
-                var projectPlayer = '<iframe allowtransparency="true" width="282" height="220" src="//scratch.mit.edu/projects/embed' + featProject + '?autostart=false" frameborder="0" allowfullscreen>'
+                var projectPlayer = '<iframe allowtransparency="true" width="282" height="220" src="//scratch.mit.edu/projects/embed' + featProject + '?autostart=false" frameborder="0" allowfullscreen>';
                 $("div.stage").replaceWith(projectPlayer);
                 //alert(featProject);
             }
@@ -319,7 +318,7 @@ SOFTWARE.
         //adds the different players using a dropdown menu
         if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
             let menu, change = (a) => {
-                if (document.getElementsByClassName("phosphorus")[0] != null) {
+                if (document.getElementsByClassName("phosphorus")[0] !== null) {
                     document.getElementsByClassName("phosphorus")[0].parentNode.removeChild(document.getElementsByClassName("phosphorus")[0]);
                 } else {
                     document.getElementById("player").style = "display: none;";
@@ -373,7 +372,7 @@ SOFTWARE.
 
                 //Welcome to my own scratch project downloader
                 var costumes = [], sounds = [], status = 0;
-                function download_project (id = 208512075) {
+                function download_project (id = 211651365, return_value = false) {
                     costumes = [];
                     sounds = [];
                     status = 0;
@@ -386,7 +385,7 @@ SOFTWARE.
                             let json = JSON.parse(xhttp.responseText);
                             console.log(json);
                             //I only need yo get the coustumes and sounds that is in the satge and in the sprite children
-
+                            genenerate_sounds(json);
                             //this is the order so the ids are correct for the svg and png images
                             //pen layer
                             costumes.push(json["penLayerMD5"]);
@@ -395,22 +394,17 @@ SOFTWARE.
                             json["children"].forEach((a, i) => { //all the sprites
                                 return_array = get_costumes(a, costumes);
                                 a = return_array[1];
-                                costumes = return_array[0]
+                                costumes = return_array[0];
                             });
                             return_array = get_costumes(json, costumes); //all the backdrops
                             costumes = return_array[0];
                             json = return_array[1];
 
 
-                            //sounds for sprites and stage
-                            json["children"].forEach((a, i) => {
-                                return_array = get_sounds(a, sounds);
-                                sounds = return_array[0];
-                                a = return_array[1];
-                            });
-                            return_array = get_sounds(json, sounds);
-                            sounds = return_array[0];
-                            json = return_array[1];
+                            //updated way to deal with sounds that are in the json
+                            return_array = genenerate_sounds(json);
+                            json = return_array[0];
+                            sounds = return_array[1];
 
                             let batch = [];
                             costumes.forEach((a) => {
@@ -419,7 +413,7 @@ SOFTWARE.
                             Promise.all(batch)
                                 .then((assets) => {
                                 assets.forEach((a) => {
-                                    if (a != null) {
+                                    if (a !== null) {
                                         zip.file(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
                                         console.log(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
                                     }
@@ -427,7 +421,7 @@ SOFTWARE.
                                 });
                                 status++;
                                 if (status == 2) {
-                                    generateSB2(zip, json, id);
+                                    generateSB2(zip, json, id, return_value);
                                 }
                             })
                                 .catch((e) => {
@@ -441,14 +435,14 @@ SOFTWARE.
                             Promise.all(batch)
                                 .then((assets) => {
                                 assets.forEach((a) => {
-                                    if (a != null) {
+                                    if (a !== null) {
                                         zip.file(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, {binary: true});
                                         console.log(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
                                     }
                                 });  
                                 status++;
                                 if (status == 2) {
-                                    generateSB2(zip, json, id);
+                                    generateSB2(zip, json, id, return_value);
                                 }
                             })
                                 .catch((e) => {
@@ -477,23 +471,6 @@ SOFTWARE.
                     return [total_sprites, json];
                 }
 
-                function get_sounds (json, array) {
-                    let total_sounds = array;
-                    if (json.hasOwnProperty("sounds")) {
-                        //go through each layer a sprite has and get the id and layer
-                        json["sounds"].forEach((a, i) => {
-                            if (total_sounds.includes(a["md5"]) == false) {
-                                total_sounds.push(a["md5"]);
-                            }
-                        });
-
-                        json["sounds"].forEach((a, i) => {
-                            json["soundID"] = total_sounds.indexOf(a["md5"]);
-                        });
-                    }
-                    return [total_sounds, json];
-                }
-
                 function load_resource (name) {
                     return new Promise ((resolve, reject) => {
                         JSZipUtils.getBinaryContent("https://cdn.assets.scratch.mit.edu/internalapi/asset/"+name+"/get/", (err, data) => {
@@ -511,25 +488,38 @@ SOFTWARE.
 
                 function load_project_info (id) {
                     return new Promise ((resolve, reject) => {
-                        //just going to use the title name
                         resolve(document.getElementsByTagName("title")[0].innerHTML + ".sb2");
-                        //if you know a url that supplies the title of a project consistently then please inform me
-                        /*let xhttp = new XMLHttpRequest();
-                        xhttp.onreadystatechange = () => {
-                            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                                let json = JSON.parse(xhttp.responseText);
-                                resolve(json.title + ".sb2");
-                            }
-                        }
-                        xhttp.onerror = () => {
-                            resolve("Untitled.sb2");
-                        }
-                        xhttp.open("GET", "https://scratch.mit.edu/api/v1/project/"+id+"/",true);
-                        xhttp.send();*/
                     }); 
                 }
 
-                function generateSB2 (zip, json, id) {
+                function genenerate_sounds (json) { //take in pure json
+                    let sound_list = [];
+                    json["children"].forEach((a, i) => { //then going to go through each child element
+                        if (a.hasOwnProperty("sounds")) {
+                            a["sounds"].forEach((a1, i1) => { //go through sounds of each child element
+                                if (sound_list.indexOf(a1["md5"]) == -1) {
+                                    sound_list.push(a1["md5"]);
+                                }
+                                //set the id of that element
+                                json["children"][i]["sounds"][i1]["soundID"] = sound_list.indexOf(a1["md5"]);
+                            });
+                        }
+                    });
+                    //then going to go through the sounds of the stage
+                    if (json.hasOwnProperty("sounds")) {
+                        json["sounds"].forEach((a, i) => {
+                            if (sound_list.indexOf(a["md5"]) == -1) {
+                                sound_list.push(a["md5"]);
+                            }
+                            //set the id of that element
+                            console.log(sound_list.indexOf(a["md5"]));
+                            json["sounds"][i]["soundID"] = sound_list.indexOf(a["md5"]);
+                        });
+                    }
+                    return [json, sound_list];
+                }
+
+                function generateSB2 (zip, json, id, return_value) {
                     //turn json into a string
                     zip.file("project.json", JSON.stringify(json));
 
@@ -538,7 +528,12 @@ SOFTWARE.
 
                     load_project_info(id)
                         .then((a) => {
-                        save(sb2, a);
+                        if (return_value == false) {
+                            save(sb2, a);
+                        } else {
+                            save(sb2, a);
+                            _generate_offline(sb2);
+                        }
                     });
                 }
 
@@ -594,7 +589,7 @@ SOFTWARE.
         console.log(GM_getValue("theme", false));
         if (style !== null) { //remove any styles that are already in use
             style.parentElement.removeChild(style);
-            if (style1 != null) {
+            if (style1 !== null) {
                 style1.parentElement.removeChild(style1);
             }
             style = null;
@@ -1120,7 +1115,7 @@ SOFTWARE.
                     //this is the best solution to deal with all different screen sizes and images sizes
                     //It have tried making multilayer if/else statemanets but they don't work well for this
                     while (final_height > display_height || final_width > display_width) {
-                        scale_factor -= .1;
+                        scale_factor -= 0.1;
                         final_height = img_height * scale_factor;
                         final_width = img_width * scale_factor;
                     }
@@ -1140,7 +1135,7 @@ SOFTWARE.
         let Holiday = "Thanksgiving";
         let span = element("span").a("style", "float: right; color: #f6660d;").t(Holiday).dom;
         let load = setInterval(() => {
-            if (document.getElementsByClassName("box-header")[0] != null) {
+            if (document.getElementsByClassName("box-header")[0] !== null) {
                 document.getElementsByClassName("box-header")[0].appendChild(span);
                 let x = setInterval(() => {
                     let distance = event - new Date().getTime();
