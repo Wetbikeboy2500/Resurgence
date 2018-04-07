@@ -1266,9 +1266,9 @@ SOFTWARE.
         $('<li class="markItUpButton markItUpButtonRes6" id="Res6"><a  title="Other IMG" >Other IMG</a></li>').insertAfter(".markItUpButton5")
             .find("a").css("background-image", "url(https://png.icons8.com/picture/office/14/000000)");
         $('<li class="markItUpButton markItUpButtonRes7" id="Res7"><a  title="Align Left" >Align Left</a></li>').insertAfter(".markItUpButtonRes3")
-            .find("a").css("background-image", "url(https://png.icons8.com/align-text-left/office/14/000000)");
+            .find("a").css("background-image", "url(https://png.icons8.com/align-text-left/office/16/000000)");
         $('<li class="markItUpButton markItUpButtonRes8" id="Res8"><a  title="Align Right" >Align Right</a></li>').insertAfter(".markItUpButtonRes7")
-            .find("a").css("background-image", "url(https://png.icons8.com/align-text-right/office/14/000000)");
+            .find("a").css("background-image", "url(https://png.icons8.com/align-text-right/office/16/000000)");
         $('<li class="markItUpButton markItUpButtonRes9" id="Res9"><a  title="Highlight" >Highlight</a></li>').insertAfter(".markItUpButtonRes1")
             .find("a").css("background-image", "url(https://png.icons8.com/highlight/office/14/000000)");
         document.onselectionchange = function() {
