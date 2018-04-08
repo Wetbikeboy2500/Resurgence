@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.6
+// @version      9.7
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -488,7 +488,19 @@ SOFTWARE.
 
                 function load_project_info (id) {
                     return new Promise ((resolve, reject) => {
-                        resolve(document.getElementsByTagName("title")[0].innerHTML + ".sb2");
+                        let xhttp = new XMLHttpRequest();
+                        xhttp.onreadystatechange = () => {
+                            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                                let json = JSON.parse(xhttp.responseText);
+                                resolve(json.title + ".sb2");
+
+                            }
+                        }
+                        xhttp.onerror = () => {
+                            resolve("Untitled.sb2");
+                        }
+                        xhttp.open("GET", "https://api.scratch.mit.edu/projects/"+id, true);
+                        xhttp.send();
                     }); 
                 }
 
