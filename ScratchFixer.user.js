@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.7
+// @version      9.8
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -631,6 +631,7 @@ SOFTWARE.
                     reject("Error getting userinfo " + err);
                 };
                 xhttp.open("GET", "https://scratch.mit.edu/session/", true);
+                xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
                 xhttp.send(null);
             });
         },
