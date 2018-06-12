@@ -92,6 +92,7 @@ SOFTWARE.
             add_search();
             load_extras();
             load_messages();
+            load_banner();
         });
     }
     function fix_nav () {
@@ -344,7 +345,7 @@ SOFTWARE.
                         document.getElementById("player").style = "display: block;";
                         break;
                 }
-            }; //0 is default, 1 is phosphorous, 2 is sulforus
+            };
             console.log("Project page");
             if (document.getElementById("share-bar") === null) {
                 menu = document.getElementsByClassName("buttons")[0];
@@ -678,6 +679,25 @@ SOFTWARE.
             });
         }
     };
+
+    //custom banner to display information that the user may want
+    function load_banner () {
+        if (url == "https://scratch.mit.edu/") {//on main page
+            console.log("loadded banner");
+            let box = element("div").a("class", "box")
+            .append(element("div").a("class", "box-header")
+                    .append(element("h4").t("Resurgence Userscript Messages"))
+                    .append(element("h5"))
+                    .append(element("p")
+                            .append(element("a").a("href", "https://github.com/Wetbikeboy2500/Resurgence").t("Resurgence"))
+                           )
+                   )
+            .append(element("div").a("class", "box-content"))
+            .dom;
+            //.apthis(document.getElementsByClassName("mod-splash")[0]);
+            document.getElementsByClassName("mod-splash")[0].insertBefore(box, document.getElementsByClassName("box")[0]);
+        }
+    }
 
     function load_messages () {
         if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
@@ -1148,7 +1168,7 @@ SOFTWARE.
         let Holiday = "Thanksgiving";
         let span = element("span").a("style", "float: right; color: #f6660d;").t(Holiday).dom;
         let load = setInterval(() => {
-            if (document.getElementsByClassName("box-header")[0] !== null) {
+            if (document.getElementsByClassName("box-header")[0] !== null && document.getElementsByClassName("box-header")[0] !== undefined) {
                 document.getElementsByClassName("box-header")[0].appendChild(span);
                 let x = setInterval(() => {
                     let distance = event - new Date().getTime();
