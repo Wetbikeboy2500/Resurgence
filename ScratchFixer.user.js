@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      9.8
+// @version      10.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -139,6 +139,7 @@ SOFTWARE.
                 }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#themeIO").val(GM_getValue("theme", "light"));
+                $("#posIO").val(GM_getValue("pos", "top"));
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
             }
@@ -227,6 +228,9 @@ SOFTWARE.
         $(document).on("change", "#themeIO", (event) => {
             GM_setValue("theme", document.getElementById("themeIO").value);   
             dark_theme();
+        });
+        $(document).on("change", "#posIO", (event) => {
+            GM_setValue("pos", document.getElementById("posIO").value);
         });
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
@@ -680,22 +684,54 @@ SOFTWARE.
         }
     };
 
+    function get_version () {
+        new Promise((resolve, reject) => {
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = () => {
+                if (xhttp.status == 200 && xhttp.readyState == 4) {
+                    let version = xhttp.responseText.substring(xhttp.responseText.indexOf("@version") + 9, xhttp.responseText.indexOf("// @description") - 1);
+                    version = Number(version);
+                    if (version != GM_info.script.version) {
+                        if (version < GM_info.script.version) {
+                            document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Downgrade (Your version is too revolutionary)").apthis(document.getElementById("recent_version"));
+                        } else {
+                            document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Update").apthis(document.getElementById("recent_version"));
+                        }
+                    } else {
+                        document.getElementById("recent_version").innerHTML = "Recent Version: " + version;
+                    }
+                }
+            }
+            xhttp.open("GET", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js", true);
+            xhttp.send();
+        });
+    }
+
     //custom banner to display information that the user may want
     function load_banner () {
-        if (url == "https://scratch.mit.edu/") {//on main page
-            console.log("loadded banner");
+        if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
+            console.log("loading banner");
             let box = element("div").a("class", "box")
             .append(element("div").a("class", "box-header")
-                    .append(element("h4").t("Resurgence Userscript Messages"))
+                    .append(element("h4").t("Resurgence Userscript Info"))
                     .append(element("h5"))
                     .append(element("p")
-                            .append(element("a").a("href", "https://github.com/Wetbikeboy2500/Resurgence").t("Resurgence"))
+                            .append(element("a").a("href", "https://github.com/Wetbikeboy2500/Resurgence").t("Resurgence Github"))
                            )
                    )
-            .append(element("div").a("class", "box-content"))
-            .dom;
-            //.apthis(document.getElementsByClassName("mod-splash")[0]);
-            document.getElementsByClassName("mod-splash")[0].insertBefore(box, document.getElementsByClassName("box")[0]);
+            .append(element("div").a("class", "box-content")
+                    .append(element("p").t("Current Version: " + GM_info.script.version).a("style", "margin: 0;"))
+                    .append(element("p").a("style", "margin: 0;").a("id", "recent_version"))
+                   );
+            if (GM_getValue("pos", "top") == "top") {
+                document.getElementsByClassName("mod-splash")[0].insertBefore(box.dom, document.getElementsByClassName("mod-splash")[0].children[0]);
+            } else {
+                box.apthis(document.getElementsByClassName("mod-splash")[0]);
+            }
+
+            get_version();
         }
     }
 
@@ -1164,9 +1200,9 @@ SOFTWARE.
     }
 
     function timer () {
-        let event = new Date("Nov 23, 2017").getTime();
-        let Holiday = "Thanksgiving";
-        let span = element("span").a("style", "float: right; color: #f6660d;").t(Holiday).dom;
+        let event = new Date("Jul 4, 2018").getTime();
+        let Holiday = "July 4th";
+        let span = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t(Holiday).dom;
         let load = setInterval(() => {
             if (document.getElementsByClassName("box-header")[0] !== null && document.getElementsByClassName("box-header")[0] !== undefined) {
                 document.getElementsByClassName("box-header")[0].appendChild(span);
