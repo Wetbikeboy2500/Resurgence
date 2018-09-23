@@ -968,7 +968,7 @@ SOFTWARE.
                 });
                 a.addEventListener("mouseleave", (e) => {
                     if (document.querySelector(".userwindow")) {
-                        document.querySelector(".userwindow").removeChild(document.querySelector(".userwindow"));
+                        document.querySelector(".userwindow").parentElement.removeChild(document.querySelector(".userwindow"));
                     }
                 });
             }
