@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      10.1
+// @version      10.11
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -112,7 +112,7 @@ SOFTWARE.
             tips.innerHTML = GM_getValue("forumTitle", "Forums");
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.querySelector("footer-col").childNodes[3].childNodes[3]);
+                .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
         }
     }
     function load_newpage () {
