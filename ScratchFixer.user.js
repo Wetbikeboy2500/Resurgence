@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      10.11
+// @version      10.12
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -695,10 +695,9 @@ SOFTWARE.
                 .append(element("div").a("class", "box-content")
                     .append(element("p").t("Current Version: " + currentVersion).a("style", "margin: 0;"))
                     .append(element("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version"))
-                    .append(element("div").a("id", "changelog").a("style", "position: relative; left: 60%; top: -54px; width: 40%; height: 54px; margin-bottom: -54px; border: 1px solid gray; background-color: white; overflow: hidden;")
+                    .append(element("div").a("id", "changelog").a("style", "position: relative; left: 60%; top: -54px; width: 40%; height: 54px; margin-bottom: -54px; border: 1px solid #D9D9D9; border-radius: 25px; background-color: white; overflow: hidden;")
                         .append(element("div").a("style", "width: 100%; height: 100%; overflow-y: scroll; position: absolute; top: 0px; left: 0px;")
-                            .append(element("h5").t("Changes in 10.1").a("style", "margin: 0px; display: inline-block"))
-                            .append(element("button").a("style", "display: inline-block; height: 20px; line-height: 15px; text-align: vertical;").t("Expand").a("data-expanded", "false")
+                            .append(element("button").a("style", "display: inline-block; height: 54px; line-height: 15px; background-color: #F2F2F2; border: 1px solid #D9D9D9; border-radius: 25px; margin: auto; padding: 10px;").t("Expand change log").a("data-expanded", "false")
                                 .e("click", (e) => {
                                     let target = document.getElementById("changelog");
                                     if (e.currentTarget.getAttribute("data-expanded") == "false") {
@@ -708,24 +707,26 @@ SOFTWARE.
                                         target.style.height = height + "px";
                                         target.style["margin-bottom"] = (-1 * height) + "px";
                                         e.currentTarget.setAttribute("data-expanded", "true");
-                                        e.currentTarget.innerHTML = "Collapse";
+                                        e.currentTarget.innerHTML = "Collapse change log";
                                     } else {
                                         e.currentTarget.parentElement.style.height = "100%";
                                         e.currentTarget.parentElement.style["overflow-y"] = "scroll";
                                         target.style.height = 54 + "px";
                                         target.style["margin-bottom"] = -54 + "px";
                                         e.currentTarget.setAttribute("data-expanded", "false");
-                                        e.currentTarget.innerHTML = "Expand"
+                                        e.currentTarget.innerHTML = "Expand change log"
                                     }
                                 })
                             )
                             .append(element("ul").a("style", "padding-right: 5px;")
+                                .append(element("h5").t("Changes in " + currentVersion).a("style", "margin: 0px; display: inline-block"))
                                 .append(element("li").t("Countdowns to multiple holidays"))
                                 .append(element("li").t("There is now a change log you can view (if I decide to update this)"))
                                 .append(element("li").t("Recent version now displays correctly"))
                                 .append(element("li").t("Updated code to use fetch instead of xhttprequests with promises"))
                                 .append(element("li").t("Changed run order for better loading"))
-                                .append(element("li").t("Numerous chnages to the code be less buggy"))
+                                .append(element("li").t("Numerous changes to the code be less buggy"))
+                                .append(element("li").t("Improved feel of changelog"))
                             )
                         )
                     )
