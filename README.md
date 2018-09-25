@@ -1,7 +1,7 @@
 # Resurgence
 #### Resurgence (formerly known as ScratchFixer) is a Userscript aiming to improve the Scratch experience.
 
-(as of 3rd December, 2017)
+(as of April 9th, 2018)
 #### Features:
 - Replaces tips tab with forum tab
 - Customization of Forum tab name
@@ -21,9 +21,11 @@
 - Embed Gist content
 - Holiday countdown timer
 - An all new dark theme
+- An all new light theme based on dark theme
+- Now a download button for Scratch projects
 
 ## Contributors:
 - Created by **Wetbikeboy2500** [Scratch](https://scratch.mit.edu/users/Wetbikeboy2500/)   [Github](https://github.com/Wetbikeboy2500/)
 - **NitroCipher** [Scratch](https://scratch.mit.edu/users/Nitrocipher/)   [Github](https://github.com/NitroCipher/)
 
-[Forum Topic](http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html)
+[Forum Topic](http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html)(Backup Version)
