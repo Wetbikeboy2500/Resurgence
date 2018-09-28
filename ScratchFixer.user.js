@@ -24,10 +24,11 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      10.12
+// @version      10.20
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
+// @match        https://projects.scratch.mit.edu/resurgence
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
@@ -42,33 +43,98 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = window.location.href, users = [], userinfo = {}, l, ran_code = false, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "";
-    if (inIframe() === false) {
-        window.addEventListener("load", () => {
-            if (ran_code === false) {
-                console.log("window loaded");
-                ran_code = true;
-                run();
+    let url = window.location.href, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "";
+    if (url.includes("projects.scratch.mit.edu/resurgence")) {
+        //this is for when the userscipt loads in the different domain
+        let projectId
+        const message = GM_getValue("Message", {}), getCookie = cname => {
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
             }
-        }, false);
-        //make sure code runs if window loading dosn't work
-        setTimeout(() => {
-            if (ran_code === false) {
-                console.log("load interval");
-                ran_code = true;
-                run();
-            }
-        }, 5000);//5 second wait for the page
+            return "";
+        };
 
-        function run () {
-            load_userinfo();
-            if (url.includes("discuss")) {
-                load_images();
-                load_scratchblockcode();
-                load_bbcode();
-                add_bbbuttons();
+        if (message) {
+            let project = {
+                "objName": "Stage",
+                "costumes": [{
+                    "costumeName": "backdrop1",
+                    "baseLayerID": 1,
+                    "baseLayerMD5": "b61b1077b0ea1931abee9dbbfa7903ff.png",
+                    "bitmapResolution": 2,
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }],
+                "currentCostumeIndex": 0,
+                "penLayerMD5": "5c81a336fab8be57adc039a8a2b33ca9.png",
+                "penLayerID": 0,
+                "tempoBPM": 60,
+                "videoAlpha": 0.5,
+                "children": [],
+                "info": {
+                    "scriptCount": 0,
+                    "projectID": "238315885",
+                    "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/69.0.3497.12 Safari\/537.36",
+                    "flashVersion": "WIN 30,0,0,149",
+                    "spriteCount": 0,
+                    "swfVersion": "v461",
+                    "message": encodeURIComponent(message),
+                    "videoOn": false
+                }
+            };
+
+            //this way may not be good if the userscipt is ever reset this will eventually go off name instead
+            if (GM_getValue("saveID", false)) {
+                //have a project to save the data in set
+                projectId = GM_getValue("saveID", false);
+
+                fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/set/", {
+                    method: "POST",
+                    body: JSON.stringify(project),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'scratchcsrftoken': getCookie("scratchcsrftoken"),
+                        "X-Requested-With": 'ShockwaveFlash/31.0.0.108',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => {
+                        console.log('Success:', JSON.stringify(response));
+                        window.close();
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                //creates a new project with the data already saved
+                fetch("https://projects.scratch.mit.edu/internalapi/project/new/set/?title=dataSaver", {
+                    method: "POST",
+                    body: JSON.stringify(project),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'scratchcsrftoken': getCookie("scratchcsrftoken"),
+                        "X-Requested-With": 'ShockwaveFlash/31.0.0.108',
+                    }
+                })
+                    .then(response => response.json())
+                    .then(response => {
+                        console.log('Success:', JSON.stringify(response));
+                        GM_setValue("saveID", response["content-name"]);
+                        window.close();
+                    })
+                    .catch(error => console.error('Error:', error));
             }
+        } else {
+            console.log("no message", GM_getValue("Message"));
         }
+    } else if (inIframe() === false) {
         //adds my css to edit custom elements
         if (GM_getValue("theme", false) === "dark") {
             style1 = GM_addStyle(GM_getResourceText("CSS"));
@@ -76,14 +142,19 @@ SOFTWARE.
             GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
         }
         document.addEventListener("DOMContentLoaded", () => {
-            var banner = '.title-banner{}';
+            load_userinfo();
+            let banner = '.title-banner{}';
             if (GM_getValue("bannerOff", true)) {
                 banner = '.title-banner{display:none;}';
             }
-            if (url.includes("discuss")) {
+            if (url.includes("discuss/topic")) {
                 load_custombb();
+                load_images();
+                load_scratchblockcode();
+                load_bbcode();
+                add_bbbuttons();
             }
-            var styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' + banner + '.postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
+            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' + banner + '.postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
             GM_addStyle(styleTip);
             dark_theme();
             fix_nav();
@@ -113,6 +184,49 @@ SOFTWARE.
             element("li")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
+        }
+    }
+    //this handles the processing of the messages by having a standard key paired with data
+    function setData (key, data) {
+        getData((e) => {
+            GM_setValue("Messages", e);
+            const saveData = data => {
+                GM_setValue("Message", data);
+                window.open('https://projects.scratch.mit.edu/resurgence',
+                    'newwindow',
+                    'width=300,height=250');
+            };
+
+            let current = GM_getValue("Message", {});
+
+            current = JSON.parse(current);
+
+            if (current == false) {
+                current = {};
+            }
+
+            current[key] = data;
+            let button = element("button").a("style", "visibitity: hidden;").a("class", "savedata")
+                .e("click", (e) => {
+                    saveData(JSON.stringify(current));
+                    e.currentTarget.parentElement.removeChild(document.querySelector(".savedata"));
+                })
+                .apthis(document.body);
+            button.click();
+        });
+
+    }
+
+    function getData (back) {
+        let projectId = GM_getValue("saveID", false);
+        console.log("saveID", projectId);
+        if (projectId) {
+            fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/get/")
+                .then(response => response.json())
+                .then(response => {
+                    back(JSON.parse(decodeURIComponent(response.info.message)));
+                })
+                .catch(error => console.error('Error:', error));
         }
     }
     function load_newpage () {
@@ -720,13 +834,9 @@ SOFTWARE.
                             )
                             .append(element("ul").a("style", "padding-right: 5px;")
                                 .append(element("h5").t("Changes in " + currentVersion).a("style", "margin: 0px; display: inline-block"))
-                                .append(element("li").t("Countdowns to multiple holidays"))
-                                .append(element("li").t("There is now a change log you can view (if I decide to update this)"))
-                                .append(element("li").t("Recent version now displays correctly"))
-                                .append(element("li").t("Updated code to use fetch instead of xhttprequests with promises"))
-                                .append(element("li").t("Changed run order for better loading"))
-                                .append(element("li").t("Numerous changes to the code be less buggy"))
-                                .append(element("li").t("Improved feel of changelog"))
+                                .append(element("li").t("The BBCode buttons for forum posts will load more reliably"))
+                                .append(element("li").t("The foundation is being laid for . . .(more to come)"))
+                                //It's a little but cryptic but I got you NitroCipher https://scratch.mit.edu/discuss/topic/243522/
                             )
                         )
                     )
@@ -964,8 +1074,8 @@ SOFTWARE.
                 a.addEventListener("mouseenter", (e) => {
                     const info = userinfo[a.getAttribute("href")], date = new Date(Date.parse(info.history.joined)), dif = calcDate(new Date(), date);
                     element("div").a("class", "userwindow").a("style", (GM_getValue("theme", false) === "dark") ? `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #000` : `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #fff`)
-                    .t(`${info.username} joined ${dif} from ${info.profile.country}`)
-                    .ap(document.body);
+                        .t(`${info.username} joined ${dif} from ${info.profile.country}`)
+                        .ap(document.body);
                 });
                 a.addEventListener("mouseleave", (e) => {
                     if (document.querySelector(".userwindow")) {
@@ -1152,55 +1262,61 @@ SOFTWARE.
 
         GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
         //adds the faded background
-        let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
-        //div that holds the image
-        let div1 = document.createElement("div");
-        div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
-        //the img element that will display the image
-        let img = document.createElement("img");
-        img.setAttribute("src", "");
-        img.setAttribute("id", "display_img_img");
-        div1.appendChild(img);
-        //this causes the faded background and image to disappear
-        document.getElementById("pagewrapper").appendChild(div1);
-        div1.addEventListener("click", (event) => {
-            div.style.display = "none";
-            div1.style.display = "none";
-        });
+        let load = setInterval((e) => {
+            if (document.querySelector("#pagewrapper")) {
+                clearInterval(load);
 
-        let posts = document.getElementsByClassName("postright");
-        for (let a of posts) {
-            let imgs = a.getElementsByTagName("img");
-            for (let b of imgs) {
-                b.addEventListener("click", (event) => {
-                    img.setAttribute("src", event.currentTarget.src);
-                    //gets current image size
-                    let img_width = event.currentTarget.clientWidth;
-                    let img_height = event.currentTarget.clientHeight;
-                    //going to be used for the dialation
-                    let scale_factor = 1.5;//this is the maximun a small image can be scalled up
-                    const display_width = window.innerWidth;
-                    const display_height = window.innerHeight - 50;
-                    let final_height = 0, final_width = 0;
-
-                    final_height = img_height * scale_factor;
-                    final_width = img_width * scale_factor;
-
-                    //this is the best solution to deal with all different screen sizes and images sizes
-                    //It have tried making multilayer if/else statemanets but they don't work well for this
-                    while (final_height > display_height || final_width > display_width) {
-                        scale_factor -= 0.1;
-                        final_height = img_height * scale_factor;
-                        final_width = img_width * scale_factor;
-                    }
-                    //makes it cerntered vertically and makes sure it has right hieght and width
-                    img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
-
-                    div.style.display = "block";
-                    div1.style.display = "block";
+                let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
+                //div that holds the image
+                let div1 = document.createElement("div");
+                div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
+                //the img element that will display the image
+                let img = document.createElement("img");
+                img.setAttribute("src", "");
+                img.setAttribute("id", "display_img_img");
+                div1.appendChild(img);
+                //this causes the faded background and image to disappear
+                document.getElementById("pagewrapper").appendChild(div1);
+                div1.addEventListener("click", (event) => {
+                    div.style.display = "none";
+                    div1.style.display = "none";
                 });
+
+                let posts = document.getElementsByClassName("postright");
+                for (let a of posts) {
+                    let imgs = a.getElementsByTagName("img");
+                    for (let b of imgs) {
+                        b.addEventListener("click", (event) => {
+                            img.setAttribute("src", event.currentTarget.src);
+                            //gets current image size
+                            let img_width = event.currentTarget.clientWidth;
+                            let img_height = event.currentTarget.clientHeight;
+                            //going to be used for the dialation
+                            let scale_factor = 1.5;//this is the maximun a small image can be scalled up
+                            const display_width = window.innerWidth;
+                            const display_height = window.innerHeight - 50;
+                            let final_height = 0, final_width = 0;
+
+                            final_height = img_height * scale_factor;
+                            final_width = img_width * scale_factor;
+
+                            //this is the best solution to deal with all different screen sizes and images sizes
+                            //It have tried making multilayer if/else statemanets but they don't work well for this
+                            while (final_height > display_height || final_width > display_width) {
+                                scale_factor -= 0.1;
+                                final_height = img_height * scale_factor;
+                                final_width = img_width * scale_factor;
+                            }
+                            //makes it cerntered vertically and makes sure it has right hieght and width
+                            img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
+
+                            div.style.display = "block";
+                            div1.style.display = "block";
+                        });
+                    }
+                }
             }
-        }
+        }, 100);
     }
 
     function timer () {
@@ -1355,75 +1471,75 @@ SOFTWARE.
     }
     //add extras bbcode buttons
     function add_bbbuttons () {
-        $('<li class="markItUpButton markItUpButtonRes1" id="Res1"><a  title="Color" >Color</a></li>').insertAfter(".markItUpButton7")
-            .find("a").css("background-image", "url(https://png.icons8.com/color-wheel/office/14/000000)");
-        $('<li class="markItUpButton markItUpButtonRes2" id="Res2"><a  title="Code" >Code</a></li>').insertAfter(".markItUpButton11")
-            .find("a").css("background-image", "url(https://png.icons8.com/code/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes3" id="Res3"><a  title="Center" >Center</a></li>').insertAfter(".markItUpButton4")
-            .find("a").css("background-image", "url(https://png.icons8.com/align-center/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes4" id="Res4"><a  title="Project link" >Project Link</a></li>').insertAfter(".markItUpButton14")
-            .find("a").css("background-image", "url(https://png.icons8.com/prototype/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes5" id="Res5"><a  title="Very large" >Very Large</a></li>').insertAfter(".markItUpButton7")
-            .find("a").css("background-image", "url(https://png.icons8.com/enlarge/office/14/000000)");
-        $('<li class="markItUpButton markItUpButtonRes6" id="Res6"><a  title="Other IMG" >Other IMG</a></li>').insertAfter(".markItUpButton5")
-            .find("a").css("background-image", "url(https://png.icons8.com/picture/office/14/000000)");
-        $('<li class="markItUpButton markItUpButtonRes7" id="Res7"><a  title="Align Left" >Align Left</a></li>').insertAfter(".markItUpButtonRes3")
-            .find("a").css("background-image", "url(https://png.icons8.com/align-text-left/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes8" id="Res8"><a  title="Align Right" >Align Right</a></li>').insertAfter(".markItUpButtonRes7")
-            .find("a").css("background-image", "url(https://png.icons8.com/align-text-right/office/16/000000)");
-        $('<li class="markItUpButton markItUpButtonRes9" id="Res9"><a  title="Highlight" >Highlight</a></li>').insertAfter(".markItUpButtonRes1")
-            .find("a").css("background-image", "url(https://png.icons8.com/highlight/office/14/000000)");
-        document.onselectionchange = function () {
-            document.stringyBB = getSelectionText();
-        };
-        $(document).on('click', '#Res1', function (event) {
-            //alert(document.stringyBB);
-            var BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000");
-            var constBB = "[color=" + BBstart + "]" + document.stringyBB + "[/color]";
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res2', function (event) {
-            //alert(document.stringyBB);
-            var BBstart = prompt("Enter a programming language:", "");
-            var constBB = "[code=" + BBstart + "]" + document.stringyBB + "[/code]";
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res3', function (event) {
-            var constBB = "[center]" + document.stringyBB + "[/center]";
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res4', function (event) {
-            //alert(document.stringyBB);
-            var BBstart = prompt("Enter a project ID:", "");
-            var constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res5', function (event) {
-            var constBB = "[color=res.large]" + document.stringyBB + "[/color]";
-            alert("This will only appear on the main page, not the preview");
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res6', function (event) {
-            var BBstart = prompt("Enter an img URL without http tag:", "");
-            var constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
-            alert("This will only appear on the main page, not the preview");
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res7', function (event) {
-            var constBB = "[color=res.left]" + document.stringyBB + "[/color]";
-            alert("This will only appear on the main page, not the preview");
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res8', function (event) {
-            var constBB = "[color=res.right]" + document.stringyBB + "[/color]";
-            alert("This will only appear on the main page, not the preview");
-            replaceIt($('textarea')[0], constBB)
-        });
-        $(document).on('click', '#Res9', function (event) {
-            var constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
-            alert("This will only appear on the main page, not the preview");
-            replaceIt($('textarea')[0], constBB)
-        });
+        console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
+        let load = setInterval(e => {
+            if (document.querySelector(".markItUpContainer")) {
+                clearInterval(load);
+
+                $(`<li class="markItUpButton" id="Res1"><a title="Color" style="background-image: url('https://png.icons8.com/color-wheel/office/14/000000');" >Color</a></li>`)
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000"), constBB = "[color=" + BBstart + "]" + document.stringyBB + "[/color]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton7")
+                $(`<li class="markItUpButton" id="Res2"><a title="Code" style="background-image: url('https://png.icons8.com/code/office/16/000000');" >Code</a></li>`)
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter a programming language:", ""), constBB = "[code=" + ((BBstart) ? BBstart : "") + "]" + document.stringyBB + "[/code]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton11");
+                $(`<li class="markItUpButton" id="Res3"><a title="Center" style="background-image: url('https://png.icons8.com/align-center/office/16/000000');" >Center</a></li>`)
+                .on("click", (e) => {
+                    let constBB = "[center]" + document.stringyBB + "[/center]";
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter(".markItUpButton4");
+                $(`<li class="markItUpButton" id="Res4"><a title="Project link" style="background-image: url('https://png.icons8.com/prototype/office/16/000000');" >Project Link</a></li>`)
+                .on("click", (e) => {
+                    let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter(".markItUpButton14");
+                $(`<li class="markItUpButton" id="Res5"><a title="Very large" style="background-image: url('https://png.icons8.com/enlarge/office/14/000000');" >Very Large</a></li>`)
+                .on("click", (e) => {
+                    let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
+                    alert("This will only appear on the main page, not the preview");
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter(".markItUpButton7");
+                $(`<li class="markItUpButton" id="Res6"><a title="Other IMG" style="background-image: url('https://png.icons8.com/picture/office/14/000000');" >Other IMG</a></li>`)
+                .on("click", (e) => {
+                    let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
+                    alert("This will only appear on the main page, not the preview");
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter(".markItUpButton5");
+                $(`<li class="markItUpButton" id="Res7"><a title="Align Left" style="background-image: url('https://png.icons8.com/align-text-left/office/16/000000');" >Align Left</a></li>`)
+                .on("click", (e) => {
+                    let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
+                    alert("This will only appear on the main page, not the preview");
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter("#Res3");
+                $(`<li class="markItUpButton" id="Res8"><a title="Align Right" style="background-image: url('https://png.icons8.com/align-text-right/office/16/000000');" >Align Right</a></li>`)
+                .on("click", (e) => {
+                    let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
+                    alert("This will only appear on the main page, not the preview");
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter("#Res7");
+                $(`<li class="markItUpButton" id="Res9"><a title="Highlight" style="background-image: url('https://png.icons8.com/highlight/office/14/000000');" >Highlight</a></li>`)
+                .on("click", (e) => {
+                    let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
+                    alert("This will only appear on the main page, not the preview");
+                    replaceIt($('textarea')[0], constBB);
+                })
+                .insertAfter("#Res1");
+                document.onselectionchange = () => {
+                    document.stringyBB = getSelectionText();
+                };
+            }
+        }, 100);
     }
     function getSelectionText () {
         if (window.getSelection) {
@@ -1453,15 +1569,26 @@ SOFTWARE.
             return true;
         }
     }
+    //the following is my own custom dom creation object that I continue to improve as I use it
     function element (name) {
         return new _element(name);
     }
     class _element {
-        constructor(name) {
+        constructor(name, arg = "") {
             this.dom = document.createElement(name);
+            if (typeof arg == "String" && arg.length > 0) {
+                //use a selctor for object
+                this.pointer = document.querySelector(arg);
+            }
         }
-        a (name, value) {
-            this.dom.setAttribute(name, value);
+        a (name, value = "") {
+            if (name.constructor === {}.constructor) {
+                for (let a in name) {
+                    this.dom.setAttribute(a, name[a]);
+                }
+            } else {
+                this.dom.setAttribute(name, value);
+            }
             return this;
         }
         t (text) {
@@ -1498,6 +1625,14 @@ SOFTWARE.
                 }
             }
             return this;
+        }
+        f () {
+            this.pointer.appendChild(this.dom);
+        }
+        apAfter (target) {
+            target = document.querySelector(target);
+            target.parentElement.insertBefore(this.dom, target.nextSibling);
+            return this.dom;
         }
     }
 })();
