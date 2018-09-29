@@ -43,10 +43,10 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = window.location.href, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "";
+    let url = window.location.href, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {};
     if (url.includes("projects.scratch.mit.edu/resurgence")) {
         //this is for when the userscipt loads in the different domain
-        let projectId
+        let projectId;
         const message = GM_getValue("Message", {}), getCookie = cname => {
             var name = cname + "=";
             var decodedCookie = decodeURIComponent(document.cookie);
@@ -92,8 +92,8 @@ SOFTWARE.
                 }
             };
 
-            //this way may not be good if the userscipt is ever reset this will eventually go off name instead
-            if (GM_getValue("saveID", false)) {
+            let iteration = 0;
+            let loadData = () => {
                 //have a project to save the data in set
                 projectId = GM_getValue("saveID", false);
 
@@ -112,9 +112,10 @@ SOFTWARE.
                         window.close();
                     })
                     .catch(error => console.error('Error:', error));
-            } else {
+            }, createNewSave = () => {
+                console.log("create new");
                 //creates a new project with the data already saved
-                fetch("https://projects.scratch.mit.edu/internalapi/project/new/set/?title=dataSaver", {
+                fetch("https://projects.scratch.mit.edu/internalapi/project/new/set/?title=dataSaverResurgence", {
                     method: "POST",
                     body: JSON.stringify(project),
                     headers: {
@@ -127,9 +128,36 @@ SOFTWARE.
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
                         GM_setValue("saveID", response["content-name"]);
-                        window.close();
+                        loadData();
                     })
                     .catch(error => console.error('Error:', error));
+            }, getProjects = () => {
+                fetch("https://api.scratch.mit.edu/users/Wetbikeboy2500/projects/?limit=40&offset=" + iteration * 40)
+                    .then(response => response.json())
+                    .then(response => {
+                        for (let a of response) {
+                            console.log(a.title);
+                            if (a.title.includes("dataSaverResurgence")) {
+                                console.log("found project");
+                                GM_setValue("saveID", a.id);
+                                loadData();
+                                break;
+                            }
+                        }
+                        if (response.length == 40) {
+                            iteration++;
+                            getProjects();
+                        } else {
+                            createNewSave();
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            };
+
+            if (GM_getValue("saveID", false)) {
+                loadData();
+            } else {
+                getProjects();
             }
         } else {
             console.log("no message", GM_getValue("Message"));
@@ -142,12 +170,13 @@ SOFTWARE.
             GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
         }
         document.addEventListener("DOMContentLoaded", () => {
+            load_account();
             load_userinfo();
             let banner = '.title-banner{}';
             if (GM_getValue("bannerOff", true)) {
                 banner = '.title-banner{display:none;}';
             }
-            if (url.includes("discuss/topic")) {
+            if (url.includes("discuss") && url.includes("/topic")) {
                 load_custombb();
                 load_images();
                 load_scratchblockcode();
@@ -189,7 +218,7 @@ SOFTWARE.
     //this handles the processing of the messages by having a standard key paired with data
     function setData (key, data) {
         getData((e) => {
-            GM_setValue("Messages", e);
+            GM_setValue("Message", e);
             const saveData = data => {
                 GM_setValue("Message", data);
                 window.open('https://projects.scratch.mit.edu/resurgence',
@@ -199,11 +228,11 @@ SOFTWARE.
 
             let current = GM_getValue("Message", {});
 
-            current = JSON.parse(current);
+            /*current = JSON.parse(current);
 
             if (current == false) {
                 current = {};
-            }
+            }*/
 
             current[key] = data;
             let button = element("button").a("style", "visibitity: hidden;").a("class", "savedata")
@@ -227,8 +256,54 @@ SOFTWARE.
                     back(JSON.parse(decodeURIComponent(response.info.message)));
                 })
                 .catch(error => console.error('Error:', error));
+        } else {
+            let iteration = 0;
+            let getProjects = () => {
+                fetch("https://api.scratch.mit.edu/users/Wetbikeboy2500/projects/?limit=40&offset=" + iteration * 40)
+                    .then(response => response.json())
+                    .then(response => {
+                        for (let a of response) {
+                            //console.log(a.title);
+                            if (a.title.includes("dataSaverResurgence")) {
+                                console.log("found project");
+                                GM_getValue("saveID", a.id);
+                                projectId = GM_getValue("saveID", "");
+                                fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/get/")
+                                    .then(response => response.json())
+                                    .then(response => {
+                                        back(JSON.parse(decodeURIComponent(response.info.message)));
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                                break;
+                            }
+                        }
+                        if (response.length == 40) {
+                            iteration++;
+                            getProjects();
+                        } else {
+                            back({});
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            };
+            getProjects();
+
         }
     }
+
+    function load_account () {
+        fetch("https://scratch.mit.edu/session/", {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(response => response.json())
+            .then(response => {
+                accountInfo = response;
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
     function load_newpage () {
         console.log("load newpage");
         let displaySettingsModal = false, toggleModal = () => {
@@ -729,27 +804,6 @@ SOFTWARE.
         }
     }
     let messages = {
-        get_session: () => {
-            return new Promise((resolve, reject) => {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        let html = xhttp.responseText;
-                        let js = JSON.parse(html);
-                        resolve({
-                            token: js.user.token,
-                            username: js.user.username
-                        });
-                    }
-                };
-                xhttp.onerror = (err) => {
-                    reject("Error getting userinfo " + err);
-                };
-                xhttp.open("GET", "https://scratch.mit.edu/session/", true);
-                xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-                xhttp.send(null);
-            });
-        },
         //this should instead see if the newest messgae equals our newesst message
         check_unread: (user) => {
             return new Promise((resolve, reject) => {
@@ -874,10 +928,9 @@ SOFTWARE.
     function load_messages () {
         if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
             let load = setInterval(() => {
-                if (document.querySelector(".activity")) {
+                if (document.querySelector(".activity") && accountInfo.hasOwnProperty("user")) {
                     clearInterval(load);
-                    messages.get_session()
-                        .then(user => messages.check_unread(user))
+                    messages.check_unread({ token: accountInfo.user.token, username: accountInfo.user.username })
                         .then(user => messages.get_message(user))
                         .then(user => load_message(user))
                         .catch((error) => console.warn(error));
@@ -1471,6 +1524,7 @@ SOFTWARE.
     }
     //add extras bbcode buttons
     function add_bbbuttons () {
+        let values = ["_createNew", ""], previousValue = "", previousSelection = "";
         console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
         let load = setInterval(e => {
             if (document.querySelector(".markItUpContainer")) {
@@ -1489,55 +1543,138 @@ SOFTWARE.
                     })
                     .insertAfter(".markItUpButton11");
                 $(`<li class="markItUpButton" id="Res3"><a title="Center" style="background-image: url('https://png.icons8.com/align-center/office/16/000000');" >Center</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[center]" + document.stringyBB + "[/center]";
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton4");
+                    .on("click", (e) => {
+                        let constBB = "[center]" + document.stringyBB + "[/center]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton4");
                 $(`<li class="markItUpButton" id="Res4"><a title="Project link" style="background-image: url('https://png.icons8.com/prototype/office/16/000000');" >Project Link</a></li>`)
-                .on("click", (e) => {
-                    let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton14");
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton14");
                 $(`<li class="markItUpButton" id="Res5"><a title="Very large" style="background-image: url('https://png.icons8.com/enlarge/office/14/000000');" >Very Large</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton7");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton7");
                 $(`<li class="markItUpButton" id="Res6"><a title="Other IMG" style="background-image: url('https://png.icons8.com/picture/office/14/000000');" >Other IMG</a></li>`)
-                .on("click", (e) => {
-                    let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton5");
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton5");
                 $(`<li class="markItUpButton" id="Res7"><a title="Align Left" style="background-image: url('https://png.icons8.com/align-text-left/office/16/000000');" >Align Left</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res3");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res3");
                 $(`<li class="markItUpButton" id="Res8"><a title="Align Right" style="background-image: url('https://png.icons8.com/align-text-right/office/16/000000');" >Align Right</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res7");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res7");
                 $(`<li class="markItUpButton" id="Res9"><a title="Highlight" style="background-image: url('https://png.icons8.com/highlight/office/14/000000');" >Highlight</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res1");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res1");
+                $(`<li class="markItUpButton" id="Res10"><p>Get </p></li>`)
+                    .on("click", (e) => {
+                        getText();
+                    })
+                    .insertAfter(".markItUpButton16");
+                $(`<button id="Res10">Save</button>`)
+                    .on("click", (e) => {
+                        let name = document.querySelector("#Res11").value;
+                        if (name == "") {
+                            name = prompt("Enter the name to save under:", "default");
+                        }
+                        previousValue = document.querySelector("textarea").value;
+                        saveText(name, document.querySelector("textarea").value);
+                    })
+                    .insertAfter(".linksb");
+                $(`<select id="Res11"><option value="" selected>Saved/Create Text Selection</option><option value="_createNew">Create New</option></select>`)
+                    .change((e) => {
+                        let selection = e.currentTarget.value;
+                        if (selection != "") {
+                            if (selection === "_createNew") {
+                                let newTitle = prompt("Enter the name to save under:", "default");
+                                if (values.includes(newTitle)) {
+                                    newTitle = prompt("You are about to overwrite a previous save. If you wish to continue, then click cancel. Otherwise enter a new unique title.", newTitle);
+                                } else {
+                                    values.push(newTitle);
+                                }
+                                saveText(newTitle, document.querySelector("textarea").value);
+                                previousValue = document.querySelector("textarea").value;
+                                $(`<option value="${newTitle}">${newTitle}</option>`).appendTo("#Res11");
+                                document.querySelector("#Res11").value = newTitle;
+                            } else {
+                                if (document.querySelector("textarea").value != previousValue) {
+                                    let saveCurrent = confirm("Do you want to save current text?");
+                                    if (saveCurrent == true) {
+                                        let newTitle = prompt("Enter the name to save under(Should be already filled out):", previousSelection);
+                                        saveText(newTitle, document.querySelector("textarea").value);
+                                    }
+                                }
+                                getData((back) => {
+                                    if (back.hasOwnProperty("message") && back["message"].length > 0) {
+                                        let found = false;
+                                        for (let a of back["message"]) {
+                                            if (a.title == selection) {
+                                                document.querySelector("textarea").value = a.body;
+                                                previousValue = a.body;
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!found) {
+                                            document.querySelector("textarea").value = "";
+                                            previousValue = "";
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        previousSelection = "";
+                    })
+                    .insertAfter("#Res10");
+                $(`<button id="Res12">Delete</button>`)
+                    .on("click", (e) => {
+                        deleteText(document.querySelector("#Res11").value);
+                        values.splice(values.indexOf(document.querySelector("#Res11").value), 1);
+                        $(`#Res11[value="${document.querySelector("#Res11").value}"]`).remove();
+                        document.querySelector("#Res11").value = "";
+                        previousValue = "";
+                        
+                    })
+                    .insertAfter(".linksb");
                 document.onselectionchange = () => {
                     document.stringyBB = getSelectionText();
                 };
+
+                //adds the seection for the new text
+                getData((back) => {
+                    if (back.hasOwnProperty("message") && back["message"].length > 0) {
+                        for (let a of back["message"]) {
+                            if (!values.includes(a.title)) {
+                                values.push(a.title);
+                                let title = a.title;
+                                $("#Res11").append($(`<option value="${title}">${title}</option>`));
+                            }
+                        }
+                    }
+                });
             }
         }, 100);
     }
@@ -1561,6 +1698,56 @@ SOFTWARE.
             newtxt +
             $(txtarea).val().substring(txtarea.selectionEnd)
         );
+    }
+    function getText () {
+        let info;
+        getData((data) => {
+            info = data;
+            console.log(info, data);
+        });
+    }
+    function saveText (title, textbody) {
+        console.log(document.querySelector("textarea").value);
+        let info;
+        getData((data) => {
+            info = data;
+            if (info.hasOwnProperty("message")) {
+                let found = false;
+                for (let a of info["message"]) {
+                    if (a.title == title) {
+                        a.body = textbody;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    info["message"].push({
+                        title: title,
+                        body: textbody
+                    });
+                }
+            } else {
+                info["message"] = [];
+                info["message"].push({
+                    title: title,
+                    body: textbody
+                });
+            }
+            setData("message", info["message"]);
+        });
+    }
+
+    function deleteText (title) {
+        getData((info) => {
+            if (info.hasOwnProperty("message") && info["message"].length > 0) {
+                let found = false;
+                info["message"] = info["message"].filter((e) => {
+                    return e.title == title;
+                });
+                setData("message", info["message"]);
+                console.log(info["message"]);
+            }
+        });
     }
     function inIframe () {
         try {
