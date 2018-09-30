@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      10.20
+// @version      10.21
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -811,7 +811,7 @@ SOFTWARE.
                     .append(element("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version"))
                     .append(element("div").a("id", "changelog").a("style", "position: relative; left: 60%; top: -54px; width: 40%; height: 54px; margin-bottom: -54px; border: 1px solid #D9D9D9; border-radius: 25px; background-color: white; overflow: hidden;")
                         .append(element("div").a("style", "width: 100%; height: 100%; overflow-y: scroll; position: absolute; top: 0px; left: 0px;")
-                            .append(element("button").a("style", "display: inline-block; height: 54px; line-height: 15px; background-color: #F2F2F2; border: 1px solid #D9D9D9; border-radius: 25px; margin: auto; padding: 10px;").t("Expand change log").a("data-expanded", "false")
+                            .append(element("button").a("style", "display: inline-block; height: 54px; line-height: 15px; background-color: #F2F2F2; border: 1px solid #D9D9D9; border-radius: 25px !important; outline: none; margin: auto; padding: 10px;").t("Expand change log").a("data-expanded", "false")
                                 .e("click", (e) => {
                                     let target = document.getElementById("changelog");
                                     if (e.currentTarget.getAttribute("data-expanded") == "false") {
@@ -1489,52 +1489,52 @@ SOFTWARE.
                     })
                     .insertAfter(".markItUpButton11");
                 $(`<li class="markItUpButton" id="Res3"><a title="Center" style="background-image: url('https://png.icons8.com/align-center/office/16/000000');" >Center</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[center]" + document.stringyBB + "[/center]";
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton4");
+                    .on("click", (e) => {
+                        let constBB = "[center]" + document.stringyBB + "[/center]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton4");
                 $(`<li class="markItUpButton" id="Res4"><a title="Project link" style="background-image: url('https://png.icons8.com/prototype/office/16/000000');" >Project Link</a></li>`)
-                .on("click", (e) => {
-                    let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton14");
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton14");
                 $(`<li class="markItUpButton" id="Res5"><a title="Very large" style="background-image: url('https://png.icons8.com/enlarge/office/14/000000');" >Very Large</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton7");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton7");
                 $(`<li class="markItUpButton" id="Res6"><a title="Other IMG" style="background-image: url('https://png.icons8.com/picture/office/14/000000');" >Other IMG</a></li>`)
-                .on("click", (e) => {
-                    let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter(".markItUpButton5");
+                    .on("click", (e) => {
+                        let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter(".markItUpButton5");
                 $(`<li class="markItUpButton" id="Res7"><a title="Align Left" style="background-image: url('https://png.icons8.com/align-text-left/office/16/000000');" >Align Left</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res3");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res3");
                 $(`<li class="markItUpButton" id="Res8"><a title="Align Right" style="background-image: url('https://png.icons8.com/align-text-right/office/16/000000');" >Align Right</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res7");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res7");
                 $(`<li class="markItUpButton" id="Res9"><a title="Highlight" style="background-image: url('https://png.icons8.com/highlight/office/14/000000');" >Highlight</a></li>`)
-                .on("click", (e) => {
-                    let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
-                    alert("This will only appear on the main page, not the preview");
-                    replaceIt($('textarea')[0], constBB);
-                })
-                .insertAfter("#Res1");
+                    .on("click", (e) => {
+                        let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
+                        alert("This will only appear on the main page, not the preview");
+                        replaceIt($('textarea')[0], constBB);
+                    })
+                    .insertAfter("#Res1");
                 document.onselectionchange = () => {
                     document.stringyBB = getSelectionText();
                 };
