@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      10.20
+// @version      11
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -182,6 +182,9 @@ SOFTWARE.
                 load_scratchblockcode();
                 load_bbcode();
                 add_bbbuttons();
+            }
+            if (url == "https://scratch.mit.edu/discuss/" || url == "https://scratch.mit.edu/discuss/#") {
+                load_draft();
             }
             let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' + banner + '.postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
             GM_addStyle(styleTip);
@@ -1656,7 +1659,7 @@ SOFTWARE.
                         $(`#Res11[value="${document.querySelector("#Res11").value}"]`).remove();
                         document.querySelector("#Res11").value = "";
                         previousValue = "";
-                        
+
                     })
                     .insertAfter(".linksb");
                 document.onselectionchange = () => {
@@ -1705,6 +1708,33 @@ SOFTWARE.
             info = data;
             console.log(info, data);
         });
+    }
+    function load_draft () {
+        let load = setInterval(() => {
+            if (document.getElementById("category_body_4")) {
+                console.log("load Draft");
+                clearInterval(load);
+                //theme fix that really bothers me
+                GM_addStyle("#idx1 > .box .box-head > h4 {width: 100%;}");
+
+                //adds new drafts forum location
+                element("div").a("class", "box")
+                .append(
+                    element("div").a("class", "box-head")
+                    .append(
+                        element("h4").t("Drafts")
+                        .append(
+                            element("a").a({"class": "toggle", "href": "#"}).t("Toggle Box")
+                        )
+                    )
+                )
+                .append(
+                    element()
+                )
+                .apAfter("#category_body_4")
+            }
+        }, 100);
+
     }
     function saveText (title, textbody) {
         console.log(document.querySelector("textarea").value);
@@ -1761,6 +1791,7 @@ SOFTWARE.
         return new _element(name);
     }
     class _element {
+        //eventually add arguments for function inputs
         constructor(name, arg = "") {
             this.dom = document.createElement(name);
             if (typeof arg == "String" && arg.length > 0) {
