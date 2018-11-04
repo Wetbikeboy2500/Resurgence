@@ -4,84 +4,84 @@
     </div>
     <div id="brdmenu" class="box-content">
         <div class="box-head">
-            <h4>Holiday Countdown</h4>
             <label class="switch">
                 <input type="checkbox" id="timerIO">
                 <span class="slider round"></span>
             </label>
+            <h4>Holiday Countdown</h4>
         </div>
 
         <div class="box-head">
-            <h4>Messages on Frontpage</h4>
             <label class="switch">
                 <input type="checkbox" id="msgIO">
                 <span class="slider round"></span>
             </label>
+            <h4>Messages on Frontpage</h4>
         </div>
 
         <div class="box-head">
-            <h4>Extras</h4>
             <label class="switch">
                 <input type="checkbox" id="extrasIO">
                 <span class="slider round"></span>
             </label>
+            <h4>Extras</h4>
         </div>
 
         <div class="box-head">
-            <h4>ScratchBlock code on click</h4>
             <label class="switch">
                 <input type="checkbox" id="blocksIO">
                 <span class="slider round"></span>
             </label>
+            <h4>ScratchBlock code on click</h4>
         </div>
         
         <div class="box-head">
-            <h4>Featured projects embedded on user profiles</h4>
             <label class="switch">
                 <input type="checkbox" id="embedIO">
                 <span class="slider round"></span>
             </label>
+            <h4>Featured projects embedded on user profiles</h4>
         </div>
 
         <div class="box-head">
-            <h4>Disable banners on frontpage</h4>
             <label class="switch">
                 <input type="checkbox" id="bannerIO">
                 <span class="slider round"></span>
             </label>
+            <h4>Disable banners on frontpage</h4>
         </div>
         
         <div class="box-head">
-            <h4>Resurgence Userscript Info Position</h4>
             <select id="posIO">
                 <option value="top">Top</option>
                 <option value="bottom">Bottom</option>
                 <option value="none">None</option>
             </select>
+            <h4>Resurgence Userscript Info Position</h4>
         </div>
         
         <div class="box-head">
-            <h4>Default Theme</h4>
             <select id="themeIO">
                 <option value="light">Default</option>
                 <option value="dark">Dark</option>
                 <option value="newLight">New Light</option>
             </select>
+            <h4>Default Theme</h4>
         </div>
         
         <div class="box-head">
-            <h4>Default Player</h4>
             <select id="playerIO">
                 <option value="D">Default</option>
                 <option value="P">Phosphorus</option>
                 <option value="S">Sulfurous</option>
                 <option value="S3">Scratch 3</option>
             </select>
+            <h4>Default Player</h4>
         </div>
 
         <div class="box-head">
+            <input type="text" id="disText" value="Forums"></input>
             <h4>Forum Title</h4>
-            <input type="text" id="disText" value="Forums" style="margin-left: 0.5cm;"></input>
         </div>
     </div>
 </div>
@@ -91,11 +91,13 @@
         padding-left: 6px;
         padding-right: 0px;
     }
-    #playerIO {
-        margin-left: 20px;
-    }
     .box-head h4 {
         display: inline-block !important;
+        margin-left: 15px;
+    }
+    .box-head > select, .box-head > input {
+        position: relative;
+        left: 10px;
     }
     /* The switch - the box around the slider */
     .switch {
@@ -104,6 +106,7 @@
         left: 10px;
         width: 30px;
         height: 17px;
+        top: 3px;
     }
 
     /* Hide default HTML checkbox */

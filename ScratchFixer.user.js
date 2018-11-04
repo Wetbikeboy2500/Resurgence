@@ -34,6 +34,7 @@ SOFTWARE.
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
+// @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -184,6 +185,7 @@ SOFTWARE.
                 add_bbbuttons();
             }
             if (url == "https://scratch.mit.edu/discuss/" || url == "https://scratch.mit.edu/discuss/#") {
+                GM_addStyle(".forumicon {display: none;} td .tclcon {margin: 0px;} #idx1 > .box .box-head > h4 {width: 100%;}");//fixes style left by icons that don't exsist and the expand and retract icons are to the left of the forum
                 load_draft();
             }
             let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' + banner + '.postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
@@ -347,7 +349,7 @@ SOFTWARE.
         //adds popup settings modal
         GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
         $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').load("https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html");
+        $('#res-set-modal').append(GM_getResourceText("Modal"));//use resources instead of direct loading to avoid cors issues and changing of data location
 
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
@@ -1714,28 +1716,112 @@ SOFTWARE.
             if (document.getElementById("category_body_4")) {
                 console.log("load Draft");
                 clearInterval(load);
-                //theme fix that really bothers me
-                GM_addStyle("#idx1 > .box .box-head > h4 {width: 100%;}");
+
+                //these will always be out of one second
+                const fade = (speed, element, time) => {
+                    let opacity = 1;
+                    const iteration = 1 * (speed / time);
+                    let fading = setInterval(() => {
+                        if (opacity > 0) {
+                            opacity -= iteration;
+                        } else {
+                            opacity = 0;
+                            clearInterval(fading);
+                        }
+                        element.style.opacity = opacity;
+                    }, speed);
+                }, collapse_full = (speed, element, time) => { //this function will collapse margin, padding, and width in order (this will ignore the border)
+                    const totalTime = time;
+                    let totalHeight = element.getBoundingClientRect().height;
+                    const iteration = totalHeight * (speed / totalTime);
+                    //sets up data for each layer
+                    const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
+                    let heights = elementNames.map((a) => {
+                        return window.getComputedStyle(element, null)[a].slice(0, -2);
+                    });
+                    let newElementNames = [];
+                    heights = heights.filter((a, i) => {
+                        if (a > 0) {
+                            newElementNames.push(elementNames[i]);
+                        }
+                        return a > 0;
+                    })
+                    let percentageTime = heights.map((a) => {
+                        return a / totalHeight;
+                    });
+                    let runTime = percentageTime.map((a) => {
+                        return totalTime * a;
+                    });
+                    let intervalSpeeds = runTime.map((a, i) => {
+                        return heights[i] * (speed / a) || 0;
+                    });
+
+                    console.log(newElementNames, heights, percentageTime, runTime, intervalSpeeds);
+
+                    if (newElementNames.length > 0) {
+                        let run = (id) => {
+                            let height = heights[id];
+                            let running = setInterval(() => {
+                                height -= intervalSpeeds[id];
+                                element.style[newElementNames[id]] = height + "px";
+                            }, speed);
+                            setTimeout(() => {
+                                clearInterval(running);
+                                height = 0;
+                                element.style[newElementNames[id]] = height + "px";
+                                id += 1;
+                                if (id > newElementNames.length) {
+                                    element.style.display = "none";
+                                } else {
+                                    run(id);
+                                }
+                            }, runTime[id]);
+                        };
+                        run(0);
+                    } else {
+                        element.style.display = "none";
+                    }
+                };
 
                 //adds new drafts forum location
-                element("div").a("class", "box")
-                .append(
-                    element("div").a("class", "box-head")
+                element("div").a("class", "box").a("style", "cursor: pointer; user-select: none;").a("id", "drafts")
                     .append(
-                        element("h4").t("Drafts")
-                        .append(
-                            element("a").a({"class": "toggle", "href": "#"}).t("Toggle Box")
-                        )
+                        element("div").a("class", "box-head")
+                            .e("click", (event) => {
+                                let elements = [document.getElementById("category_body_4"), document.getElementById("category_body_2"), document.getElementById("category_body_5"), document.getElementById("category_body_6"), document.getElementById("category_body_7")];
+                                let totalTime = 500;
+                                elements.forEach((a) => {
+                                    fade(10, a, totalTime);//refresh rate per total time, dom element, total time to execute
+                                    collapse_full(10, a, totalTime);
+                                });
+                                setTimeout(() => {
+
+                                }, totalTime);
+                            })
+                            .append(
+                                element("h4").t("Drafts")
+                            )
                     )
-                )
-                .append(
-                    element()
-                )
-                .apAfter("#category_body_4")
+                    .apAfter("#category_body_4");
+
+                element("div").a("class", "box-content").a("style", "height: 0px;").a("id", "draftsTable")
+                    .append(element("table")
+                        .append(element("tbody")
+                            .append(element("tr")
+                                .append(element("td")
+                                ))
+                            .append(element("tr")
+                                .append(element("td")
+                                ))
+                            .append(element("tr")
+                                .append(element("td")
+                                ))
+                        ))
+                .apAfter("#drafts")
             }
         }, 100);
-
     }
+
     function saveText (title, textbody) {
         console.log(document.querySelector("textarea").value);
         let info;
