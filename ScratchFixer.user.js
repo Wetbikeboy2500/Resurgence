@@ -1390,7 +1390,6 @@ SOFTWARE.
         ordered = ordered.sort((a, b) => {
             return a.dif - b.dif;
         });
-        console.log(ordered);
         let Holiday;
         for (let a of ordered) {
             if (a.dif >= 0) {
@@ -1797,31 +1796,38 @@ SOFTWARE.
 
                 element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
                     .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
-                                .append(
-                                    element
-                                )
+                        .append(element("thead")
+                            .append(element("tr")
+                                .append(element("td").t("Name"))
+                                .append(element("td").t("Forum"))
+                            )
+                        )
                         .append(element("tbody").a("id", "draftTable")
-                            .append(element("tr")
-                                .append(element("td").t("Hello World")
-                                ))
-                            .append(element("tr")
-                                .append(element("td").t("Another Post")
-                                ))
-                            .append(element("tr")
-                                .append(element("td").t("Yesssss")
-                                ))
                         ))
-                .apAfter("#drafts");
+                    .apAfter("#drafts");
+
+                getData((data) => {
+                    if (data.hasOwnProperty("message")) {
+                        let target = document.getElementById("draftTable");
+                        data["message"].forEach((a) => {
+                            element("tr")
+                                .append(element("td").t(a.title))
+                                .append(element("td").t(a.meta.forum))
+                                .ap(target);
+                        });
+                    }
+                });
 
                 GM_addStyle("#draftTable td {border: 1px solid #e0e0e0}");
             }
         }, 100);
     }
 
-    function saveText (title, textbody) {
-        console.log(document.querySelector("textarea").value);
+    function saveText (title, textbody, metaData) {
+        //console.log(document.querySelector("textarea").value);
         let info;
         getData((data) => {
+            console.log(data);
             info = data;
             if (info.hasOwnProperty("message")) {
                 let found = false;
@@ -1835,14 +1841,16 @@ SOFTWARE.
                 if (!found) {
                     info["message"].push({
                         title: title,
-                        body: textbody
+                        body: textbody,
+                        meta: metaData
                     });
                 }
             } else {
                 info["message"] = [];
                 info["message"].push({
                     title: title,
-                    body: textbody
+                    body: textbody,
+                    meta: metaData
                 });
             }
             setData("message", info["message"]);
@@ -1852,9 +1860,8 @@ SOFTWARE.
     function deleteText (title) {
         getData((info) => {
             if (info.hasOwnProperty("message") && info["message"].length > 0) {
-                let found = false;
                 info["message"] = info["message"].filter((e) => {
-                    return e.title == title;
+                    return e.title != title;
                 });
                 setData("message", info["message"]);
                 console.log(info["message"]);
