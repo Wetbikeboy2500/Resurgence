@@ -1795,8 +1795,9 @@ SOFTWARE.
                                     collapse_full(10, a, totalTime);
                                 });
                                 setTimeout(() => {
-
-                                }, totalTime);
+                                    let element = document.getElementById("draftsTable");
+                                    element.setAttribute("style", "");
+                                }, totalTime + 250);
                             })
                             .append(
                                 element("h4").t("Drafts")
@@ -1804,20 +1805,22 @@ SOFTWARE.
                     )
                     .apAfter("#category_body_4");
 
-                element("div").a("class", "box-content").a("style", "height: 0px;").a("id", "draftsTable")
-                    .append(element("table")
-                        .append(element("tbody")
+                element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
+                    .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
+                        .append(element("tbody").a("id", "draftTable")
                             .append(element("tr")
-                                .append(element("td")
+                                .append(element("td").t("Hello World")
                                 ))
                             .append(element("tr")
-                                .append(element("td")
+                                .append(element("td").t("Another Post")
                                 ))
                             .append(element("tr")
-                                .append(element("td")
+                                .append(element("td").t("Yesssss")
                                 ))
                         ))
-                .apAfter("#drafts")
+                .apAfter("#drafts");
+
+                GM_addStyle("#draftTable td {border: 1px solid #e0e0e0}");
             }
         }, 100);
     }
