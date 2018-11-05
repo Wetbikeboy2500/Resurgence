@@ -1378,29 +1378,19 @@ SOFTWARE.
     }
 
     function timer () {
-        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "4,1,0", name: "Mother's Day" }, { newDate: "5,2,0", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "10,3,4", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
-        let getDate = (year, inputString) => {
-            const mwd = inputString.split(","),
-                month = mwd[0],
-                week = mwd[1],
-                day = mwd[2];
-            let firstDay = 1;
-            if (week < 0) {
-                month++;
-                firstDay--;
-            }
-            let date = new Date(year, month, (week * 7) + firstDay);
-            date.setDate(date.getDate() - date.getDay() + day);
-            return date.getTime();
-        }
+        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 12, 2019", name: "Mother's Day" }, { newDate: "Jun 6, 2019", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 22, 2018", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
         let ordered = newEvents.map((e) => {
-            let holiDate = (e.hasOwnProperty("newDate")) ? getDate(currentYear, e.newDate) : new Date(e.date).setFullYear(currentYear);
+            let holiDate = (e.hasOwnProperty("newDate")) ? new Date(e.newDate).getTime() : new Date(e.date).setFullYear(currentYear);
             return {
                 name: e.name,
                 date: holiDate,
                 dif: holiDate - new Date(currentYear, currentMonth, currentDay)
             }
         });
+        ordered = ordered.sort((a, b) => {
+            return a.dif - b.dif;
+        });
+        console.log(ordered);
         let Holiday;
         for (let a of ordered) {
             if (a.dif >= 0) {
@@ -1807,6 +1797,9 @@ SOFTWARE.
 
                 element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
                     .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
+                                .append(
+                                    element
+                                )
                         .append(element("tbody").a("id", "draftTable")
                             .append(element("tr")
                                 .append(element("td").t("Hello World")
