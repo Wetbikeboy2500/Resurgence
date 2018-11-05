@@ -44,7 +44,7 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = window.location.href, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {};
+    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {};
     if (url.includes("projects.scratch.mit.edu/resurgence")) {
         //this is for when the userscipt loads in the different domain
         let projectId;
@@ -173,9 +173,8 @@ SOFTWARE.
         document.addEventListener("DOMContentLoaded", () => {
             load_account();
             load_userinfo();
-            let banner = '.title-banner{}';
-            if (GM_getValue("bannerOff", true)) {
-                banner = '.title-banner{display:none;}';
+            if (url == "https://scratch.mit.edu/" && GM_getValue("bannerOff", false)) {
+                GM_addStyle(".title-banner{display:none;}");
             }
             if (url.includes("discuss") && url.includes("/topic")) {
                 load_custombb();
@@ -184,11 +183,14 @@ SOFTWARE.
                 load_bbcode();
                 add_bbbuttons();
             }
+            if (url.includes("https://scratch.mit.edu/messages") && GM_getValue("messageTheme", false)) {
+                GM_addStyle(`.messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;} .messages-social-loadmore {width: calc(100% - 20px);}`);
+            }
             if (url == "https://scratch.mit.edu/discuss/" || url == "https://scratch.mit.edu/discuss/#") {
                 GM_addStyle(".forumicon {display: none;} td .tclcon {margin: 0px;} #idx1 > .box .box-head > h4 {width: 100%;}");//fixes style left by icons that don't exsist and the expand and retract icons are to the left of the forum
                 load_draft();
             }
-            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} ' + banner + '.postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;} .messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;';
+            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
             GM_addStyle(styleTip);
             dark_theme();
             fix_nav();
@@ -339,6 +341,9 @@ SOFTWARE.
                 if (GM_getValue("bannerOff", true)) {
                     $("#bannerIO").prop('checked', "checked");
                 }
+                if (GM_getValue("messageTheme", false)) {
+                    $("#messageThemeIO").prop("checked", "checked");
+                }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#themeIO").val(GM_getValue("theme", "light"));
                 $("#posIO").val(GM_getValue("pos", "top"));
@@ -394,6 +399,13 @@ SOFTWARE.
                 GM_setValue("bannerOff", false);
             } else {
                 GM_setValue("bannerOff", true);
+            }
+        });
+        $(document).on("click", "#messageThemeIO", (event) => {
+            if (GM_getValue("messageTheme", true)) {
+                GM_setValue("messageTheme", false);
+            } else {
+                GM_setValue("messageTheme", true);
             }
         });
         $(document).on("change", "#playerIO", (event) => {
