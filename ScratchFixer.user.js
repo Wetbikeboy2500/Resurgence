@@ -1784,27 +1784,76 @@ SOFTWARE.
                     }
                 };
 
+                const svg = new Map([
+                    ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
+                ]);
+
+                let opened = false;
+
                 //adds new drafts forum location
-                element("div").a("class", "box").a("style", "cursor: pointer; user-select: none;").a("id", "drafts")
+                let draftTitle = element("div").a("class", "box").a("style", "cursor: pointer; user-select: none;").a("id", "drafts")
                     .append(
                         element("div").a("class", "box-head")
                             .e("click", (event) => {
-                                let elements = [document.getElementById("category_body_4"), document.getElementById("category_body_2"), document.getElementById("category_body_5"), document.getElementById("category_body_6"), document.getElementById("category_body_7")];
-                                let totalTime = 500;
-                                elements.forEach((a) => {
-                                    fade(10, a, totalTime);//refresh rate per total time, dom element, total time to execute
-                                    collapse_full(10, a, totalTime);
-                                });
-                                setTimeout(() => {
-                                    let element = document.getElementById("draftsTable");
-                                    element.setAttribute("style", "");
-                                }, totalTime + 250);
+                                if (!opened) {
+                                    opened = true;
+                                    let elements = [document.getElementById("category_body_4"), document.getElementById("category_body_2"), document.getElementById("category_body_5"), document.getElementById("category_body_6"), document.getElementById("category_body_7")];
+                                    let totalTime = 500;
+                                    elements.forEach((a) => {
+                                        fade(10, a, totalTime);//refresh rate per total time, dom element, total time to execute
+                                        collapse_full(10, a, totalTime);
+                                    });
+                                    setTimeout(() => {
+                                        let element = document.getElementById("draftsTable");
+                                        element.setAttribute("style", "height: 0px;");
+                                        const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
+                                        const target = document.querySelector("#draftsTable table");
+                                        let height = 0;
+                                        for (let a of elementNames) {
+                                            if (target.style.hasOwnProperty(a)) {
+                                                height += Number(window.getComputedStyle(target, null)[a].slice(0, -2)) || 0;
+                                            }
+                                        }
+                                        console.log(height);
+                                        const speed = 10;
+                                        const interval = height * (speed / 500);
+                                        let currentHeight = 0;
+                                        let time = setInterval(() => {
+                                            if (currentHeight >= height) {
+                                                clearInterval(time);
+                                                currentHeight = height;
+                                            } else {
+                                                currentHeight += interval;
+                                            }
+                                            element.style.height = currentHeight + "px";
+                                        }, 10);
+
+                                        let svgElement = draftTitle.querySelector(".box-head h4 svg");
+                                        svgElement.setAttribute("style", "opacity: 0; display: block;");
+                                        let change = 1 * (speed / 500);
+                                        let opacity = 0;
+
+                                        let time2 = setInterval(() => {
+                                            if (opacity >= 1) {
+                                                clearInterval(time2);
+                                                opacity = 1;
+                                            } else {
+                                                opacity += change;
+                                            }
+                                            svgElement.style.opacity = opacity;
+                                        }, 10);
+                                    }, totalTime + 250);
+                                }
                             })
                             .append(
                                 element("h4").t("Drafts")
                             )
                     )
                     .apAfter("#category_body_4");
+
+                GM_addStyle(`.svg-icon {width: 20px;height: 20px; float: right;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`);
+                $(draftTitle.querySelector(".box-head h4")).append($(svg.get("write")).attr("style", "display: none;"));
+
 
                 element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
                     .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
