@@ -889,7 +889,7 @@ SOFTWARE.
                 .f()
                 .add("div").a({ "class": "box-content", "style": "padding: 0px; border-top: 1px solid #d9d9d9; text-align: center; user-select: none; cursor: pointer;" })
                 .add("div").a({"id": "newsUpdates", "style": "height: 0px; overflow: hidden;"})
-                .add("div").a({"style": "text-align: left; user-select: default; cursor: default; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;"})
+                .add("div").a({"style": "text-align: left; user-select: text; cursor: auto; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;"})
                 .add("h3").a("style", "margin: 0px; text-align: center;").t("Updates and News").f()
                 .add("p").a("style", "margin: 0px;").t("Updates:").f()
                 .add("ul").a("style", "margin: 0px;")
