@@ -191,6 +191,7 @@ SOFTWARE.
                 load_draft();
             }
             let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
+            styleTip += `.svg-icon {width: 20px;height: 20px;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`;//svg styling
             GM_addStyle(styleTip);
             dark_theme();
             fix_nav();
@@ -869,6 +870,9 @@ SOFTWARE.
     function load_banner () {
         if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
             console.log("loading banner");
+        let svgCircle = svg("downCircle");
+        svgCircle.setAttribute("style", "width: 22px; height: 22px; vertical-align: middle; padding-bottom: 2px;");
+
             let box = element("div").a("class", "box")
                 .append(element("div").a("class", "box-header")
                     .append(element("h4").t("Resurgence Userscript Info"))
@@ -911,7 +915,13 @@ SOFTWARE.
                             )
                         )
                     )
-                );
+                )
+                .add("div").a({"class": "box-content", "style": "padding: 0px; border-top: 1px solid #d9d9d9; text-align: center; user-select: none; cursor: pointer;"})
+                .add("div")
+                
+                .f()
+                .add("p").t("Read More").a("style", "margin: 0px;").addDom(svgCircle).f()
+                .f();
             if (GM_getValue("pos", "top") == "top") {
                 document.getElementsByClassName("mod-splash")[0].insertBefore(box.dom, document.getElementsByClassName("mod-splash")[0].children[0]);
             } else {
@@ -1784,10 +1794,6 @@ SOFTWARE.
                     }
                 };
 
-                const svg = new Map([
-                    ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
-                ]);
-
                 let opened = false;
 
                 //adds new drafts forum location
@@ -1851,8 +1857,9 @@ SOFTWARE.
                     )
                     .apAfter("#category_body_4");
 
-                GM_addStyle(`.svg-icon {width: 20px;height: 20px; float: right;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`);
-                $(draftTitle.querySelector(".box-head h4")).append($(svg.get("write")).attr("style", "display: none;"));
+                let svgWrite = svg("write");
+                svgWrite.setAttribute("style", "display: none; float: right;")
+                draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
 
 
                 element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
@@ -1936,18 +1943,24 @@ SOFTWARE.
             return true;
         }
     }
+    //this function is for svg elements
+    function svg (name) {
+        const svgMap = new Map([
+            ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
+            ,["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
+        ]);
+
+        return document.createRange().createContextualFragment(svgMap.get(name)).firstChild;
+    }
+
     //the following is my own custom dom creation object that I continue to improve as I use it
     function element (name) {
         return new _element(name);
     }
     class _element {
         //eventually add arguments for function inputs
-        constructor(name, arg = "") {
+        constructor(name) {
             this.dom = document.createElement(name);
-            if (typeof arg == "String" && arg.length > 0) {
-                //use a selctor for object
-                this.pointer = document.querySelector(arg);
-            }
         }
         a (name, value = "") {
             if (name.constructor === {}.constructor) {
@@ -1994,8 +2007,18 @@ SOFTWARE.
             }
             return this;
         }
+        add (elementName) {
+            let newElement = element(elementName);
+            newElement.pointer = this;
+            return newElement;
+        }
+        addDom (domElement) {
+            this.dom.appendChild(domElement);
+            return this;
+        }
         f () {
-            this.pointer.appendChild(this.dom);
+            this.pointer.append(this);
+            return this.pointer;
         }
         apAfter (target) {
             target = document.querySelector(target);
