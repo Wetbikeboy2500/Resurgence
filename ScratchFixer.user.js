@@ -870,57 +870,61 @@ SOFTWARE.
     function load_banner () {
         if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
             console.log("loading banner");
-        let svgCircle = svg("downCircle");
-        svgCircle.setAttribute("style", "width: 22px; height: 22px; vertical-align: middle; padding-bottom: 2px;");
+            let newsUpdatesExpanded = false;
 
+            let svgCircle = svg("downCircle");
+            svgCircle.setAttribute("style", "width: 20px; height: 20px; vertical-align: middle; padding-bottom: 2px;");
+            svgCircle.setAttribute("id", "expandCollapse");
+
+            //this displays the new changes that I made to element creation(the old stuff still works but is obsolete to this)
             let box = element("div").a("class", "box")
-                .append(element("div").a("class", "box-header")
-                    .append(element("h4").t("Resurgence Userscript Info"))
-                    .append(element("h5"))
-                    .append(element("p")
-                        .append(element("a").a("href", "https://github.com/Wetbikeboy2500/Resurgence").t("Resurgence Github"))
-                    )
-                )
-                .append(element("div").a("class", "box-content")
-                    .append(element("p").t("Current Version: " + currentVersion).a("style", "margin: 0;"))
-                    .append(element("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version"))
-                    .append(element("div").a("id", "changelog").a("style", "position: relative; left: 60%; top: -54px; width: 40%; height: 54px; margin-bottom: -54px; border: 1px solid #D9D9D9; border-radius: 25px; background-color: white; overflow: hidden;")
-                        .append(element("div").a("style", "width: 100%; height: 100%; overflow-y: scroll; position: absolute; top: 0px; left: 0px;")
-                            .append(element("button").a("style", "display: inline-block; height: 54px; line-height: 15px; background-color: #F2F2F2; border: 1px solid #D9D9D9; border-radius: 25px; margin: auto; padding: 10px;").t("Expand change log").a("data-expanded", "false")
-                                .e("click", (e) => {
-                                    let target = document.getElementById("changelog");
-                                    if (e.currentTarget.getAttribute("data-expanded") == "false") {
-                                        e.currentTarget.parentElement.style.height = "";
-                                        e.currentTarget.parentElement.style["overflow-y"] = "";
-                                        const height = e.currentTarget.parentElement.getBoundingClientRect().height;
-                                        target.style.height = height + "px";
-                                        target.style["margin-bottom"] = (-1 * height) + "px";
-                                        e.currentTarget.setAttribute("data-expanded", "true");
-                                        e.currentTarget.innerHTML = "Collapse change log";
-                                    } else {
-                                        e.currentTarget.parentElement.style.height = "100%";
-                                        e.currentTarget.parentElement.style["overflow-y"] = "scroll";
-                                        target.style.height = 54 + "px";
-                                        target.style["margin-bottom"] = -54 + "px";
-                                        e.currentTarget.setAttribute("data-expanded", "false");
-                                        e.currentTarget.innerHTML = "Expand change log"
-                                    }
-                                })
-                            )
-                            .append(element("ul").a("style", "padding-right: 5px;")
-                                .append(element("h5").t("Changes in " + currentVersion).a("style", "margin: 0px; display: inline-block"))
-                                .append(element("li").t("The BBCode buttons for forum posts will load more reliably"))
-                                .append(element("li").t("The foundation is being laid for . . .(more to come)"))
-                                //It's a little but cryptic but I got you NitroCipher https://scratch.mit.edu/discuss/topic/243522/
-                            )
-                        )
-                    )
-                )
-                .add("div").a({"class": "box-content", "style": "padding: 0px; border-top: 1px solid #d9d9d9; text-align: center; user-select: none; cursor: pointer;"})
-                .add("div")
-                
+                .add("div").a("class", "box-header")
+                .add("h4").t("Resurgence Userscript Info").f()
+                .add("p").add("a").a("href", "https://github.com/Wetbikeboy2500/Resurgence").t("Resurgence Github").f().f()
                 .f()
-                .add("p").t("Read More").a("style", "margin: 0px;").addDom(svgCircle).f()
+
+                .add("div").a("class", "box-content")
+                    .add("p").t("Current Version: " + currentVersion).a("style", "margin: 0px;").f()
+                    .add("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version").f()
+                .f()
+                .add("div").a({ "class": "box-content", "style": "padding: 0px; border-top: 1px solid #d9d9d9; text-align: center; user-select: none; cursor: pointer;" })
+                .add("div").a({"id": "newsUpdates", "style": "height: 0px; overflow: hidden;"})
+                .add("div").a({"style": "text-align: left; user-select: default; cursor: default; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;"})
+                .add("h3").a("style", "margin: 0px; text-align: center;").t("Updates and News").f()
+                .add("p").a("style", "margin: 0px;").t("Updates:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Change #1").a("style", "margin: 0px;").f()
+                .f().f().f()
+                .add("p").t("Read More").a("style", "margin: 0px; font-size: 15px; line-height: 20px; margin-top: 2px;").addDom(svgCircle)
+                .e("click", (e) => {
+                    if (!newsUpdatesExpanded) {
+                        newsUpdatesExpanded = true;
+                        let svgCircleUp = svg("upCircle");
+                        svgCircleUp.setAttribute("style", "width: 20px; height: 20px; vertical-align: middle; padding-bottom: 2px;");
+                        svgCircleUp.setAttribute("id", "expandCollapse");
+                        document.querySelector("#expandCollapse").parentElement.replaceChild(svgCircleUp, document.querySelector("#expandCollapse"));
+
+                        let target = document.querySelector("#newsUpdates");
+                        target.style.borderBottom = "1px solid #d9d9d9";
+                        target.style.display = "block";
+                        const height = calculate_height_children(target);
+                        let currentHeight = 0;
+                        let interval = height * (10 / 500);
+                        let time = setInterval(() => {
+                            if (currentHeight >= height) {
+                                clearInterval(time);
+                                currentHeight = height;
+                            } else {
+                                currentHeight += interval;
+                            }
+                            target.style.height = currentHeight + "px";
+                        }, 10);
+                    } else {
+                        newsUpdatesExpanded = false;
+                        collapse_full(10, document.querySelector("#newsUpdates"), 500);
+                        document.querySelector("#expandCollapse").parentElement.replaceChild(svgCircle, document.querySelector("#expandCollapse"));
+                    }
+                }).f()
                 .f();
             if (GM_getValue("pos", "top") == "top") {
                 document.getElementsByClassName("mod-splash")[0].insertBefore(box.dom, document.getElementsByClassName("mod-splash")[0].children[0]);
@@ -1741,57 +1745,6 @@ SOFTWARE.
                         }
                         element.style.opacity = opacity;
                     }, speed);
-                }, collapse_full = (speed, element, time) => { //this function will collapse margin, padding, and width in order (this will ignore the border)
-                    const totalTime = time;
-                    let totalHeight = element.getBoundingClientRect().height;
-                    const iteration = totalHeight * (speed / totalTime);
-                    //sets up data for each layer
-                    const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
-                    let heights = elementNames.map((a) => {
-                        return window.getComputedStyle(element, null)[a].slice(0, -2);
-                    });
-                    let newElementNames = [];
-                    heights = heights.filter((a, i) => {
-                        if (a > 0) {
-                            newElementNames.push(elementNames[i]);
-                        }
-                        return a > 0;
-                    })
-                    let percentageTime = heights.map((a) => {
-                        return a / totalHeight;
-                    });
-                    let runTime = percentageTime.map((a) => {
-                        return totalTime * a;
-                    });
-                    let intervalSpeeds = runTime.map((a, i) => {
-                        return heights[i] * (speed / a) || 0;
-                    });
-
-                    console.log(newElementNames, heights, percentageTime, runTime, intervalSpeeds);
-
-                    if (newElementNames.length > 0) {
-                        let run = (id) => {
-                            let height = heights[id];
-                            let running = setInterval(() => {
-                                height -= intervalSpeeds[id];
-                                element.style[newElementNames[id]] = height + "px";
-                            }, speed);
-                            setTimeout(() => {
-                                clearInterval(running);
-                                height = 0;
-                                element.style[newElementNames[id]] = height + "px";
-                                id += 1;
-                                if (id > newElementNames.length) {
-                                    element.style.display = "none";
-                                } else {
-                                    run(id);
-                                }
-                            }, runTime[id]);
-                        };
-                        run(0);
-                    } else {
-                        element.style.display = "none";
-                    }
                 };
 
                 let opened = false;
@@ -1943,11 +1896,79 @@ SOFTWARE.
             return true;
         }
     }
+    //Tansitions and other cool functions
+    function collapse_full (speed, element, time) { //this function will collapse margin, padding, and width in order (this will ignore the border)
+        const totalTime = time;
+        let totalHeight = element.getBoundingClientRect().height;
+        //sets up data for each layer
+        const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
+        let heights = elementNames.map((a) => {
+            return window.getComputedStyle(element, null)[a].slice(0, -2);
+        });
+        let newElementNames = [];
+        heights = heights.filter((a, i) => {
+            if (a > 0) {
+                newElementNames.push(elementNames[i]);
+            }
+            return a > 0;
+        })
+        let percentageTime = heights.map((a) => {
+            return a / totalHeight;
+        });
+        let runTime = percentageTime.map((a) => {
+            return totalTime * a;
+        });
+        let intervalSpeeds = runTime.map((a, i) => {
+            return heights[i] * (speed / a) || 0;
+        });
+
+        console.log(newElementNames, heights, percentageTime, runTime, intervalSpeeds);
+
+        if (newElementNames.length > 0) {
+            let run = (id) => {
+                let height = heights[id];
+                let running = setInterval(() => {
+                    height -= intervalSpeeds[id];
+                    element.style[newElementNames[id]] = height + "px";
+                }, speed);
+                setTimeout(() => {
+                    clearInterval(running);
+                    height = 0;
+                    element.style[newElementNames[id]] = height + "px";
+                    id += 1;
+                    if (id > newElementNames.length) {
+                        element.style.display = "none";
+                    } else {
+                        run(id);
+                    }
+                }, runTime[id]);
+            };
+            run(0);
+        } else {
+            element.style.display = "none";
+        }
+    }
+
+    function calculate_height_children (domElement) {
+        let height = 0;
+        let children = domElement.children;
+        for (let a of children) {
+            const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
+            elementNames.forEach((b) => {
+                if (a.style.hasOwnProperty(b)) {
+                    height += Number(window.getComputedStyle(a, null)[b].slice(0, -2)) || 0;
+                }
+            });
+        }
+
+        return height;
+    }
     //this function is for svg elements
     function svg (name) {
         const svgMap = new Map([
             ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
             ,["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
+            ,["upCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.889,11.611c-0.17,0.17-0.443,0.17-0.612,0l-3.189-3.187l-3.363,3.36c-0.171,0.171-0.441,0.171-0.612,0c-0.172-0.169-0.172-0.443,0-0.611l3.667-3.669c0.17-0.17,0.445-0.172,0.614,0l3.496,3.493C14.058,11.167,14.061,11.443,13.889,11.611 M18.25,10c0,4.558-3.693,8.25-8.25,8.25c-4.557,0-8.25-3.692-8.25-8.25c0-4.557,3.693-8.25,8.25-8.25C14.557,1.75,18.25,5.443,18.25,10 M17.383,10c0-4.07-3.312-7.382-7.383-7.382S2.618,5.93,2.618,10S5.93,17.381,10,17.381S17.383,14.07,17.383,10"></path></svg>`]
         ]);
 
         return document.createRange().createContextualFragment(svgMap.get(name)).firstChild;
