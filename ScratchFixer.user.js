@@ -34,7 +34,7 @@ SOFTWARE.
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
-// @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
+// @resource     Modal http://localhost/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -44,7 +44,7 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {};
+    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
     if (url.includes("projects.scratch.mit.edu/resurgence")) {
         //this is for when the userscipt loads in the different domain
         let projectId;
@@ -201,6 +201,7 @@ SOFTWARE.
             load_extras();
             load_banner();
             load_newpage();
+            theme_tweaks();
         });
     }
     function fix_nav () {
@@ -312,6 +313,16 @@ SOFTWARE.
             .catch(error => console.error('Error:', error));
     }
 
+    //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
+    function theme_tweaks () {
+        if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
+            themeTweakStyle = GM_addStyle(".box {border: 0px;}");
+        } else if (themeTweakStyle) {
+            themeTweakStyle.parentElement.removeChild(themeTweakStyle);
+            themeTweakStyle = null;
+        }
+    }
+
     function load_newpage () {
         console.log("load newpage");
         let displaySettingsModal = false, toggleModal = () => {
@@ -344,6 +355,9 @@ SOFTWARE.
                 }
                 if (GM_getValue("messageTheme", false)) {
                     $("#messageThemeIO").prop("checked", "checked");
+                }
+                if (GM_getValue("tweakTheme", false)) {
+                    $("#tweakThemeIO").prop("checked", "checked");
                 }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#themeIO").val(GM_getValue("theme", "light"));
@@ -408,6 +422,14 @@ SOFTWARE.
             } else {
                 GM_setValue("messageTheme", true);
             }
+        });
+        $(document).on("click", "#tweakThemeIO", (event) => {
+            if (GM_getValue("tweakTheme", true)) {
+                GM_setValue("tweakTheme", false);
+            } else {
+                GM_setValue("tweakTheme", true);
+            }
+            theme_tweaks();
         });
         $(document).on("change", "#playerIO", (event) => {
             console.log(document.getElementById("playerIO").value);
@@ -1834,7 +1856,9 @@ SOFTWARE.
 
                 let svgWrite = svg("write");
                 svgWrite.addEventListener("click", (e) => {
-                    console.log("Create New Post");
+                    element("div").a({"class": "box", "style": "padding: 5px 20px;"})
+                    .add("div").a({"class": "box-content"}).add("input").a({"style": "width: calc(100% - 10px);", "placeholder": "Title"}).f().f()
+                    .apAfter("#drafts");
                 });
                 svgWrite.setAttribute("style", "display: none; float: right;");
                 draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
