@@ -884,12 +884,12 @@ SOFTWARE.
                 .f()
 
                 .add("div").a("class", "box-content")
-                    .add("p").t("Current Version: " + currentVersion).a("style", "margin: 0px;").f()
-                    .add("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version").f()
+                .add("p").t("Current Version: " + currentVersion).a("style", "margin: 0px;").f()
+                .add("p").a("style", "margin: 0;").t("Recent Version:").a("id", "recent_version").f()
                 .f()
                 .add("div").a({ "class": "box-content", "style": "padding: 0px; border-top: 1px solid #d9d9d9; text-align: center; user-select: none; cursor: pointer;" })
-                .add("div").a({"id": "newsUpdates", "style": "height: 0px; overflow: hidden;"})
-                .add("div").a({"style": "text-align: left; user-select: text; cursor: auto; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;"})
+                .add("div").a({ "id": "newsUpdates", "style": "height: 0px; overflow: hidden;" })
+                .add("div").a({ "style": "text-align: left; user-select: text; cursor: auto; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;" })
                 .add("h3").a("style", "margin: 0px; text-align: center;").t("Updates and News").f()
                 .add("p").a("style", "margin: 0px;").t("Updates:").f()
                 .add("ul").a("style", "margin: 0px;")
@@ -1614,17 +1614,25 @@ SOFTWARE.
                         getText();
                     })
                     .insertAfter(".markItUpButton16");
-                $(`<button id="Res10">Save</button>`)
-                    .on("click", (e) => {
-                        let name = document.querySelector("#Res11").value;
-                        if (name == "") {
-                            name = prompt("Enter the name to save under:", "default");
-                        }
-                        previousValue = document.querySelector("textarea").value;
-                        saveText(name, document.querySelector("textarea").value);
-                    })
-                    .insertAfter(".linksb");
-                $(`<select id="Res11"><option value="" selected>Saved/Create Text Selection</option><option value="_createNew">Create New</option></select>`)
+
+
+                if (url.includes("topic/add")) {
+                    element("div").a("class", "box-head")
+                    .add("button").e("click", (e) => {
+                        saveText($("#id_name").val(), $("#id_body").val(), {forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic"))});
+                    }).add("span").t("Save as Draft").f().f()
+                    .apAfter("#reply > .box-content");
+                    
+                    
+                    /*$("<button style='float: right;'><span>Save as Draft<span></button>")
+                        .on("click", (e) => {
+                            console.log("saved");
+                            saveText($("#id_name").val(), getSelectionText(), {forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic"))});
+                        })
+                        .insertAfter(document.querySelector());*/
+                }
+
+                /*$(`<select id="Res11"><option value="" selected>Saved/Create Text Selection</option><option value="_createNew">Create New</option></select>`)
                     .change((e) => {
                         let selection = e.currentTarget.value;
                         if (selection != "") {
@@ -1669,6 +1677,8 @@ SOFTWARE.
                         previousSelection = "";
                     })
                     .insertAfter("#Res10");
+
+
                 $(`<button id="Res12">Delete</button>`)
                     .on("click", (e) => {
                         deleteText(document.querySelector("#Res11").value);
@@ -1679,12 +1689,24 @@ SOFTWARE.
 
                     })
                     .insertAfter(".linksb");
+
+                    $(`<button id="Res10">Save</button>`)
+                    .on("click", (e) => {
+                        let name = document.querySelector("#Res11").value;
+                        if (name == "") {
+                            name = prompt("Enter the name to save under:", "default");
+                        }
+                        previousValue = document.querySelector("textarea").value;
+                        saveText(name, document.querySelector("textarea").value);
+                    })
+                    .insertAfter(".linksb");*/
+
                 document.onselectionchange = () => {
                     document.stringyBB = getSelectionText();
                 };
 
                 //adds the seection for the new text
-                getData((back) => {
+                /*getData((back) => {
                     if (back.hasOwnProperty("message") && back["message"].length > 0) {
                         for (let a of back["message"]) {
                             if (!values.includes(a.title)) {
@@ -1694,7 +1716,7 @@ SOFTWARE.
                             }
                         }
                     }
-                });
+                });*/
             }
         }, 100);
     }
@@ -1788,7 +1810,7 @@ SOFTWARE.
                                         }, 10);
 
                                         let svgElement = draftTitle.querySelector(".box-head h4 svg");
-                                        svgElement.setAttribute("style", "opacity: 0; display: block;");
+                                        svgElement.setAttribute("style", "opacity: 0; display: block; float: right;");
                                         let change = 1 * (speed / 500);
                                         let opacity = 0;
 
@@ -1811,7 +1833,10 @@ SOFTWARE.
                     .apAfter("#category_body_4");
 
                 let svgWrite = svg("write");
-                svgWrite.setAttribute("style", "display: none; float: right;")
+                svgWrite.addEventListener("click", (e) => {
+                    console.log("Create New Post");
+                });
+                svgWrite.setAttribute("style", "display: none; float: right;");
                 draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
 
 
@@ -1967,8 +1992,8 @@ SOFTWARE.
     function svg (name) {
         const svgMap = new Map([
             ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
-            ,["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
-            ,["upCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.889,11.611c-0.17,0.17-0.443,0.17-0.612,0l-3.189-3.187l-3.363,3.36c-0.171,0.171-0.441,0.171-0.612,0c-0.172-0.169-0.172-0.443,0-0.611l3.667-3.669c0.17-0.17,0.445-0.172,0.614,0l3.496,3.493C14.058,11.167,14.061,11.443,13.889,11.611 M18.25,10c0,4.558-3.693,8.25-8.25,8.25c-4.557,0-8.25-3.692-8.25-8.25c0-4.557,3.693-8.25,8.25-8.25C14.557,1.75,18.25,5.443,18.25,10 M17.383,10c0-4.07-3.312-7.382-7.383-7.382S2.618,5.93,2.618,10S5.93,17.381,10,17.381S17.383,14.07,17.383,10"></path></svg>`]
+            , ["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
+            , ["upCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.889,11.611c-0.17,0.17-0.443,0.17-0.612,0l-3.189-3.187l-3.363,3.36c-0.171,0.171-0.441,0.171-0.612,0c-0.172-0.169-0.172-0.443,0-0.611l3.667-3.669c0.17-0.17,0.445-0.172,0.614,0l3.496,3.493C14.058,11.167,14.061,11.443,13.889,11.611 M18.25,10c0,4.558-3.693,8.25-8.25,8.25c-4.557,0-8.25-3.692-8.25-8.25c0-4.557,3.693-8.25,8.25-8.25C14.557,1.75,18.25,5.443,18.25,10 M17.383,10c0-4.07-3.312-7.382-7.383-7.382S2.618,5.93,2.618,10S5.93,17.381,10,17.381S17.383,14.07,17.383,10"></path></svg>`]
         ]);
 
         return document.createRange().createContextualFragment(svgMap.get(name)).firstChild;
