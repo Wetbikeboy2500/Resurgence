@@ -316,7 +316,20 @@ SOFTWARE.
     //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
     function theme_tweaks () {
         if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
+            //removes borders on boxes which I think looks better
             themeTweakStyle = GM_addStyle(".box {border: 0px;}");
+
+            //changes how projects are cycled through with them no longer using the same theme
+            fetch("https://api.scratch.mit.edu/proxy/featured")
+                .then((response) => response.json())
+                .then((json) => {
+                    //this will process the different categories that will be displayed on the mian page of scratch
+
+                })
+                .catch((e) => {
+                    console.alert("An error occured in theme tweaks in fetch", e);
+                });
+
         } else if (themeTweakStyle) {
             themeTweakStyle.parentElement.removeChild(themeTweakStyle);
             themeTweakStyle = null;
@@ -1003,100 +1016,117 @@ SOFTWARE.
         };
         GM_setValue("username", users.username);
         GM_setValue("message", users.messages);
-        let ul = element("ul");
+        let ul = element("ul").a("id", "messages")
         for (let a of html) {
+            let timePassed = calcSmallest(new Date(Date.parse(a.datetime_created)));
             switch (a.type) {
                 case "forumpost":
-                    ul.append(element("li")
-                        .append(element("span").t("There are new posts in the forum: "))
-                        .append(element("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/"))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("span").t("There are new posts in the forum: ").f()
+                        .add("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/").f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "studioactivity":
-                    ul.append(element("li")
-                        .append(element("span").t("There was new activity in "))
-                        .append(element("a").t(a.title).a("href", "/studios/" + a.gallery_id))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("span").t("There was new activity in ").f()
+                        .add("a").t(a.title).a("href", "/studios/" + a.gallery_id).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "favoriteproject":
-                    ul.append(element("li")
-                        .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
-                        .append(element("span").t(" favorited your project "))
-                        .append(element("a").t(a.project_title).a("href", "/projects/" + a.project_id))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                        .add("span").t(" favorited your project ").f()
+                        .add("a").t(a.project_title).a("href", "/projects/" + a.project_id).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "loveproject":
-                    ul.append(element("li")
-                        .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
-                        .append(element("span").t(" loved your project "))
-                        .append(element("a").t(a.title).a("href", "/projects/" + a.project_id))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                        .add("span").t(" loved your project ").f()
+                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "followuser":
-                    ul.append(element("li")
-                        .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
-                        .append(element("span").t(" followed you"))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                        .add("span").t(" followed you").f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "remixproject":
-                    ul.append(element("li")
-                        .append(element("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link"))
-                        .append(element("span").t(" remixed your project "))
-                        .append(element("a").t(a.parent_title).a("href", "/projects/" + a.parent_id))
-                        .append(element("span").t(" as "))
-                        .append(element("a").t(a.title).a("href", "/projects/" + a.project_id))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                        .add("span").t(" remixed your project ").f()
+                        .add("a").t(a.parent_title).a("href", "/projects/" + a.parent_id).f()
+                        .add("span").t(" as ").f()
+                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "addcomment":
                     if (a.comment_type === 0) { //project
-                        ul.append(element("li")
-                            .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                            .append(element("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project '))
-                            .append(element("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title))
-                            .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                        ul.add("li")
+                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project ').f()
+                            .add("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                            .add("span").t(timePassed).f()
+                            .f();
                     } else if (a.comment_type === 1) { //profile page
-                        ul.append(element("li")
-                            .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                            .append(element("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile '))
-                            .append(element("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title))
-                            .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                        ul.add("li")
+                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile ').f()
+                            .add("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                            .add("span").t(timePassed).f()
+                            .f();
                     } else if (a.comment_type === 2) {
-                        ul.append(element("li")
-                            .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                            .append(element("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio '))
-                            .append(element("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title))
-                            .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                        ul.add("li")
+                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio ').f()
+                            .add("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                            .add("span").t(timePassed).f()
+                            .f();
                     } else {
                         console.warn("Comment type not found");
                     }
                     break;
                 case "curatorinvite":
-                    ul.append(element("li")
-                        .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                        .append(element("span").t(' invited you to curate '))
-                        .append(element("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                        .add("span").t(' invited you to curate ').f()
+                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "becomeownerstudio":
-                    ul.append(element("li")
-                        .append(element("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username))
-                        .append(element("span").t(' promoted you to manager in '))
-                        .append(element("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title))
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                        .add("span").t(' promoted you to manager in ').f()
+                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 case "userjoin":
-                    ul.append(element("li")
-                        .append("span").t('Welcome to Scratch')
-                        .append(element("span").t(calcSmallest(new Date(Date.parse(a.datetime_created))))));
+                    ul.add("li")
+                        .add("span").t('Welcome to Scratch').f()
+                        .add("span").t(timePassed).f()
+                        .f();
                     break;
                 default:
                     console.warn(a, "Not Found");
             }
         }
-        let happening = document.getElementsByClassName("box activity")[0];
-        happening.childNodes[0].childNodes[0].innerHTML = "Messages";
-        happening.childNodes[1].childNodes[0].style.display = "none";
-        ul.a("id", "messages").ap(happening.childNodes[1]);
+        const activity = document.querySelector(".splash-header > .activity");//better conditions for selection
+        const messageHeader = activity.querySelector(".box-header");
+        messageHeader.querySelector("h4").innerHTML = "Messages";
+
+        //clears current content
+        const messageBody = activity.querySelector(".box-content");
+        messageBody.removeChild(messageBody.querySelector("ul"));
+        ul.ap(messageBody);
 
         set_unread(users);
     }
@@ -1640,12 +1670,12 @@ SOFTWARE.
 
                 if (url.includes("topic/add")) {
                     element("div").a("class", "box-head")
-                    .add("button").e("click", (e) => {
-                        saveText($("#id_name").val(), $("#id_body").val(), {forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic"))});
-                    }).add("span").t("Save as Draft").f().f()
-                    .apAfter("#reply > .box-content");
-                    
-                    
+                        .add("button").e("click", (e) => {
+                            saveText($("#id_name").val(), $("#id_body").val(), { forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic")) });
+                        }).add("span").t("Save as Draft").f().f()
+                        .apAfter("#reply > .box-content");
+
+
                     /*$("<button style='float: right;'><span>Save as Draft<span></button>")
                         .on("click", (e) => {
                             console.log("saved");
@@ -1856,9 +1886,9 @@ SOFTWARE.
 
                 let svgWrite = svg("write");
                 svgWrite.addEventListener("click", (e) => {
-                    element("div").a({"class": "box", "style": "padding: 5px 20px;"})
-                    .add("div").a({"class": "box-content"}).add("input").a({"style": "width: calc(100% - 10px);", "placeholder": "Title"}).f().f()
-                    .apAfter("#drafts");
+                    element("div").a({ "class": "box", "style": "padding: 5px 20px;" })
+                        .add("div").a({ "class": "box-content" }).add("input").a({ "style": "width: calc(100% - 10px);", "placeholder": "Title" }).f().f()
+                        .apAfter("#drafts");
                 });
                 svgWrite.setAttribute("style", "display: none; float: right;");
                 draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
