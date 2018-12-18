@@ -32,6 +32,8 @@ SOFTWARE.
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
+// @require      https://raw.githubusercontent.com/pawelgrzybek/siema/master/dist/siema.min.js
+// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
 // @resource     Modal http://localhost/Wetbikeboy2500/ScratchFixer/master/modal.html
@@ -321,19 +323,58 @@ SOFTWARE.
 
             if (url == "https://scratch.mit.edu/") {
                 //changes how projects are cycled through with them no longer using the same theme
-                fetch("https://api.scratch.mit.edu/proxy/featured")
-                    .then((response) => response.json())
-                    .then((json) => {
-                        //this will process the different categories that will be displayed on the main page of scratch
-                        console.log(json["community_featured_projects"]);
-                        element("div").a("class", "box")
-                            .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left;" })).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px;").f().addDom(svg("rightCircle")).f()
-                            .add("div").a("class", "box-content").t("Hello world").f()
-                            .apAfter(".splash-header");
-                    })
-                    .catch((e) => {
-                        console.warn("An error occured in theme tweaks in fetch", e);
-                    });
+                let load = setInterval(() => {
+                    if (document.querySelector(".splash-header")) {
+                        clearInterval(load);
+
+                        fetch("https://api.scratch.mit.edu/proxy/featured")
+                            .then((response) => response.json())
+                            .then((json) => {
+
+                                let left = svg("leftCircle", { "style": "float: left; cursor: pointer;" });
+                                let right = svg("rightCircle", {"style": "cursor: pointer;"});
+                                //this will process the different categories that will be displayed on the main page of scratch
+                                console.log(json["community_featured_projects"]);
+                                element("div").a("class", "box")
+                                    .add("div").a("class", "box-header").addDom(left).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(right).f()
+                                    .add("div").a({"class": "box-content", "id": "customfeatured"}).t("Hello world").f()
+                                    .apAfter(".splash-header");
+
+                                    json["community_featured_projects"].forEach((a) => {
+                                        element("div").a({"style": "width: 146px; height: 150px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12)"})
+                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 146px; height: 110px;", "class": "lazy"}).f()
+                                        .add("a").t(a["title"]).a({"href": `/projects/${a["id"]}/`, "style": "width: 100%; overflow: hidden; display: inline-block; height: 18px; white-space: nowrap;"}).f()
+                                        .add("a").t(a["creator"]).a({"href": `/users/${a["creator"]}/`, "style": "width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: .8462em; white-space: nowrap; margin-bottom: 30px;"}).f()
+                                        .apthis(document.querySelector("#customfeatured"));
+                                    });
+
+                                    //lightweight carousel for projects
+                                    let siema = new Siema({
+                                        selector: "#customfeatured",
+                                        perPage: 6,
+                                        loop: true
+                                    });
+
+                                    left.addEventListener("click", (e) => {
+                                        siema.prev(6);
+                                    });
+
+                                    right.addEventListener("click", (e) => {
+                                        siema.next(6);
+                                    });
+
+                                    //lazy loading for the images
+                                    let myLazyLoad = new LazyLoad({
+                                        elements_selector: ".lazy"
+                                    });
+
+
+                            })
+                            .catch((e) => {
+                                console.warn("An error occured in theme tweaks in fetch", e);
+                            });
+                    }
+                }, 100);
             }
 
         } else if (themeTweakStyle) {
