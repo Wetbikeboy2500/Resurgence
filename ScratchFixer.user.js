@@ -319,7 +319,7 @@ SOFTWARE.
     function theme_tweaks () {
         if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
             //removes borders on boxes which I think looks better
-            themeTweakStyle = GM_addStyle(".box {border: 0px;}");
+            themeTweakStyle = GM_addStyle(".box {border: 0px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12);}");
 
             if (url == "https://scratch.mit.edu/") {
                 //changes how projects are cycled through with them no longer using the same theme
@@ -330,38 +330,65 @@ SOFTWARE.
                         fetch("https://api.scratch.mit.edu/proxy/featured")
                             .then((response) => response.json())
                             .then((json) => {
-
-                                let left = svg("leftCircle", { "style": "float: left; cursor: pointer;" });
-                                let right = svg("rightCircle", {"style": "cursor: pointer;"});
                                 //this will process the different categories that will be displayed on the main page of scratch
-                                console.log(json["community_featured_projects"]);
-                                element("div").a("class", "box")
-                                    .add("div").a("class", "box-header").addDom(left).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(right).f()
-                                    .add("div").a({"class": "box-content", "id": "customfeatured"}).t("Hello world").f()
+                                element("div").a({"class": "box", "id": "featuredProjects"})
+                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => {siema.prev(5);})).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", {"style": "cursor: pointer;"}, (e) => {siema.next(5);})).f()
+                                    .add("div").a({"class": "box-content", "id": "customfeatured", "style": "height: 160px;"}).f()
                                     .apAfter(".splash-header");
 
+                                element("div").a({"class": "box", "id": "featuredStudios"})
+                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => {siema1.prev(5);})).add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", {"style": "cursor: pointer;"}, (e) => {siema1.next(5);})).f()
+                                    .add("div").a({"class": "box-content", "id": "featuredStudiosContent", "style": "height: 130px;"}).f()
+                                    .apAfter("#featuredProjects");
+
+                                    for (let a in json) {
+                                        console.log(a, json[a]);
+                                    }
+
+                                    //add a container for these so they can pop out and still fill the screen ans see them
                                     json["community_featured_projects"].forEach((a) => {
-                                        element("div").a({"style": "width: 146px; height: 150px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12)"})
-                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 146px; height: 110px;", "class": "lazy"}).f()
-                                        .add("a").t(a["title"]).a({"href": `/projects/${a["id"]}/`, "style": "width: 100%; overflow: hidden; display: inline-block; height: 18px; white-space: nowrap;"}).f()
-                                        .add("a").t(a["creator"]).a({"href": `/users/${a["creator"]}/`, "style": "width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: .8462em; white-space: nowrap; margin-bottom: 30px;"}).f()
+                                        element("div").a({"style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;"})
+                                        .add("div").a({"style": "width: 146px; height: 150px; padding: 5px;"})
+                                        .add("a").a("href", `/projects/${a["id"]}/`)
+                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy"}).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({"href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;"}).f()
+                                        .add("a").t(a["creator"]).a({"href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; "}).f()
+                                        .f()
                                         .apthis(document.querySelector("#customfeatured"));
+                                    });
+
+                                    json["community_featured_studios"].forEach((a) => {
+                                        element("div").a({"style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;"})
+                                        .add("div").a({"style": "width: 160px; height: 120px; padding: 5px;"})
+                                        .add("a").a("href", `/studios/${a["id"]}/`)
+                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy"}).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({"href": `/studios/${a["id"]}/`, "title": a["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;"}).f()
+                                        .f()
+                                        .apthis(document.querySelector("#featuredStudiosContent"));
                                     });
 
                                     //lightweight carousel for projects
                                     let siema = new Siema({
                                         selector: "#customfeatured",
-                                        perPage: 6,
-                                        loop: true
+                                        perPage: 5,
+                                        loop: false
                                     });
 
-                                    left.addEventListener("click", (e) => {
+                                    /*left.addEventListener("click", (e) => {
                                         siema.prev(6);
                                     });
 
                                     right.addEventListener("click", (e) => {
                                         siema.next(6);
-                                    });
+                                    });*/
+
+                                    let siema1 = new Siema({
+                                        selector: "#featuredStudiosContent",
+                                        perPage: 5,
+                                        loop: false
+                                    })
 
                                     //lazy loading for the images
                                     let myLazyLoad = new LazyLoad({
@@ -2090,7 +2117,7 @@ SOFTWARE.
         return height;
     }
     //this function is for svg elements
-    function svg (name, attr) {
+    function svg (name, attr, action) {
         const svgMap = new Map([
             ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
             , ["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
@@ -2105,6 +2132,10 @@ SOFTWARE.
             for (let a in attr) {
                 dom.setAttribute(a, attr[a]);
             }
+        }
+
+        if (action) {
+            dom.addEventListener("click", action);
         }
 
         return dom;
