@@ -47,24 +47,25 @@ SOFTWARE.
 (function () {
     'use strict';
     let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
+    const getCookie = (cname) => {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    };
     if (url.includes("projects.scratch.mit.edu/resurgence")) {
         //this is for when the userscipt loads in the different domain
         let projectId;
-        const message = GM_getValue("Message", {}), getCookie = cname => {
-            var name = cname + "=";
-            var decodedCookie = decodeURIComponent(document.cookie);
-            var ca = decodedCookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1);
-                }
-                if (c.indexOf(name) == 0) {
-                    return c.substring(name.length, c.length);
-                }
-            }
-            return "";
-        };
+        const message = GM_getValue("Message", {});
 
         if (message) {
             let project = {
@@ -375,14 +376,6 @@ SOFTWARE.
                                         perPage: 5,
                                         loop: false
                                     });
-
-                                    /*left.addEventListener("click", (e) => {
-                                        siema.prev(6);
-                                    });
-
-                                    right.addEventListener("click", (e) => {
-                                        siema.next(6);
-                                    });*/
 
                                     let siema1 = new Siema({
                                         selector: "#featuredStudiosContent",
@@ -1206,12 +1199,34 @@ SOFTWARE.
     }
 
     function set_unread (user) {
-        if (user.has_messages) {
+        if (user.has_messages || true) {
             let x = new XMLHttpRequest();
             x.onreadystatechange = () => {
                 if (x.readyState == 4 && x.status == 200) {
                     let count = JSON.parse(x.responseText).count;
                     let messages = document.getElementById("messages").getElementsByTagName("li");
+
+                    if (count > 0) {///site-api/messages/messages-clear/
+
+                        console.log(user.token)
+                        console.log(getCookie("scratchcsrftoken"))
+                        element("button").t("Clear Messages").a({"style": "float: right;"})
+                        .e("click", () => {
+                            fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
+                                method: "POST",
+                                headers: {
+                                    'X-CSRFToken': getCookie("scratchcsrftoken")
+                                }
+                            })
+                            .then((res) => res.text())
+                            .then((res) => console.log(res))
+                            .catch((err) => {
+                                console.warn(err);
+                            })
+                        })
+                        .apthis(document.querySelector(".activity > .box-header"));
+                    }
+
                     for (let i = 0; i < count; i++) {
                         if (GM_getValue("theme", false) === "dark") {
                             messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
