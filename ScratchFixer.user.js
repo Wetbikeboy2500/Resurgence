@@ -1585,7 +1585,7 @@ SOFTWARE.
 
                         if (difference < 0) {
                             clearInterval(x);
-                            span.innerHTML = "It's" + holidayName;
+                            dateElement.innerHTML = "It's " + holidayName;
                         } else {
                             dateElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s 'til " + holidayName;
                         }
