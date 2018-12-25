@@ -332,61 +332,66 @@ SOFTWARE.
                             .then((response) => response.json())
                             .then((json) => {
                                 //this will process the different categories that will be displayed on the main page of scratch
-                                element("div").a({"class": "box", "id": "featuredProjects"})
-                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => {siema.prev(5);})).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", {"style": "cursor: pointer;"}, (e) => {siema.next(5);})).f()
-                                    .add("div").a({"class": "box-content", "id": "customfeatured", "style": "height: 160px;"}).f()
+                                element("div").a({ "class": "box", "id": "featuredProjects" })
+                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); })).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
+                                    .add("div").a({ "class": "box-content", "id": "customfeatured", "style": "height: 160px;" }).f()
                                     .apAfter(".splash-header");
 
-                                element("div").a({"class": "box", "id": "featuredStudios"})
-                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => {siema1.prev(5);})).add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", {"style": "cursor: pointer;"}, (e) => {siema1.next(5);})).f()
-                                    .add("div").a({"class": "box-content", "id": "featuredStudiosContent", "style": "height: 130px;"}).f()
+                                element("div").a({ "class": "box", "id": "featuredStudios" })
+                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema1.prev(5); })).add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema1.next(5); })).f()
+                                    .add("div").a({ "class": "box-content", "id": "featuredStudiosContent", "style": "height: 130px;" }).f()
                                     .apAfter("#featuredProjects");
 
-                                    for (let a in json) {
-                                        console.log(a, json[a]);
-                                    }
+                                element("div").a({ "class": "box", "id": "curatedProjects" })
+                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); })).add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
+                                    .add("div").a({ "class": "box-content", "id": "customCuratedProjects", "style": "height: 160px;" }).f()
+                                    .apAfter(".splash-header");
 
-                                    //add a container for these so they can pop out and still fill the screen ans see them
-                                    json["community_featured_projects"].forEach((a) => {
-                                        element("div").a({"style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;"})
-                                        .add("div").a({"style": "width: 146px; height: 150px; padding: 5px;"})
+                                for (let a in json) {
+                                    console.log(a, json[a]);
+                                }
+
+                                //add a container for these so they can pop out and still fill the screen ans see them
+                                json["community_featured_projects"].forEach((a) => {
+                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
                                         .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy"}).f()
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
                                         .f()
-                                        .add("a").t(a["title"]).a({"href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;"}).f()
-                                        .add("a").t(a["creator"]).a({"href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; "}).f()
+                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                                         .f()
                                         .apthis(document.querySelector("#customfeatured"));
-                                    });
+                                });
 
-                                    json["community_featured_studios"].forEach((a) => {
-                                        element("div").a({"style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;"})
-                                        .add("div").a({"style": "width: 160px; height: 120px; padding: 5px;"})
+                                json["community_featured_studios"].forEach((a) => {
+                                    element("div").a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
+                                        .add("div").a({ "style": "width: 160px; height: 120px; padding: 5px;" })
                                         .add("a").a("href", `/studios/${a["id"]}/`)
-                                        .add("img").a({"data-src": a["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy"}).f()
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
                                         .f()
-                                        .add("a").t(a["title"]).a({"href": `/studios/${a["id"]}/`, "title": a["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;"}).f()
+                                        .add("a").t(a["title"]).a({ "href": `/studios/${a["id"]}/`, "title": a["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                                         .f()
                                         .apthis(document.querySelector("#featuredStudiosContent"));
-                                    });
+                                });
 
-                                    //lightweight carousel for projects
-                                    let siema = new Siema({
-                                        selector: "#customfeatured",
-                                        perPage: 5,
-                                        loop: false
-                                    });
+                                //lightweight carousel for projects
+                                let siema = new Siema({
+                                    selector: "#customfeatured",
+                                    perPage: 5,
+                                    loop: false
+                                });
 
-                                    let siema1 = new Siema({
-                                        selector: "#featuredStudiosContent",
-                                        perPage: 5,
-                                        loop: false
-                                    })
+                                let siema1 = new Siema({
+                                    selector: "#featuredStudiosContent",
+                                    perPage: 5,
+                                    loop: false
+                                })
 
-                                    //lazy loading for the images
-                                    let myLazyLoad = new LazyLoad({
-                                        elements_selector: ".lazy"
-                                    });
+                                //lazy loading for the images
+                                let myLazyLoad = new LazyLoad({
+                                    elements_selector: ".lazy"
+                                });
 
 
                             })
@@ -1210,21 +1215,21 @@ SOFTWARE.
 
                         console.log(user.token)
                         console.log(getCookie("scratchcsrftoken"))
-                        element("button").t("Clear Messages").a({"style": "float: right;"})
-                        .e("click", () => {
-                            fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
-                                method: "POST",
-                                headers: {
-                                    'X-CSRFToken': getCookie("scratchcsrftoken")
-                                }
+                        element("button").t("Clear Messages").a({ "style": "float: right;" })
+                            .e("click", () => {
+                                fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
+                                    method: "POST",
+                                    headers: {
+                                        'X-CSRFToken': getCookie("scratchcsrftoken")
+                                    }
+                                })
+                                    .then((res) => res.text())
+                                    .then((res) => console.log(res))
+                                    .catch((err) => {
+                                        console.warn(err);
+                                    })
                             })
-                            .then((res) => res.text())
-                            .then((res) => console.log(res))
-                            .catch((err) => {
-                                console.warn(err);
-                            })
-                        })
-                        .apthis(document.querySelector(".activity > .box-header"));
+                            .apthis(document.querySelector(".activity > .box-header"));
                     }
 
                     for (let i = 0; i < count; i++) {
