@@ -24,10 +24,12 @@ Version 11 changes and additions:
 - Smooth transitions and reskins of many pages
 - There is now a material like theme being applied if theme tweaks is on
 - Better changelog that looks and moves better
-- New project and studio display design if theme tweaks is enabled
+- New project and studio display design on home page if theme tweaks is enabled
 - Drafts tab in the forums (this currently isn't a working version but a placeholder)
+- Added a clear message button (this hasn't been tested much)
 - Fixed themes with messages page
 - Fixed issue with dates for countdown timer
+- Fixed any issues with new editor
 - Refactoring of a lot of code
 
 ## Contributors:

@@ -36,7 +36,7 @@ SOFTWARE.
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
-// @resource     Modal http://localhost/Wetbikeboy2500/ScratchFixer/master/modal.html
+// @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -1124,8 +1124,19 @@ SOFTWARE.
                 .add("h3").a("style", "margin: 0px; text-align: center;").t("Updates and News").f()
                 .add("p").a("style", "margin: 0px;").t("Updates:").f()
                 .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Change #1").a("style", "margin: 0px;").f()
-                .f().f().f()
+                .add("li").t("Smooth transitions and reskins for many pages").a("style", "margin: 0px;").f()
+                .add("li").t("A material like theme is applied if theme tweaks is enabled").a("style", "margin: 0px;").f()
+                .add("li").t("A better changelog").a("style", "margin: 0px;").f()
+                .add("li").t("Drafts tab in forums (This is currently a placeholder)").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed theme with messages page").a("style", "margin: 0px;").f()
+                .add("li").t("Added a clear message button (this hasn't been tested much)").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed issues with countdown timer").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed any interference with the new editor").a("style", "margin: 0px;").f()
+                .add("li").t("Refactoring of a lot of code").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("News:").f()
+                .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
+                .f().f()
                 .add("p").t("Read More").a("style", "margin: 0px; font-size: 15px; line-height: 20px; margin-top: 2px;").addDom(svgCircle)
                 .e("click", (e) => {
                     if (!newsUpdatesExpanded) {
@@ -2103,38 +2114,44 @@ SOFTWARE.
                     .apAfter("#category_body_4");
 
                 let svgWrite = svg("write");
-                svgWrite.addEventListener("click", (e) => {
+                /*svgWrite.addEventListener("click", (e) => {
                     element("div").a({ "class": "box", "style": "padding: 5px 20px;" })
                         .add("div").a({ "class": "box-content" }).add("input").a({ "style": "width: calc(100% - 10px);", "placeholder": "Title" }).f().f()
                         .apAfter("#drafts");
-                });
+                });*/
                 svgWrite.setAttribute("style", "display: none; float: right;");
                 draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
 
 
                 element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
+
                     .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
                         .append(element("thead")
                             .append(element("tr")
                                 .append(element("td").t("Name"))
                                 .append(element("td").t("Forum"))
                             )
+                            .add("tr")
+                            .add("td").t("I understand that this page looks interesting but you shouldn't think much about it. This page just exists ok.").f()
+                            .add("td").t("Wetbikeboy2500").f()
+                            .f()
                         )
                         .append(element("tbody").a("id", "draftTable")
                         ))
                     .apAfter("#drafts");
 
-                getData((data) => {
-                    if (data.hasOwnProperty("message")) {
-                        let target = document.getElementById("draftTable");
-                        data["message"].forEach((a) => {
-                            element("tr")
-                                .append(element("td").t(a.title))
-                                .append(element("td").t(a.meta.forum))
-                                .ap(target);
-                        });
-                    }
-                });
+                /*
+            getData((data) => {
+                if (data.hasOwnProperty("message")) {
+                    let target = document.getElementById("draftTable");
+                    data["message"].forEach((a) => {
+                        element("tr")
+                            .append(element("td").t(a.title))
+                            .append(element("td").t(a.meta.forum))
+                            .ap(target);
+                    });
+                }
+            });*/
 
                 GM_addStyle("#draftTable td {border: 1px solid #e0e0e0}");
             }
