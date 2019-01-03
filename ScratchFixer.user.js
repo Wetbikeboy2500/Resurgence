@@ -331,31 +331,78 @@ SOFTWARE.
                         fetch("https://api.scratch.mit.edu/proxy/featured")
                             .then((response) => response.json())
                             .then((json) => {
+                                //mark the old boxes to remove in future
+                                let elements = document.getElementsByClassName("splash")[0].getElementsByClassName("inner")[0].getElementsByClassName("box");
+
+                                for (let a of elements) {
+                                    console.log(a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML);
+                                    let name = a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML.trim();
+                                    let list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
+                                    for (let b of list) {
+                                        if (name.includes(b)) {
+                                            a.classList.add("marked");
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                //yes this is very repetitive but can be fixed in the future
                                 //this will process the different categories that will be displayed on the main page of scratch
                                 element("div").a({ "class": "box", "id": "featuredProjects" })
-                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); })).add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
+                                    .add("div").a("class", "box-header")
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); }))
+                                    .add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
                                     .add("div").a({ "class": "box-content", "id": "customfeatured", "style": "height: 160px;" }).f()
                                     .apAfter(".splash-header");
 
                                 element("div").a({ "class": "box", "id": "featuredStudios" })
-                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema1.prev(5); })).add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema1.next(5); })).f()
+                                    .add("div").a("class", "box-header")
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema1.prev(5); }))
+                                    .add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema1.next(5); })).f()
                                     .add("div").a({ "class": "box-content", "id": "featuredStudiosContent", "style": "height: 130px;" }).f()
                                     .apAfter("#featuredProjects");
 
                                 element("div").a({ "class": "box", "id": "curatedProjects" })
                                     .add("div").a("class", "box-header")
-                                        .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema2.prev(5); }))
-                                        .add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                        .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema2.next(5); }))
-                                        .add("a").a({"style": "float: right", href: "/studios/386359/"}).t("Learn More").f().f()
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema2.prev(5); }))
+                                    .add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema2.next(5); }))
+                                    .add("a").a({ "style": "float: right", href: "/studios/386359/" }).t("Learn More").f().f()
                                     .add("div").a({ "class": "box-content", "id": "customCuratedProjects", "style": "height: 160px;" }).f()
                                     .apAfter("#featuredStudios");
+
+                                element("div").a({ "class": "box", "id": "designStudio" })
+                                    .add("div").a("class", "box-header")
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema3.prev(5); }))
+                                    .add("h4").t(`Scratch Design Studio - ${json["scratch_design_studio"][0]["gallery_title"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema3.next(5); }))
+                                    .add("a").a({ "style": "float: right", href: `/studios/${json["scratch_design_studio"][0]["gallery_id"]}/` }).t("Visit Studio").f().f()
+                                    .add("div").a({ "class": "box-content", "id": "designStudioProjects", "style": "height: 160px;" }).f()
+                                    .apAfter("#curatedProjects");
+
+                                element("div").a({ "class": "box", "id": "communityRemixing" })
+                                    .add("div").a("class", "box-header")
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema4.prev(5); }))
+                                    .add("h4").t(`What is being remixed`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema4.next(5); })).f()
+                                    .add("div").a({ "class": "box-content", "id": "communityRemixingProjects", "style": "height: 160px;" }).f()
+                                    .apAfter("#designStudio");
+
+                                element("div").a({ "class": "box", "id": "communityLoving" })
+                                    .add("div").a("class", "box-header")
+                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema5.prev(5); }))
+                                    .add("h4").t(`What is being loved`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema5.next(5); })).f()
+                                    .add("div").a({ "class": "box-content", "id": "communityLovingProjects", "style": "height: 160px;" }).f()
+                                    .apAfter("#communityRemixing");
 
                                 for (let a in json) {
                                     console.log(a, json[a]);
                                 }
 
-                                //add a container for these so they can pop out and still fill the screen ans see them
+                                //add a container for these so they can pop out and still fill the screen and see them
                                 json["community_featured_projects"].forEach((a) => {
                                     element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
                                         .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
@@ -391,6 +438,42 @@ SOFTWARE.
                                         .apthis(document.querySelector("#customCuratedProjects"));
                                 })
 
+                                json["scratch_design_studio"].forEach((a) => {
+                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                        .add("a").a("href", `/projects/${a["id"]}/`)
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                        .f()
+                                        .apthis(document.querySelector("#designStudioProjects"));
+                                })
+
+                                json["community_most_remixed_projects"].forEach((a) => {
+                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                        .add("a").a("href", `/projects/${a["id"]}/`)
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                        .f()
+                                        .apthis(document.querySelector("#communityRemixingProjects"));
+                                })
+
+                                json["community_most_loved_projects"].forEach((a) => {
+                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                        .add("a").a("href", `/projects/${a["id"]}/`)
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                        .f()
+                                        .apthis(document.querySelector("#communityLovingProjects"));
+                                })
+
                                 //lightweight carousel for projects
                                 let siema = new Siema({
                                     selector: "#customfeatured",
@@ -403,9 +486,27 @@ SOFTWARE.
                                     perPage: 5,
                                     loop: false
                                 })
-                                
+
                                 let siema2 = new Siema({
                                     selector: "#customCuratedProjects",
+                                    perPage: 5,
+                                    loop: false
+                                })
+
+                                let siema3 = new Siema({
+                                    selector: "#designStudioProjects",
+                                    perPage: 5,
+                                    loop: false
+                                })
+
+                                let siema4 = new Siema({
+                                    selector: "#communityRemixingProjects",
+                                    perPage: 5,
+                                    loop: false
+                                })
+
+                                let siema5 = new Siema({
+                                    selector: "#communityLovingProjects",
                                     perPage: 5,
                                     loop: false
                                 })
@@ -415,6 +516,7 @@ SOFTWARE.
                                     elements_selector: ".lazy"
                                 });
 
+                                GM_addStyle(".marked {display: none;}");
 
                             })
                             .catch((e) => {
