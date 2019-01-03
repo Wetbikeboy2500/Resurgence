@@ -166,7 +166,7 @@ SOFTWARE.
         } else {
             console.log("no message", GM_getValue("Message"));
         }
-    } else if (inIframe() === false) {
+    } else if (inIframe() === false && !url.includes("editor/")) { //for now I'm going to block the script from running on the editor page since it has unknown effects
         //adds my css to edit custom elements
         if (GM_getValue("theme", false) === "dark") {
             style1 = GM_addStyle(GM_getResourceText("CSS"));
@@ -343,9 +343,13 @@ SOFTWARE.
                                     .apAfter("#featuredProjects");
 
                                 element("div").a({ "class": "box", "id": "curatedProjects" })
-                                    .add("div").a("class", "box-header").addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); })).add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f().addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
+                                    .add("div").a("class", "box-header")
+                                        .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema2.prev(5); }))
+                                        .add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                        .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema2.next(5); }))
+                                        .add("a").a({"style": "float: right", href: "/studios/386359/"}).t("Learn More").f().f()
                                     .add("div").a({ "class": "box-content", "id": "customCuratedProjects", "style": "height: 160px;" }).f()
-                                    .apAfter(".splash-header");
+                                    .apAfter("#featuredStudios");
 
                                 for (let a in json) {
                                     console.log(a, json[a]);
@@ -375,6 +379,18 @@ SOFTWARE.
                                         .apthis(document.querySelector("#featuredStudiosContent"));
                                 });
 
+                                json["curator_top_projects"].forEach((a) => {
+                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                        .add("a").a("href", `/projects/${a["id"]}/`)
+                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                        .f()
+                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                        .f()
+                                        .apthis(document.querySelector("#customCuratedProjects"));
+                                })
+
                                 //lightweight carousel for projects
                                 let siema = new Siema({
                                     selector: "#customfeatured",
@@ -384,6 +400,12 @@ SOFTWARE.
 
                                 let siema1 = new Siema({
                                     selector: "#featuredStudiosContent",
+                                    perPage: 5,
+                                    loop: false
+                                })
+                                
+                                let siema2 = new Siema({
+                                    selector: "#customCuratedProjects",
                                     perPage: 5,
                                     loop: false
                                 })
