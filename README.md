@@ -5,7 +5,6 @@
 - Tips tab will go to the forums instead. The text of it can be edited in settings.
 - Settings menu added for Resurgence Userscript. This can be used to edit the many options and tweaks you would like to make to the site. 
 - Messages are added to the main page. This replaces what the other users are doing updates.
-- Switch between Flash Player, Scratch 3 player, Phosphorus player, and Sulfurous player for projects. A default player can be set in the settings.
 - Google search tab added in when you search on Scratch. Just click on the third tab after searching to see the google search results.
 - Quick info when hovering over usernames
 - Scratchblock code text is shown when clikced on in the forums.
@@ -18,7 +17,6 @@
 - Embeded a user's featured project into their profile page
 - Embeded Gist content in forums
 - Holiday countdown timer
-- Download button for scratch projects on the page
 
 Version 11 changes and additions:
 - Smooth transitions and reskins of many pages
@@ -30,6 +28,7 @@ Version 11 changes and additions:
 - Fixed themes with messages page
 - Fixed issue with dates for countdown timer
 - Fixed any issues with new editor
+- Removed different project players and download button
 - Refactoring of a lot of code
 
 ## Contributors:

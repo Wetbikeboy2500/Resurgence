@@ -199,7 +199,6 @@ SOFTWARE.
             dark_theme();
             fix_nav();
             load_messages();
-            add_player();
             add_search();
             load_extras();
             load_banner();
@@ -640,10 +639,6 @@ SOFTWARE.
             }
             theme_tweaks();
         });
-        $(document).on("change", "#playerIO", (event) => {
-            console.log(document.getElementById("playerIO").value);
-            GM_setValue("player", document.getElementById("playerIO").value);
-        });
         $(document).on("change", "#disText", (event) => {
             GM_setValue("forumTitle", document.getElementById("disText").value);
         });
@@ -734,18 +729,6 @@ SOFTWARE.
                         alert('Extras are now enabled.');
                     }
                 }).ap(main);
-
-            element("select").a("style", "color: #fff !important; border-color: #1f2227!important; background-color: #2d3035!important; height: 30px;")
-                .e("change", (event) => {
-                    GM_setValue("player", event.currentTarget.value);
-                })
-                .o({
-                    D: "Default",
-                    P: "Phosphorus",
-                    S: "Sulfurous",
-                    "S3": "Scratch 3"
-                }, GM_getValue("player", "D"))
-                .ap(main);
         }
 
         //embeds users featured project
@@ -756,251 +739,6 @@ SOFTWARE.
                 $("div.stage").replaceWith(projectPlayer);
                 //alert(featProject);
             }
-        }
-    }
-    function add_player () {
-        //adds the different players using a dropdown menu
-        if (url.includes("projects") && !url.includes("all") && !url.includes("search") && !url.includes("studios")) {
-            let change = (a) => {
-                if (document.querySelector(".phosphorus")) {
-                    document.querySelector(".phosphorus").parentNode.removeChild(document.querySelector(".phosphorus"));
-                } else {
-                    document.getElementById("player").style = "display: none;";
-                }
-                switch (a) {
-                    case "D":
-                        document.getElementById("player").style = "display: block;";
-                        break;
-                    case "P":
-                        element("script").a("src", "https://phosphorus.github.io/embed.js?id=" + document.getElementById("project").getAttribute("data-project-id") + "&auto-start=false&light-content=false")
-                            .ap(document.getElementsByClassName("stage")[0]);
-                        break;
-                    case "S":
-                        element("script").a("src", "https://sulfurous.aau.at/js/embed.js?id=" + document.getElementById("project").getAttribute("data-project-id") + "&resolution-x=480&resolution-y=360&auto-start=true&light-content=false")
-                            .ap(document.getElementsByClassName("stage")[0]);
-                        break;
-                    case "S3":
-                        element("div").a("id", "player").a("style", "width:500px;height:410px;overflow:hidden;position:relative;left:7px;top:7px; margin: 0px;").a("class", "phosphorus")
-                            .append(element("object").a("style", "position:absolute;top:-51px;left:-2065px").a("class", "int-player").a("width", "2560").a("height", "1440").a("data", "https://llk.github.io/scratch-gui/#" + document.getElementById("project").getAttribute("data-project-id")).a("scrolling", "no"))
-                            .ap(document.getElementsByClassName("stage")[0]);
-                        break;
-                    default:
-                        document.getElementById("player").style = "display: block;";
-                        break;
-                }
-            };
-            console.log("Project page");
-            element("select").a("class", "my_select").e("change", (event) => {
-                change(document.getElementsByClassName("my_select")[0].value);
-            }, false)
-                .o({
-                    D: "Default",
-                    P: "Phosphorus",
-                    S: "Sulfurous",
-                    "S3": "Scratch 3"
-                }, GM_getValue("player", "D"))
-                .ap(document.querySelector("#share-bar") ? document.querySelectorAll(".buttons")[1] : document.querySelector(".buttons"));
-            change(GM_getValue("player", "D"));
-
-            //add download button to page
-            element("button").a("class", "my_select").t("Download").e("click", (event) => {
-                //first going to get project id
-                let projectID = url.split("/")[url.split("/").indexOf("projects") + 1];
-
-                download_project(projectID);
-
-                //Welcome to my own scratch project downloader
-                var costumes = [], sounds = [], status = 0;
-                function download_project (id = 211651365, return_value = false) {
-                    costumes = [];
-                    sounds = [];
-                    status = 0;
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = () => {
-                        if (xhttp.readyState == 4 && xhttp.status == 200) {
-                            let zip = new JSZip(), return_array = [];
-
-                            console.log(xhttp.responseText);
-                            let json = JSON.parse(xhttp.responseText);
-                            console.log(json);
-                            //I only need yo get the coustumes and sounds that is in the satge and in the sprite children
-                            genenerate_sounds(json);
-                            //this is the order so the ids are correct for the svg and png images
-                            //pen layer
-                            costumes.push(json["penLayerMD5"]);
-                            json["penLayerID"] = 0;
-                            //all sprites
-                            json["children"].forEach((a, i) => { //all the sprites
-                                return_array = get_costumes(a, costumes);
-                                a = return_array[1];
-                                costumes = return_array[0];
-                            });
-                            return_array = get_costumes(json, costumes); //all the backdrops
-                            costumes = return_array[0];
-                            json = return_array[1];
-
-
-                            //updated way to deal with sounds that are in the json
-                            return_array = genenerate_sounds(json);
-                            json = return_array[0];
-                            sounds = return_array[1];
-
-                            let batch = [];
-                            costumes.forEach((a) => {
-                                batch.push(load_resource(a));
-                            });
-                            Promise.all(batch)
-                                .then((assets) => {
-                                    assets.forEach((a) => {
-                                        if (a !== null) {
-                                            zip.file(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, { binary: true });
-                                            console.log(costumes.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
-                                        }
-
-                                    });
-                                    status++;
-                                    if (status == 2) {
-                                        generateSB2(zip, json, id, return_value);
-                                    }
-                                })
-                                .catch((e) => {
-                                    console.warn(e);
-                                });
-
-                            batch = [];
-                            sounds.forEach((a) => {
-                                batch.push(load_resource(a));
-                            });
-                            Promise.all(batch)
-                                .then((assets) => {
-                                    assets.forEach((a) => {
-                                        if (a !== null) {
-                                            zip.file(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length), a.file, { binary: true });
-                                            console.log(sounds.indexOf(a.name) + a.name.slice(a.name.indexOf("."), a.name.length));
-                                        }
-                                    });
-                                    status++;
-                                    if (status == 2) {
-                                        generateSB2(zip, json, id, return_value);
-                                    }
-                                })
-                                .catch((e) => {
-                                    console.warn(e);
-                                });
-                        }
-                    }
-                    xhttp.open("GET", "https://projects.scratch.mit.edu/internalapi/project/" + id + "/get/?format=json", true);
-                    xhttp.send();
-                }
-
-                function get_costumes (json, array) {
-                    let total_sprites = array;
-                    if (json.hasOwnProperty("costumes")) {
-                        //go through each layer a sprite has and get the id and layer
-                        json["costumes"].forEach((a, i) => {
-                            if (total_sprites.includes(a["baseLayerMD5"]) == false) {
-                                total_sprites.push(a["baseLayerMD5"]);
-                            }
-                        });
-                        //go through each layer and set its id
-                        json["costumes"].forEach((a, i) => {
-                            a["baseLayerID"] = total_sprites.indexOf(a["baseLayerMD5"]);
-                        });
-                    }
-                    return [total_sprites, json];
-                }
-
-                function load_resource (name) {
-                    return new Promise((resolve, reject) => {
-                        JSZipUtils.getBinaryContent("https://cdn.assets.scratch.mit.edu/internalapi/asset/" + name + "/get/", (err, data) => {
-                            if (err) {
-                                resolve(null);
-                            } else {
-                                resolve({
-                                    name: name,
-                                    file: data
-                                });
-                            }
-                        });
-                    });
-                }
-
-                function load_project_info (id) {
-                    return new Promise((resolve, reject) => {
-                        let xhttp = new XMLHttpRequest();
-                        xhttp.onreadystatechange = () => {
-                            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                                let json = JSON.parse(xhttp.responseText);
-                                resolve(json.title + ".sb2");
-
-                            }
-                        }
-                        xhttp.onerror = () => {
-                            resolve("Untitled.sb2");
-                        }
-                        xhttp.open("GET", "https://api.scratch.mit.edu/projects/" + id, true);
-                        xhttp.send();
-                    });
-                }
-
-                function genenerate_sounds (json) { //take in pure json
-                    let sound_list = [];
-                    json["children"].forEach((a, i) => { //then going to go through each child element
-                        if (a.hasOwnProperty("sounds")) {
-                            a["sounds"].forEach((a1, i1) => { //go through sounds of each child element
-                                if (sound_list.indexOf(a1["md5"]) == -1) {
-                                    sound_list.push(a1["md5"]);
-                                }
-                                //set the id of that element
-                                json["children"][i]["sounds"][i1]["soundID"] = sound_list.indexOf(a1["md5"]);
-                            });
-                        }
-                    });
-                    //then going to go through the sounds of the stage
-                    if (json.hasOwnProperty("sounds")) {
-                        json["sounds"].forEach((a, i) => {
-                            if (sound_list.indexOf(a["md5"]) == -1) {
-                                sound_list.push(a["md5"]);
-                            }
-                            //set the id of that element
-                            console.log(sound_list.indexOf(a["md5"]));
-                            json["sounds"][i]["soundID"] = sound_list.indexOf(a["md5"]);
-                        });
-                    }
-                    return [json, sound_list];
-                }
-
-                function generateSB2 (zip, json, id, return_value) {
-                    //turn json into a string
-                    zip.file("project.json", JSON.stringify(json));
-
-                    //generate final file
-                    let sb2 = zip.generate({ type: "blob" });
-
-                    load_project_info(id)
-                        .then((a) => {
-                            if (return_value == false) {
-                                save(sb2, a);
-                            } else {
-                                save(sb2, a);
-                                _generate_offline(sb2);
-                            }
-                        });
-                }
-
-                function save (file, name) {
-                    let a = document.createElement("a");
-                    a.setAttribute("download", name);
-                    a.setAttribute("href", window.URL.createObjectURL(file));
-                    document.body.appendChild(a);
-                    a.addEventListener("click", () => {
-                        document.body.removeChild(a);
-                    });
-                    a.click();
-                }
-            }).ap(document.getElementsByClassName("stats")[0]);
-            document.getElementsByClassName("stats")[0].getElementsByClassName("last")[0].setAttribute("style", "padding: 5px 15px; border-right: 1px solid #bbb;");
-            document.getElementsByClassName("stats")[0].getElementsByClassName("last")[0].getElementsByTagName("a")[0].setAttribute("style", "margin: -7px;");
         }
     }
     function add_search () {
@@ -1133,6 +871,10 @@ SOFTWARE.
                 .add("li").t("Fixed issues with countdown timer").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed any interference with the new editor").a("style", "margin: 0px;").f()
                 .add("li").t("Refactoring of a lot of code").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.1:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Removed different project players and download button").a("style", "margin: 0px;").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
