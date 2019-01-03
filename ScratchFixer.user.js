@@ -193,7 +193,7 @@ SOFTWARE.
                 GM_addStyle(".forumicon {display: none;} td .tclcon {margin: 0px;} #idx1 > .box .box-head > h4 {width: 100%;} #djangobbwrap .box-head h4 {margin-left: 0px;}");//fixes style left by icons that don't exsist and the expand and retract icons are to the left of the forum
                 load_draft();
             }
-            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .tips a span { display: none; position: absolute; } .tips a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
+            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .ideas a span { display: none; position: absolute; } .ideas a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
             styleTip += `.svg-icon {width: 20px;height: 20px;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`;//svg styling
             GM_addStyle(styleTip);
             dark_theme();
@@ -212,7 +212,7 @@ SOFTWARE.
         if (document.getElementById("navigation")) {
             //new theme
             pageType = "new";
-            document.querySelector(".tips").childNodes[0].setAttribute("href", "/discuss");
+            document.querySelector(".ideas").childNodes[0].setAttribute("href", "/discuss");
             element("dd")
                 .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
                 .ap(document.querySelector(".lists").querySelectorAll("dl")[1]);
@@ -573,7 +573,7 @@ SOFTWARE.
             element("h3").t("Features").ap(main);
 
             element("ul")
-                .append(element("li").t("Forums tab instead of tips tab"))
+                .append(element("li").t("Forums tab instead of ideas tab"))
                 .append(element("li").t("Customization of Forum tab name"))
                 .append(element("li").t("Adds messages to the main page"))
                 .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
