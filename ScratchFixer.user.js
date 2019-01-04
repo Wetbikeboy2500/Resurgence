@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11
+// @version      11.2
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -166,7 +166,7 @@ SOFTWARE.
         } else {
             console.log("no message", GM_getValue("Message"));
         }
-    } else if (inIframe() === false && !url.includes("editor/")) { //for now I'm going to block the script from running on the editor page since it has unknown effects
+    } else if (inIframe() === false && !url.includes("/editor")) { //for now I'm going to block the script from running on the editor page since it has unknown effects
         //adds my css to edit custom elements
         if (GM_getValue("theme", false) === "dark") {
             style1 = GM_addStyle(GM_getResourceText("CSS"));
@@ -205,7 +205,13 @@ SOFTWARE.
             load_newpage();
             theme_tweaks();
         });
+    } else if (url.includes("/editor")) {
+        //this is for modding the new editor
+        document.addEventListener("DOMContentLoaded", () => {
+            betterDesign();
+        });
     }
+    //this function needs to be fixed with a more dynamic calls and tests
     function fix_nav () {
         //fixes navbar and adds bottom page link
         if (document.getElementById("navigation")) {
@@ -313,6 +319,29 @@ SOFTWARE.
                 accountInfo = response;
             })
             .catch(error => console.error('Error:', error));
+    }
+
+    function betterDesign () {
+        //uses a new promise that will wait for it to be loaded to help async actions
+        waitTillLoad("[class^=menu-bar_main-menu] [class^=button_outlined-button]")
+            .then((a) => {
+                console.log(a);
+                GM_addStyle(".reversed {flex-Direction: row-reverse;}")
+                element("div").a("class", a.parentElement.classList.item(0))
+                    .add("span").a("class", [a.classList.item(0), a.classList.item(1)].join(" ")).a("style", "background: hsla(30, 100%, 55%, 1);")
+                    .e("click", (e) => {
+                        document.querySelector('[class^=target-pane_target-pane]').classList.toggle("reversed");
+                        document.querySelector('[class^=gui_flex-wrapper]').classList.toggle("reversed");
+                        console.log("clicked");
+                    })
+                    .add("div")
+                    .add("span").t("2.0 Design")
+                    .f().f().f()
+                    .apAfter("[class^=menu-bar_main-menu] div:nth-child(6)");
+            })
+            .catch((err) => {
+                console.warn(err);
+            })
     }
 
     //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
@@ -875,6 +904,11 @@ SOFTWARE.
                 .add("p").a("style", "margin: 0px;").t("11.1:").f()
                 .add("ul").a("style", "margin: 0px;")
                 .add("li").t("Removed different project players and download button").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.2:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("2.0 design for editor").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed issues with url for editor").a("style", "margin: 0px;").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
@@ -2042,6 +2076,34 @@ SOFTWARE.
         }
 
         return dom;
+    }
+
+    //uses a selector, has a timeout, and take in a update speed
+    function waitTillLoad (selector, timeout = 60000, updateSpeed = 100) {
+        return new Promise((resolve, reject) => {
+            let found = false;
+
+            if (document.querySelector(selector)) {
+                found = true;
+                resolve(document.querySelector(selector));
+            } else {
+                let _loading = setInterval(() => {
+                    if (document.querySelector(selector)) {
+                        found = true;
+                        resolve(document.querySelector(selector));
+                    }
+                }, 100)
+
+                if (!found) {
+                    setTimeout(() => {
+                        if (!found) {
+                            clearInterval(_loading);
+                            reject("Timeout")
+                        }
+                    }, timeout);
+                }
+            }
+        })
     }
 
     //the following is my own custom dom creation object that I continue to improve as I use it
