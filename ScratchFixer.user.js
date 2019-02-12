@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.2
+// @version      11.3
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -322,17 +322,60 @@ SOFTWARE.
     }
 
     function betterDesign () {
+        let design = GM_getValue("design", 3);
+
+
         //uses a new promise that will wait for it to be loaded to help async actions
         waitTillLoad("[class^=menu-bar_main-menu] [class^=button_outlined-button]")
             .then((a) => {
-                console.log(a);
-                GM_addStyle(".reversed {flex-Direction: row-reverse;}")
+                GM_addStyle(".reversed {flex-Direction: row-reverse;}");
+
+                const adjustDesign = (action = "toggle") => {
+                    const classLists = [
+                        document.querySelector('[class^=target-pane_target-pane]').classList,
+                        document.querySelector('[class^=gui_flex-wrapper]').classList,
+                        document.querySelector("[class^=stage-header_stage-menu-wrapper]").classList,
+                        document.querySelector("[class^=stage-header_stage-size-row]").classList
+                    ];
+
+                    switch (action) {
+                        case "toggle":
+                            classLists.forEach((b) => {
+                                b.toggle("reversed");
+                            })
+                            break;
+                        case "remove":
+                            classLists.forEach((b) => {
+                                b.remove("reversed");
+                            });
+                            break;
+                        case "add":
+                            classLists.forEach((b) => {
+                                b.add("reversed");
+                            })
+                            break;
+                    }
+                };
+
+                if (design == 3) {
+                    adjustDesign("remove");
+                } else if (design == 2) {
+                    adjustDesign("add");
+                }
+
                 element("div").a("class", a.parentElement.classList.item(0))
-                    .add("span").a("class", [a.classList.item(0), a.classList.item(1)].join(" ")).a("style", "background: hsla(30, 100%, 55%, 1);")
+                    .add("span").a("class", [a.classList.item(0), a.classList.item(1), "design_toggle"].join(" ")).a("style", "background: hsla(30, 100%, 55%, 1);")
                     .e("click", (e) => {
-                        document.querySelector('[class^=target-pane_target-pane]').classList.toggle("reversed");
-                        document.querySelector('[class^=gui_flex-wrapper]').classList.toggle("reversed");
+                        adjustDesign();
                         console.log("clicked");
+
+                        if (document.querySelector('[class^=target-pane_target-pane]').classList.contains("reversed")) {
+                            GM_setValue("design", 2);
+                            document.querySelector(".design_toggle span").innerHTML = "3.0 Design";
+                        } else {
+                            GM_setValue("design", 3);
+                            document.querySelector(".design_toggle span").innerHTML = "2.0 Design";
+                        }
                     })
                     .add("div")
                     .add("span").t("2.0 Design")
@@ -909,6 +952,10 @@ SOFTWARE.
                 .add("ul").a("style", "margin: 0px;")
                 .add("li").t("2.0 design for editor").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed issues with url for editor").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.3:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Saved design for editor with better management of its changes in code").a("style", "margin: 0px;").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
