@@ -596,6 +596,19 @@ html {
     -webkit-border-top-left-radius: 0 !important;
 }
 
+.comment .comment-body .comment-bubble:before {
+    border-color: #313439 !important;
+    background-color: #1f2229 !important;
+}
+
+.comment .comment-body .comment-bubble {
+    background-color: #1f2229 !important;
+}
+
+.replies.collapsed > .comment:last-of-type:after {
+    background: linear-gradient(rgba(230, 240, 255, 0), #222222) !important;
+}
+
 .v-tabs li.first {
     -webkit-border-top-left-radius: 0 !important;
 }
