@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.3
+// @version      11.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -595,9 +595,6 @@ SOFTWARE.
             element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
                 .ap(main);
             element("p")
-                .append(element("a").t("Click this to go to the forum post").a("href", "http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html"))
-                .ap(main);
-            element("p")
                 .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
                 .ap(main);
 
@@ -995,7 +992,9 @@ SOFTWARE.
 
         //clears current content
         const messageBody = activity.querySelector(".box-content");
-        messageBody.removeChild(messageBody.querySelector("ul"));
+        for (let a of messageBody.children) {
+            messageBody.removeChild(a);
+        }
         ul.ap(messageBody);
 
         set_unread(users);
@@ -1461,7 +1460,7 @@ SOFTWARE.
 
     function load_extras () {
         if (GM_getValue("extras", true)) {
-            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["https://vignette.wikia.nocookie.net/operation-fortress/images/c/ca/Deletos.png/revision/latest?cb=20160815232601"], true, "http://i.cubeupload.com/gIEPOl.png", false);
         }
         if (GM_getValue("timer", true)) {
             timer();
