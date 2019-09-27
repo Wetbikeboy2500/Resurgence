@@ -1707,13 +1707,17 @@ SOFTWARE.
     }
 
     //the following is my own custom dom creation object that I continue to improve as I use it
-    function element (name) {
-        return new _element(name);
+    function element (name, ns) {
+        return new _element(name, ns);
     }
     class _element {
         //eventually add arguments for function inputs
-        constructor(name) {
-            this.dom = document.createElement(name);
+        constructor(name, ns = null) {
+            if (ns !== null) {
+                this.dom.createElement(ns, name);
+            } else {
+                this.dom = document.createElement(name);
+            }
         }
         a (name, value = "") {
             if (name.constructor === {}.constructor) {
