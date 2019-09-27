@@ -1714,7 +1714,7 @@ SOFTWARE.
         //eventually add arguments for function inputs
         constructor(name, ns = null) {
             if (ns !== null) {
-                this.dom = document.createElement(ns, name);
+                this.dom = document.createElementNS(ns, name);
             } else {
                 this.dom = document.createElement(name);
             }
