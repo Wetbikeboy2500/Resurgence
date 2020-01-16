@@ -435,6 +435,7 @@ div > div > div.postfootright {
 .box-head {
     background-color: #22252a !important;
     -webkit-border-radius: 0 !important;
+    border-radius: 0 !important;
 }
 
 .blockpost div.box {
@@ -594,6 +595,7 @@ html {
     border-top: none !important;
     border-bottom: 1px solid #313439 !important;
     -webkit-border-top-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
 }
 
 .comment .comment-body .comment-bubble:before {
@@ -611,6 +613,7 @@ html {
 
 .v-tabs li.first {
     -webkit-border-top-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
 }
 
 .gsc-cursor-page {
@@ -770,6 +773,7 @@ textarea {
     background-color: #2d3035 !important;
     border: 1px solid #313439 !important;
     -webkit-box-shadow: none !important;
+    box-shadow: none !important;
     width: calc(100% - 8px) !important;
     left: 0 !important;
 }

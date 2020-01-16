@@ -149,6 +149,7 @@ div > div > div.postfootright {
 .blockpost .box-head,
 .box-head {
     -webkit-border-radius: 0 !important;
+    border-radius: 0 !important;
 }
 
 .box,
@@ -183,10 +184,12 @@ body {
     border: none !important;
     border-top: none !important;
     -webkit-border-top-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
 }
 
 .v-tabs li.first {
     -webkit-border-top-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
 }
 
 .hovertext {
@@ -318,6 +321,7 @@ textarea {
 
 #topnav ul.account-nav .logged-in-user .dropdown-menu {
     -webkit-box-shadow: none !important;
+    box-shadow: none !important;
     width: calc(100% - 8px) !important;
     left: 0 !important;
     background-color: #4d97ff !important;
