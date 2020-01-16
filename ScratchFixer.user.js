@@ -115,6 +115,7 @@ SOFTWARE.
                 load_extras();
                 load_banner();
                 load_newpage();
+                console.log("Theme tweak");
                 theme_tweaks();
 
                 //fixProjectPage(); this will need to be a function to fix the cloud variables view data
@@ -235,22 +236,22 @@ SOFTWARE.
 
             if (url == "https://scratch.mit.edu/") {
                 //changes how projects are cycled through with them no longer using the same theme
-                let load = setInterval(() => {
-                    if (document.querySelector(".splash-header")) {
-                        clearInterval(load);
-
-                        fetch("https://api.scratch.mit.edu/proxy/featured")
+                waitTillLoad(".splash-header")
+                .then(() => {
+                    fetch("https://api.scratch.mit.edu/proxy/featured")
                             .then((response) => response.json())
                             .then((json) => {
+                                console.log("Got projects to load");
+
                                 //mark the old boxes to remove in future
-                                let elements = document.getElementsByClassName("splash")[0].getElementsByClassName("inner")[0].getElementsByClassName("box");
+                                let elements = document.querySelectorAll(".splash .inner .box");
 
                                 for (let a of elements) {
-                                    console.log(a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML);
-                                    let name = a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML.trim();
+                                    console.log(a.querySelector(".box-header > h4").innerHTML.trim());
+                                    let name = a.querySelector(".box-header > h4").innerHTML.trim();
                                     let list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
                                     for (let b of list) {
-                                        if (name.includes(b)) {
+                                        if (name.toLowerCase().includes(b.toLowerCase())) {
                                             a.classList.add("marked");
                                             break;
                                         }
@@ -433,8 +434,7 @@ SOFTWARE.
                             .catch((e) => {
                                 console.warn("An error occured in theme tweaks in fetch", e);
                             });
-                    }
-                }, 100);
+                });
             }
 
         } else if (themeTweakStyle) {
@@ -794,6 +794,11 @@ SOFTWARE.
                 .add("ul").a("style", "margin: 0px;")
                 .add("li").t("Saved design for editor with better management of its changes in code").a("style", "margin: 0px;").f()
                 .f()
+                .add("p").a("style", "margin: 0px;").t("11.4:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Theme tweaks setting should now work as intended").a("style", "margin: 0px;").f()
+                .add("li").t("").a("style", "margin: 0px;").f()
+                .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
                 .f().f()
@@ -874,7 +879,7 @@ SOFTWARE.
     }
 
     function load_message (users) {
-        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
+        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 285px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(users.messages);
         let decodetext = (text) => {
             let txt = element("textarea").dom;
@@ -1698,7 +1703,7 @@ SOFTWARE.
                     setTimeout(() => {
                         if (!found) {
                             clearInterval(_loading);
-                            reject("Timeout")
+                            reject("Didn't load in time")
                         }
                     }, timeout);
                 }

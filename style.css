@@ -803,6 +803,10 @@ textarea {
     color: #000 !important;
 }
 
+.profile-name {
+    color: #fff!important;
+}
+
 #navigation .inner > ul > li.search .btn-search {
     background-color: transparent !important;
     background-image: url(https://scratch.mit.edu/images/nav-search-glass.png) !important;
