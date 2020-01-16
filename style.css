@@ -39,7 +39,7 @@ input color #1f2229
 .tabs-index li,
 .v-tabs li.active,
 .v-tabs li.active:hover,
-button {
+button, #donor {
     background-color: #2d3035 !important;
 }
 
