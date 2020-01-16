@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.3
+// @version      11.4
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -62,154 +62,67 @@ SOFTWARE.
         }
         return "";
     };
-    if (url.includes("projects.scratch.mit.edu/resurgence")) {
-        //this is for when the userscipt loads in the different domain
-        let projectId;
-        const message = GM_getValue("Message", {});
+    if (!inIframe()) {
+        window.addEventListener('popstate', () => console.log('url change'));
 
-        if (message) {
-            let project = {
-                "objName": "Stage",
-                "costumes": [{
-                    "costumeName": "backdrop1",
-                    "baseLayerID": 1,
-                    "baseLayerMD5": "b61b1077b0ea1931abee9dbbfa7903ff.png",
-                    "bitmapResolution": 2,
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                }],
-                "currentCostumeIndex": 0,
-                "penLayerMD5": "5c81a336fab8be57adc039a8a2b33ca9.png",
-                "penLayerID": 0,
-                "tempoBPM": 60,
-                "videoAlpha": 0.5,
-                "children": [],
-                "info": {
-                    "scriptCount": 0,
-                    "projectID": "238315885",
-                    "userAgent": "Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/69.0.3497.12 Safari\/537.36",
-                    "flashVersion": "WIN 30,0,0,149",
-                    "spriteCount": 0,
-                    "swfVersion": "v461",
-                    "message": encodeURIComponent(message),
-                    "videoOn": false
-                }
-            };
+        if (url.includes('/editor')) {
+            console.log('editor');
+            document.addEventListener("DOMContentLoaded", () => {
+                betterDesign();
+            });
+        } else {
+            waitTillLoad(document.querySelector('.see-inside-button'))
+                .then(a => {
+                    console.log('loaded the click button --------------------');
+                    a.addEventListener('click', () => {
+                        console.log(location.protocol + '//' + location.host + location.pathname);
+                    });
+                });
 
-            let iteration = 0;
-            let loadData = () => {
-                //have a project to save the data in set
-                projectId = GM_getValue("saveID", false);
 
-                fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/set/", {
-                    method: "POST",
-                    body: JSON.stringify(project),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'scratchcsrftoken': getCookie("scratchcsrftoken"),
-                        "X-Requested-With": 'ShockwaveFlash/31.0.0.108',
-                    }
-                })
-                    .then(response => response.json())
-                    .then(response => {
-                        console.log('Success:', JSON.stringify(response));
-                        window.close();
-                    })
-                    .catch(error => console.error('Error:', error));
-            }, createNewSave = () => {
-                console.log("create new");
-                //creates a new project with the data already saved
-                fetch("https://projects.scratch.mit.edu/internalapi/project/new/set/?title=dataSaverResurgence", {
-                    method: "POST",
-                    body: JSON.stringify(project),
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'scratchcsrftoken': getCookie("scratchcsrftoken"),
-                        "X-Requested-With": 'ShockwaveFlash/31.0.0.108',
-                    }
-                })
-                    .then(response => response.json())
-                    .then(response => {
-                        console.log('Success:', JSON.stringify(response));
-                        GM_setValue("saveID", response["content-name"]);
-                        loadData();
-                    })
-                    .catch(error => console.error('Error:', error));
-            }, getProjects = () => {
-                fetch("https://api.scratch.mit.edu/users/Wetbikeboy2500/projects/?limit=40&offset=" + iteration * 40)
-                    .then(response => response.json())
-                    .then(response => {
-                        for (let a of response) {
-                            console.log(a.title);
-                            if (a.title.includes("dataSaverResurgence")) {
-                                console.log("found project");
-                                GM_setValue("saveID", a.id);
-                                loadData();
-                                break;
-                            }
-                        }
-                        if (response.length == 40) {
-                            iteration++;
-                            getProjects();
-                        } else {
-                            createNewSave();
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            };
-
-            if (GM_getValue("saveID", false)) {
-                loadData();
+            console.log('not editor');
+            if (GM_getValue("theme", false) === "dark") {
+                style1 = GM_addStyle(GM_getResourceText("CSS"));
             } else {
-                getProjects();
+                GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
             }
-        } else {
-            console.log("no message", GM_getValue("Message"));
+            document.addEventListener("DOMContentLoaded", () => {
+                load_account();
+                load_userinfo();
+                if (url == "https://scratch.mit.edu/" && GM_getValue("bannerOff", false)) {
+                    GM_addStyle(".title-banner{display:none;}");
+                }
+                if (url.includes("discuss") && url.includes("/topic")) {
+                    load_custombb();
+                    load_images();
+                    load_scratchblockcode();
+                    load_bbcode();
+                    add_bbbuttons();
+                }
+                if (url.includes("https://scratch.mit.edu/messages") && GM_getValue("messageTheme", false)) {
+                    GM_addStyle(`.messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;} .messages-social-loadmore {width: calc(100% - 20px);}`);
+                }
+                if (url == "https://scratch.mit.edu/discuss/" || url == "https://scratch.mit.edu/discuss/#") {
+                    GM_addStyle(".forumicon {display: none;} td .tclcon {margin: 0px;} #idx1 > .box .box-head > h4 {width: 100%;} #djangobbwrap .box-head h4 {margin-left: 0px;}");//fixes style left by icons that don't exsist and the expand and retract icons are to the left of the forum
+                }
+                let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .ideas a span { display: none; position: absolute; } .ideas a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
+                styleTip += `.svg-icon {width: 20px;height: 20px;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`;//svg styling
+                GM_addStyle(styleTip);
+                dark_theme();
+                fix_nav();
+                load_messages();
+                add_search();
+                load_extras();
+                load_banner();
+                load_newpage();
+                console.log("Theme tweak");
+                theme_tweaks();
+
+                //fixProjectPage(); this will need to be a function to fix the cloud variables view data
+
+
+            });
         }
-    } else if (inIframe() === false && !url.includes("/editor")) { //for now I'm going to block the script from running on the editor page since it has unknown effects
-        //adds my css to edit custom elements
-        if (GM_getValue("theme", false) === "dark") {
-            style1 = GM_addStyle(GM_getResourceText("CSS"));
-        } else {
-            GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
-        }
-        document.addEventListener("DOMContentLoaded", () => {
-            load_account();
-            load_userinfo();
-            if (url == "https://scratch.mit.edu/" && GM_getValue("bannerOff", false)) {
-                GM_addStyle(".title-banner{display:none;}");
-            }
-            if (url.includes("discuss") && url.includes("/topic")) {
-                load_custombb();
-                load_images();
-                load_scratchblockcode();
-                load_bbcode();
-                add_bbbuttons();
-            }
-            if (url.includes("https://scratch.mit.edu/messages") && GM_getValue("messageTheme", false)) {
-                GM_addStyle(`.messages-social {width: 700px; right: 446.5px; left: 235.5px; position: relative; border: 0.5px solid #F0F0F0; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; } .messages-header {font-size: 24px; padding-left: 10px;} select[name="messages.filter"] {right: 720px; top: 20px; font-size: 24px; position: relative; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; background-color: #F2F2F2; visibility: visible;} #___gcse_0 {display: none;} .messages-details {margin-top: 40px;} .mod-messages {visibility: hidden; height: 0px; padding: 0px; margin: 0px;} .messages-social-loadmore {width: calc(100% - 20px);}`);
-            }
-            if (url == "https://scratch.mit.edu/discuss/" || url == "https://scratch.mit.edu/discuss/#") {
-                GM_addStyle(".forumicon {display: none;} td .tclcon {margin: 0px;} #idx1 > .box .box-head > h4 {width: 100%;} #djangobbwrap .box-head h4 {margin-left: 0px;}");//fixes style left by icons that don't exsist and the expand and retract icons are to the left of the forum
-                load_draft();
-            }
-            let styleTip = 'span[style="color:reslarge"] {font-weight:bold; font-size:30px;} .postsignature {overflow: auto;} .ideas a span { display: none; position: absolute; } .ideas a:after { content: "' + GM_getValue("forumTitle", "Forums") + '"; visibility: visible; position: static; } .phosphorus { margin-left: 14px; margin-right: 14px; margin-top: 16px; } .my_select {height: 34px; line-height: 34px; vertical-align: middle; margin: 3px 0px 3px 0px; width: 110px;}';
-            styleTip += `.svg-icon {width: 20px;height: 20px;}.svg-icon path,.svg-icon polygon,.svg-icon rect {fill: #554747;}.svg-icon circle {stroke: #554747;stroke-width: 1;}`;//svg styling
-            GM_addStyle(styleTip);
-            dark_theme();
-            fix_nav();
-            load_messages();
-            add_search();
-            load_extras();
-            load_banner();
-            load_newpage();
-            theme_tweaks();
-        });
-    } else if (url.includes("/editor")) {
-        //this is for modding the new editor
-        document.addEventListener("DOMContentLoaded", () => {
-            betterDesign();
-        });
     }
     //this function needs to be fixed with a more dynamic calls and tests
     function fix_nav () {
@@ -232,82 +145,7 @@ SOFTWARE.
                 .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
         }
     }
-    //this handles the processing of the messages by having a standard key paired with data
-    function setData (key, data) {
-        getData((e) => {
-            GM_setValue("Message", e);
-            const saveData = data => {
-                GM_setValue("Message", data);
-                window.open('https://projects.scratch.mit.edu/resurgence',
-                    'newwindow',
-                    'width=300,height=250');
-            };
-
-            let current = GM_getValue("Message", {});
-
-            /*current = JSON.parse(current);
-
-            if (current == false) {
-                current = {};
-            }*/
-
-            current[key] = data;
-            let button = element("button").a("style", "visibitity: hidden;").a("class", "savedata")
-                .e("click", (e) => {
-                    saveData(JSON.stringify(current));
-                    e.currentTarget.parentElement.removeChild(document.querySelector(".savedata"));
-                })
-                .apthis(document.body);
-            button.click();
-        });
-
-    }
-
-    function getData (back) {
-        let projectId = GM_getValue("saveID", false);
-        console.log("saveID", projectId);
-        if (projectId) {
-            fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/get/")
-                .then(response => response.json())
-                .then(response => {
-                    back(JSON.parse(decodeURIComponent(response.info.message)));
-                })
-                .catch(error => console.error('Error:', error));
-        } else {
-            let iteration = 0;
-            let getProjects = () => {
-                fetch("https://api.scratch.mit.edu/users/Wetbikeboy2500/projects/?limit=40&offset=" + iteration * 40)
-                    .then(response => response.json())
-                    .then(response => {
-                        for (let a of response) {
-                            //console.log(a.title);
-                            if (a.title.includes("dataSaverResurgence")) {
-                                console.log("found project");
-                                GM_getValue("saveID", a.id);
-                                projectId = GM_getValue("saveID", "");
-                                fetch("https://projects.scratch.mit.edu/internalapi/project/" + projectId + "/get/")
-                                    .then(response => response.json())
-                                    .then(response => {
-                                        back(JSON.parse(decodeURIComponent(response.info.message)));
-                                    })
-                                    .catch(error => console.error('Error:', error));
-                                break;
-                            }
-                        }
-                        if (response.length == 40) {
-                            iteration++;
-                            getProjects();
-                        } else {
-                            back({});
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            };
-            getProjects();
-
-        }
-    }
-
+    
     function load_account () {
         fetch("https://scratch.mit.edu/session/", {
             headers: {
@@ -322,6 +160,9 @@ SOFTWARE.
     }
 
     function betterDesign () {
+        console.log('better design');
+
+
         let design = GM_getValue("design", 3);
 
 
@@ -395,22 +236,22 @@ SOFTWARE.
 
             if (url == "https://scratch.mit.edu/") {
                 //changes how projects are cycled through with them no longer using the same theme
-                let load = setInterval(() => {
-                    if (document.querySelector(".splash-header")) {
-                        clearInterval(load);
-
-                        fetch("https://api.scratch.mit.edu/proxy/featured")
+                waitTillLoad(".splash-header")
+                .then(() => {
+                    fetch("https://api.scratch.mit.edu/proxy/featured")
                             .then((response) => response.json())
                             .then((json) => {
+                                console.log("Got projects to load");
+
                                 //mark the old boxes to remove in future
-                                let elements = document.getElementsByClassName("splash")[0].getElementsByClassName("inner")[0].getElementsByClassName("box");
+                                let elements = document.querySelectorAll(".splash .inner .box");
 
                                 for (let a of elements) {
-                                    console.log(a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML);
-                                    let name = a.getElementsByClassName("box-header")[0].getElementsByTagName("h4")[0].innerHTML.trim();
+                                    console.log(a.querySelector(".box-header > h4").innerHTML.trim());
+                                    let name = a.querySelector(".box-header > h4").innerHTML.trim();
                                     let list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
                                     for (let b of list) {
-                                        if (name.includes(b)) {
+                                        if (name.toLowerCase().includes(b.toLowerCase())) {
                                             a.classList.add("marked");
                                             break;
                                         }
@@ -593,8 +434,7 @@ SOFTWARE.
                             .catch((e) => {
                                 console.warn("An error occured in theme tweaks in fetch", e);
                             });
-                    }
-                }, 100);
+                });
             }
 
         } else if (themeTweakStyle) {
@@ -753,9 +593,6 @@ SOFTWARE.
                 .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
                 .ap(main);
             element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
-                .ap(main);
-            element("p")
-                .append(element("a").t("Click this to go to the forum post").a("href", "http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html"))
                 .ap(main);
             element("p")
                 .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
@@ -957,6 +794,11 @@ SOFTWARE.
                 .add("ul").a("style", "margin: 0px;")
                 .add("li").t("Saved design for editor with better management of its changes in code").a("style", "margin: 0px;").f()
                 .f()
+                .add("p").a("style", "margin: 0px;").t("11.4:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Theme tweaks setting should now work as intended").a("style", "margin: 0px;").f()
+                .add("li").t("").a("style", "margin: 0px;").f()
+                .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
                 .f().f()
@@ -1037,7 +879,7 @@ SOFTWARE.
     }
 
     function load_message (users) {
-        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 248px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
+        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 285px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(users.messages);
         let decodetext = (text) => {
             let txt = element("textarea").dom;
@@ -1155,7 +997,9 @@ SOFTWARE.
 
         //clears current content
         const messageBody = activity.querySelector(".box-content");
-        messageBody.removeChild(messageBody.querySelector("ul"));
+        for (let a of messageBody.children) {
+            messageBody.removeChild(a);
+        }
         ul.ap(messageBody);
 
         set_unread(users);
@@ -1621,7 +1465,7 @@ SOFTWARE.
 
     function load_extras () {
         if (GM_getValue("extras", true)) {
-            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["http://scriftj.x10host.com/2aa.png"], true, "http://i.cubeupload.com/gIEPOl.png", "http://scriftj.x10host.com/Vaporwave.mp3");
+            create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["https://vignette.wikia.nocookie.net/operation-fortress/images/c/ca/Deletos.png/revision/latest?cb=20160815232601"], true, "http://i.cubeupload.com/gIEPOl.png", false);
         }
         if (GM_getValue("timer", true)) {
             timer();
@@ -1648,18 +1492,15 @@ SOFTWARE.
     }
     //add extras bbcode buttons
     function add_bbbuttons () {
-        let values = ["_createNew", ""], previousValue = "", previousSelection = "";
         console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
-        let load = setInterval(e => {
-            if (document.querySelector(".markItUpContainer")) {
-                clearInterval(load);
-
+        waitTillLoad(document.querySelector(".markItUpContainer"))
+            .then(a => {
                 $(`<li class="markItUpButton" id="Res1"><a title="Color" style="background-image: url('https://png.icons8.com/color-wheel/office/14/000000');" >Color</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000"), constBB = "[color=" + BBstart + "]" + document.stringyBB + "[/color]";
                         replaceIt($('textarea')[0], constBB);
                     })
-                    .insertAfter(".markItUpButton7")
+                    .insertAfter(".markItUpButton7");
                 $(`<li class="markItUpButton" id="Res2"><a title="Code" style="background-image: url('https://png.icons8.com/code/office/16/000000');" >Code</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a programming language:", ""), constBB = "[code=" + ((BBstart) ? BBstart : "") + "]" + document.stringyBB + "[/code]";
@@ -1713,117 +1554,13 @@ SOFTWARE.
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter("#Res1");
-                $(`<li class="markItUpButton" id="Res10"><p>Get </p></li>`)
-                    .on("click", (e) => {
-                        getText();
-                    })
-                    .insertAfter(".markItUpButton16");
-
-
-                if (url.includes("topic/add")) {
-                    element("div").a("class", "box-head")
-                        .add("button").e("click", (e) => {
-                            saveText($("#id_name").val(), $("#id_body").val(), { forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic")) });
-                        }).add("span").t("Save as Draft").f().f()
-                        .apAfter("#reply > .box-content");
-
-
-                    /*$("<button style='float: right;'><span>Save as Draft<span></button>")
-                        .on("click", (e) => {
-                            console.log("saved");
-                            saveText($("#id_name").val(), getSelectionText(), {forum: url.substring(url.indexOf("discuss/") + 8, url.indexOf("/topic"))});
-                        })
-                        .insertAfter(document.querySelector());*/
-                }
-
-                /*$(`<select id="Res11"><option value="" selected>Saved/Create Text Selection</option><option value="_createNew">Create New</option></select>`)
-                    .change((e) => {
-                        let selection = e.currentTarget.value;
-                        if (selection != "") {
-                            if (selection === "_createNew") {
-                                let newTitle = prompt("Enter the name to save under:", "default");
-                                if (values.includes(newTitle)) {
-                                    newTitle = prompt("You are about to overwrite a previous save. If you wish to continue, then click cancel. Otherwise enter a new unique title.", newTitle);
-                                } else {
-                                    values.push(newTitle);
-                                }
-                                saveText(newTitle, document.querySelector("textarea").value);
-                                previousValue = document.querySelector("textarea").value;
-                                $(`<option value="${newTitle}">${newTitle}</option>`).appendTo("#Res11");
-                                document.querySelector("#Res11").value = newTitle;
-                            } else {
-                                if (document.querySelector("textarea").value != previousValue) {
-                                    let saveCurrent = confirm("Do you want to save current text?");
-                                    if (saveCurrent == true) {
-                                        let newTitle = prompt("Enter the name to save under(Should be already filled out):", previousSelection);
-                                        saveText(newTitle, document.querySelector("textarea").value);
-                                    }
-                                }
-                                getData((back) => {
-                                    if (back.hasOwnProperty("message") && back["message"].length > 0) {
-                                        let found = false;
-                                        for (let a of back["message"]) {
-                                            if (a.title == selection) {
-                                                document.querySelector("textarea").value = a.body;
-                                                previousValue = a.body;
-                                                found = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!found) {
-                                            document.querySelector("textarea").value = "";
-                                            previousValue = "";
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                        previousSelection = "";
-                    })
-                    .insertAfter("#Res10");
-
-
-                $(`<button id="Res12">Delete</button>`)
-                    .on("click", (e) => {
-                        deleteText(document.querySelector("#Res11").value);
-                        values.splice(values.indexOf(document.querySelector("#Res11").value), 1);
-                        $(`#Res11[value="${document.querySelector("#Res11").value}"]`).remove();
-                        document.querySelector("#Res11").value = "";
-                        previousValue = "";
-
-                    })
-                    .insertAfter(".linksb");
-
-                    $(`<button id="Res10">Save</button>`)
-                    .on("click", (e) => {
-                        let name = document.querySelector("#Res11").value;
-                        if (name == "") {
-                            name = prompt("Enter the name to save under:", "default");
-                        }
-                        previousValue = document.querySelector("textarea").value;
-                        saveText(name, document.querySelector("textarea").value);
-                    })
-                    .insertAfter(".linksb");*/
 
                 document.onselectionchange = () => {
                     document.stringyBB = getSelectionText();
                 };
-
-                //adds the seection for the new text
-                /*getData((back) => {
-                    if (back.hasOwnProperty("message") && back["message"].length > 0) {
-                        for (let a of back["message"]) {
-                            if (!values.includes(a.title)) {
-                                values.push(a.title);
-                                let title = a.title;
-                                $("#Res11").append($(`<option value="${title}">${title}</option>`));
-                            }
-                        }
-                    }
-                });*/
-            }
-        }, 100);
+            });
     }
+
     function getSelectionText () {
         if (window.getSelection) {
             try {
@@ -1838,6 +1575,7 @@ SOFTWARE.
             return document.selection.createRange().text;
         }
     }
+
     function replaceIt (txtarea, newtxt) {
         $(txtarea).val(
             $(txtarea).val().substring(0, txtarea.selectionStart) +
@@ -1845,187 +1583,7 @@ SOFTWARE.
             $(txtarea).val().substring(txtarea.selectionEnd)
         );
     }
-    function getText () {
-        let info;
-        getData((data) => {
-            info = data;
-            console.log(info, data);
-        });
-    }
-    function load_draft () {
-        let load = setInterval(() => {
-            if (document.getElementById("category_body_4")) {
-                console.log("load Draft");
-                clearInterval(load);
 
-                //these will always be out of one second
-                const fade = (speed, element, time) => {
-                    let opacity = 1;
-                    const iteration = 1 * (speed / time);
-                    let fading = setInterval(() => {
-                        if (opacity > 0) {
-                            opacity -= iteration;
-                        } else {
-                            opacity = 0;
-                            clearInterval(fading);
-                        }
-                        element.style.opacity = opacity;
-                    }, speed);
-                };
-
-                let opened = false;
-
-                //adds new drafts forum location
-                let draftTitle = element("div").a("class", "box").a("style", "cursor: pointer; user-select: none;").a("id", "drafts")
-                    .append(
-                        element("div").a("class", "box-head")
-                            .e("click", (event) => {
-                                if (!opened) {
-                                    opened = true;
-                                    let elements = [document.getElementById("category_body_4"), document.getElementById("category_body_2"), document.getElementById("category_body_5"), document.getElementById("category_body_6"), document.getElementById("category_body_7")];
-                                    let totalTime = 500;
-                                    elements.forEach((a) => {
-                                        fade(10, a, totalTime);//refresh rate per total time, dom element, total time to execute
-                                        collapse_full(10, a, totalTime);
-                                    });
-                                    setTimeout(() => {
-                                        let element = document.getElementById("draftsTable");
-                                        element.setAttribute("style", "height: 0px;");
-                                        const elementNames = ["marginBottom", "paddingBottom", "height", "paddingTop", "marginTop"];
-                                        const target = document.querySelector("#draftsTable table");
-                                        let height = 0;
-                                        for (let a of elementNames) {
-                                            if (target.style.hasOwnProperty(a)) {
-                                                height += Number(window.getComputedStyle(target, null)[a].slice(0, -2)) || 0;
-                                            }
-                                        }
-                                        console.log(height);
-                                        const speed = 10;
-                                        const interval = height * (speed / 500);
-                                        let currentHeight = 0;
-                                        let time = setInterval(() => {
-                                            if (currentHeight >= height) {
-                                                clearInterval(time);
-                                                currentHeight = height;
-                                            } else {
-                                                currentHeight += interval;
-                                            }
-                                            element.style.height = currentHeight + "px";
-                                        }, 10);
-
-                                        let svgElement = draftTitle.querySelector(".box-head h4 svg");
-                                        svgElement.setAttribute("style", "opacity: 0; display: block; float: right;");
-                                        let change = 1 * (speed / 500);
-                                        let opacity = 0;
-
-                                        let time2 = setInterval(() => {
-                                            if (opacity >= 1) {
-                                                clearInterval(time2);
-                                                opacity = 1;
-                                            } else {
-                                                opacity += change;
-                                            }
-                                            svgElement.style.opacity = opacity;
-                                        }, 10);
-                                    }, totalTime + 250);
-                                }
-                            })
-                            .append(
-                                element("h4").t("Drafts")
-                            )
-                    )
-                    .apAfter("#category_body_4");
-
-                let svgWrite = svg("write");
-                /*svgWrite.addEventListener("click", (e) => {
-                    element("div").a({ "class": "box", "style": "padding: 5px 20px;" })
-                        .add("div").a({ "class": "box-content" }).add("input").a({ "style": "width: calc(100% - 10px);", "placeholder": "Title" }).f().f()
-                        .apAfter("#drafts");
-                });*/
-                svgWrite.setAttribute("style", "display: none; float: right;");
-                draftTitle.querySelector(".box-head h4").appendChild(svgWrite);
-
-
-                element("div").a("class", "box-content").a("style", "height: 0px; display: none;").a("id", "draftsTable")
-
-                    .append(element("table").a("style", "margin-bottom: 20px; box-shadow: 0 2px 3px rgba(34,25,25,0.3);")
-                        .append(element("thead")
-                            .append(element("tr")
-                                .append(element("td").t("Name"))
-                                .append(element("td").t("Forum"))
-                            )
-                            .add("tr")
-                            .add("td").t("I understand that this page looks interesting but you shouldn't think much about it. This page just exists ok.").f()
-                            .add("td").t("Wetbikeboy2500").f()
-                            .f()
-                        )
-                        .append(element("tbody").a("id", "draftTable")
-                        ))
-                    .apAfter("#drafts");
-
-                /*
-            getData((data) => {
-                if (data.hasOwnProperty("message")) {
-                    let target = document.getElementById("draftTable");
-                    data["message"].forEach((a) => {
-                        element("tr")
-                            .append(element("td").t(a.title))
-                            .append(element("td").t(a.meta.forum))
-                            .ap(target);
-                    });
-                }
-            });*/
-
-                GM_addStyle("#draftTable td {border: 1px solid #e0e0e0}");
-            }
-        }, 100);
-    }
-
-    function saveText (title, textbody, metaData) {
-        //console.log(document.querySelector("textarea").value);
-        let info;
-        getData((data) => {
-            console.log(data);
-            info = data;
-            if (info.hasOwnProperty("message")) {
-                let found = false;
-                for (let a of info["message"]) {
-                    if (a.title == title) {
-                        a.body = textbody;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    info["message"].push({
-                        title: title,
-                        body: textbody,
-                        meta: metaData
-                    });
-                }
-            } else {
-                info["message"] = [];
-                info["message"].push({
-                    title: title,
-                    body: textbody,
-                    meta: metaData
-                });
-            }
-            setData("message", info["message"]);
-        });
-    }
-
-    function deleteText (title) {
-        getData((info) => {
-            if (info.hasOwnProperty("message") && info["message"].length > 0) {
-                info["message"] = info["message"].filter((e) => {
-                    return e.title != title;
-                });
-                setData("message", info["message"]);
-                console.log(info["message"]);
-            }
-        });
-    }
     function inIframe () {
         try {
             return window.self !== window.top;
@@ -2145,7 +1703,7 @@ SOFTWARE.
                     setTimeout(() => {
                         if (!found) {
                             clearInterval(_loading);
-                            reject("Timeout")
+                            reject("Didn't load in time")
                         }
                     }, timeout);
                 }
@@ -2154,13 +1712,17 @@ SOFTWARE.
     }
 
     //the following is my own custom dom creation object that I continue to improve as I use it
-    function element (name) {
-        return new _element(name);
+    function element (name, ns) {
+        return new _element(name, ns);
     }
     class _element {
         //eventually add arguments for function inputs
-        constructor(name) {
-            this.dom = document.createElement(name);
+        constructor(name, ns = null) {
+            if (ns !== null) {
+                this.dom = document.createElementNS(ns, name);
+            } else {
+                this.dom = document.createElement(name);
+            }
         }
         a (name, value = "") {
             if (name.constructor === {}.constructor) {

@@ -39,7 +39,7 @@ input color #1f2229
 .tabs-index li,
 .v-tabs li.active,
 .v-tabs li.active:hover,
-button {
+button, #donor {
     background-color: #2d3035 !important;
 }
 
@@ -598,6 +598,10 @@ html {
     border-top-left-radius: 0 !important;
 }
 
+.account-nav .user-info {
+    color: #fff !important;
+}
+
 .comment .comment-body .comment-bubble:before {
     border-color: #313439 !important;
     background-color: #1f2229 !important;
@@ -803,6 +807,10 @@ textarea {
     color: #000 !important;
 }
 
+.profile-name {
+    color: #fff!important;
+}
+
 #navigation .inner > ul > li.search .btn-search {
     background-color: transparent !important;
     background-image: url(https://scratch.mit.edu/images/nav-search-glass.png) !important;
@@ -839,4 +847,25 @@ element.style {
 
 ::-webkit-scrollbar-corner {
     background: #37383d !important;
+}
+
+.project-notes {
+    width: calc(460px - 1rem) !important;
+}
+
+.project-loves:before, .project-favorites:before, .project-remixes:before, .project-views:before {
+    filter: invert(100%) !important;
+    opacity: 0.8 !important;
+}
+
+.extension-chip img[src$="extension-pen.svg"] {
+    filter: grayscale(100%) !important;
+}
+
+.extension-chip img[src$="clouddata.svg"] {
+    filter: invert(100%) !important;
+}
+
+.preview .project-description {
+    border-radius: 0px !important;
 }
