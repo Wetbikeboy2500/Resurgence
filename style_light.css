@@ -339,3 +339,7 @@ textarea {
 #navsearch {
     display: none !important;
 }
+
+.project-notes {
+    width: calc(460px - 1rem) !important;
+}
