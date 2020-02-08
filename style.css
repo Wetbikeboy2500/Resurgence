@@ -773,6 +773,33 @@ textarea {
     border-radius: 0 !important;
 }
 
+.download .installation {
+    background-color: #17191c!important;
+    padding: 2rem;
+}
+
+.tips-activity-guides {
+    background-color: #17191c!important;
+    padding-bottom: 2rem;
+}
+
+.tips-getting-started {
+    background-color: #17191c!important;
+    padding-top: 2.5rem;
+}
+
+.gray-area, .os-chooser {
+    background-color: #22252a!important;
+}
+
+.download .download-header {
+    background-color: #22252a !important;
+}
+
+.banner-outer {
+    background-color: #22252a!important;
+}
+
 #topnav ul.account-nav .logged-in-user .dropdown-menu {
     background-color: #2d3035 !important;
     border: 1px solid #313439 !important;

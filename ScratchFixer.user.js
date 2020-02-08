@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.4
+// @version      11.5
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -65,21 +65,19 @@ SOFTWARE.
     if (!inIframe()) {
         window.addEventListener('popstate', () => console.log('url change'));
 
+        $(window).bind('hashchange', function () {
+            console.log('Chnage to hash');
+        });
+
         if (url.includes('/editor')) {
             console.log('editor');
             document.addEventListener("DOMContentLoaded", () => {
                 betterDesign();
+
+                projectPageClick();
             });
         } else {
-            waitTillLoad(document.querySelector('.see-inside-button'))
-                .then(a => {
-                    console.log('loaded the click button --------------------');
-                    a.addEventListener('click', () => {
-                        console.log(location.protocol + '//' + location.host + location.pathname);
-                    });
-                });
-
-
+            
             console.log('not editor');
             if (GM_getValue("theme", false) === "dark") {
                 style1 = GM_addStyle(GM_getResourceText("CSS"));
@@ -87,6 +85,8 @@ SOFTWARE.
                 GM_addStyle("#res-set > a {color: #fff} .box{background-color: #fff}}");
             }
             document.addEventListener("DOMContentLoaded", () => {
+                editorClick();
+
                 load_account();
                 load_userinfo();
                 if (url == "https://scratch.mit.edu/" && GM_getValue("bannerOff", false)) {
@@ -145,7 +145,7 @@ SOFTWARE.
                 .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
         }
     }
-    
+
     function load_account () {
         fetch("https://scratch.mit.edu/session/", {
             headers: {
@@ -228,6 +228,28 @@ SOFTWARE.
             })
     }
 
+    function editorClick () {
+        waitTillLoad('.see-inside-button')
+            .then(a => {
+                console.log('loaded the click button');
+                a.addEventListener('click', () => {
+                    removeTheme();
+                    betterDesign();
+                    projectPageClick();
+                });
+            });
+    }
+
+    function projectPageClick () {
+        waitTillLoad('[class^=menu-bar_main-menu] [class*=community-button_community-button][role=button]')
+            .then((b) => {
+                b.addEventListener('click', () => {
+                    dark_theme();
+                    editorClick();
+                });
+            });
+    }
+
     //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
     function theme_tweaks () {
         if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
@@ -237,8 +259,8 @@ SOFTWARE.
             if (url == "https://scratch.mit.edu/") {
                 //changes how projects are cycled through with them no longer using the same theme
                 waitTillLoad(".splash-header")
-                .then(() => {
-                    fetch("https://api.scratch.mit.edu/proxy/featured")
+                    .then(() => {
+                        fetch("https://api.scratch.mit.edu/proxy/featured")
                             .then((response) => response.json())
                             .then((json) => {
                                 console.log("Got projects to load");
@@ -434,7 +456,7 @@ SOFTWARE.
                             .catch((e) => {
                                 console.warn("An error occured in theme tweaks in fetch", e);
                             });
-                });
+                    });
             }
 
         } else if (themeTweakStyle) {
@@ -685,13 +707,7 @@ SOFTWARE.
     //adds dark theme button
     function dark_theme () {
         console.log(GM_getValue("theme", false));
-        if (style !== null) { //remove any styles that are already in use
-            style.parentElement.removeChild(style);
-            if (style1 !== null) {
-                style1.parentElement.removeChild(style1);
-            }
-            style = null;
-        }
+        removeTheme();
         if (GM_getValue("theme", false) === "dark") {
             //want dark theme
             style = GM_addStyle(GM_getResourceText("CSS"));
@@ -699,6 +715,19 @@ SOFTWARE.
             style = GM_addStyle(GM_getResourceText("CSSlight"));
         }
     }
+
+    function removeTheme () {
+        if (style !== null && style.parentElement !== null) { //remove any styles that are already in use
+            style.parentElement.removeChild(style);
+            style = null;
+        }
+
+        if (style1 !== null && style1.parentElement !== null) {
+            style1.parentElement.removeChild(style1);
+            style1 = null;
+        }
+    }
+
     let messages = {
         //this should instead see if the newest messgae equals our newesst message
         check_unread: (user) => {
@@ -797,7 +826,12 @@ SOFTWARE.
                 .add("p").a("style", "margin: 0px;").t("11.4:").f()
                 .add("ul").a("style", "margin: 0px;")
                 .add("li").t("Theme tweaks setting should now work as intended").a("style", "margin: 0px;").f()
-                .add("li").t("").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.5:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Fixed dark theme on some pages").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed dark theme persisting when switching between project and see inside").a("style", "margin: 0px;").f()
+                .add("li").t("Fixed bugs involving theme changes").a("style", "margin: 0px;").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
