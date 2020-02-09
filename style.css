@@ -339,6 +339,12 @@ ul.curators li {
     border-color: #313439 !important;
 }
 
+#featured-project-modal {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border-color: #313439 !important;
+}
+
 .showcase .fixed #remix-history {
     border-color: #313439 !important;
 }
@@ -394,6 +400,25 @@ textarea {
 
 .media-col li {
     border-color: #313439 !important;
+}
+
+.modal-header {
+    background-color: #22252a !important;
+}
+
+.modal-footer {
+    background-color: #22252a !important;
+    border-radius: 0 !important;
+    border-color: #313439 !important;
+    box-shadow: none !important;
+}
+
+.modal-body {
+    background-color: #2d3035 !important;
+}
+
+.project.thumb.selected {
+    background-color: #313439 !important;
 }
 
 .body {
