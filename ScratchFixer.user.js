@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.5
+// @version      11.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -36,7 +36,7 @@ SOFTWARE.
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
-// @resource     Modal http://127.0.0.1:5500/modal.html
+// @resource     Modal http://s://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -777,7 +777,7 @@ SOFTWARE.
                         css.push(".blocklyFlyoutButtonBackground {fill: var(--accent) !important;}.blocklyFlyoutButtonBackground:hover, .blocklyFlyoutButton:hover {fill: var(--accent) !important; filter: brightness(110%) !important;}");
                         css.push("blocklyFlyoutButton > text.blocklyText {fill: var(--text) !important;}");
                         //Text fill of "Make A" buttons
-                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;");
+                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;}");
                         //Backpack header
                         css.push(".backpack_backpack-header_6ltCS {background: var(--accent) !important; color: var(--text) !important;}");
                         //Backpack
@@ -924,6 +924,11 @@ SOFTWARE.
                 .add("li").t("Fixed dark theme on some pages").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed dark theme persisting when switching between project and see inside").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed bugs involving theme changes").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.6:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Added dark theme setting for editor").a("style", "margin: 0px;").f()
+                .add('a').a('href', 'https://infinitytec.github.io/index.html').t("Thanks to infinitytec's Userscripts for themes").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
