@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Matt
+Copyright (c) 2020 Matt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.5
+// @version      11.6
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -36,7 +36,7 @@ SOFTWARE.
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
-// @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
+// @resource     Modal http://s://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
@@ -46,7 +46,7 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
+    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
     const getCookie = (cname) => {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
@@ -64,6 +64,8 @@ SOFTWARE.
     };
     if (!inIframe()) {
         window.addEventListener('popstate', () => console.log('url change'));
+
+        editorTheme();
 
         $(window).bind('hashchange', function () {
             console.log('Chnage to hash');
@@ -125,7 +127,7 @@ SOFTWARE.
         }
     }
     //this function needs to be fixed with a more dynamic calls and tests
-    function fix_nav () {
+    function fix_nav() {
         //fixes navbar and adds bottom page link
         if (document.getElementById("navigation")) {
             //new theme
@@ -146,7 +148,7 @@ SOFTWARE.
         }
     }
 
-    function load_account () {
+    function load_account() {
         fetch("https://scratch.mit.edu/session/", {
             headers: {
                 "X-Requested-With": "XMLHttpRequest"
@@ -159,7 +161,7 @@ SOFTWARE.
             .catch(error => console.error('Error:', error));
     }
 
-    function betterDesign () {
+    function betterDesign() {
         console.log('better design');
 
 
@@ -228,7 +230,7 @@ SOFTWARE.
             })
     }
 
-    function editorClick () {
+    function editorClick() {
         waitTillLoad('.see-inside-button')
             .then(a => {
                 console.log('loaded the click button');
@@ -240,7 +242,7 @@ SOFTWARE.
             });
     }
 
-    function projectPageClick () {
+    function projectPageClick() {
         waitTillLoad('[class^=menu-bar_main-menu] [class*=community-button_community-button][role=button]')
             .then((b) => {
                 b.addEventListener('click', () => {
@@ -251,7 +253,7 @@ SOFTWARE.
     }
 
     //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
-    function theme_tweaks () {
+    function theme_tweaks() {
         if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
             //removes borders on boxes which I think looks better
             themeTweakStyle = GM_addStyle(".box {border: 0px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12);}");
@@ -465,7 +467,7 @@ SOFTWARE.
         }
     }
 
-    function load_newpage () {
+    function load_newpage() {
         console.log("load newpage");
         let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
@@ -503,6 +505,7 @@ SOFTWARE.
                 }
                 $("#playerIO").val(GM_getValue("player", "D"));
                 $("#themeIO").val(GM_getValue("theme", "light"));
+                $("#editorThemeIO").val(GM_getValue("editorTheme", "default"));
                 $("#posIO").val(GM_getValue("pos", "top"));
                 $("#disText").val(GM_getValue("forumTitle", "Forums"));
                 displaySettingsModal = true;
@@ -533,6 +536,10 @@ SOFTWARE.
         $(document).on("change", "#themeIO", (event) => {
             GM_setValue("theme", document.getElementById("themeIO").value);
             dark_theme();
+        });
+        $(document).on("change", "#editorThemeIO", (event) => {
+            GM_setValue("editorTheme", document.getElementById("editorThemeIO").value);
+            editorTheme();
         });
         $(document).on("change", "#posIO", (event) => {
             GM_setValue("pos", document.getElementById("posIO").value);
@@ -623,7 +630,7 @@ SOFTWARE.
             }
         }
     }
-    function add_search () {
+    function add_search() {
         //adds google to the search
         if (url.includes("/search/")) {
             console.log("search");
@@ -656,7 +663,7 @@ SOFTWARE.
         }
     }
     //adds dark theme button
-    function dark_theme () {
+    function dark_theme() {
         console.log(GM_getValue("theme", false));
         removeTheme();
         if (GM_getValue("theme", false) === "dark") {
@@ -667,7 +674,7 @@ SOFTWARE.
         }
     }
 
-    function removeTheme () {
+    function removeTheme() {
         if (style !== null && style.parentElement !== null) { //remove any styles that are already in use
             style.parentElement.removeChild(style);
             style = null;
@@ -676,6 +683,91 @@ SOFTWARE.
         if (style1 !== null && style1.parentElement !== null) {
             style1.parentElement.removeChild(style1);
             style1 = null;
+        }
+    }
+
+    //adds dark theme for 3.0 editor
+    function editorTheme() {
+        //3.0 Theme Userscript Framework by infinitytec modified by Wetbikeboy2500. Released under the MIT license.
+        console.log('Editor Theme: ' + url.includes('/projects'));
+        if (url.includes('/projects')) {
+            console.log('run theme');
+            console.log(GM_getValue('editorTheme', 'default'));
+
+            let css = [];
+            const mainBG = '#111111';
+            const secondaryBG = '#151515';
+            const accent = '#202020';
+            const text = '#bfbfbf';
+
+            switch (GM_getValue('editorTheme', 'default')) {
+                case 'dark':
+                    if (editorStyle === null) {
+                        //Set colors for the editor. Names should explain what they are. They will automatically be applied to different parts of the editor. For the purpose of simplification, the red cancel button and the hover/active/focus effects are hard-coded. The effects use filters so they should be good-to-go in most cases.
+                        css.push(`:root {--main-bg: ${mainBG}; --secondary-bg: ${secondaryBG}; --accent: ${accent}; --text: ${text};}`);
+                        //Main UI bar, similar bars, and dropdown menu
+                        css.push(".menu-bar_main-menu_3wjWH, .modal_header_1h7ps, .menu-bar_account-info-group_MeJZP, .menu_menu_3k7QT, .project-title-input_title-field_en5Gd:focus {background: var(--accent) !important;}");
+                        //Main background
+                        css.push(".gui_body-wrapper_-N0sA{background: var(--main-bg) !important;}");
+                        //Scripting area background
+                        css.push(".blocklyMainBackground{fill: var(--secondary-bg) !important;}");
+                        //Right-click & pop-ups
+                        css.push(".context-menu_context-menu_2SJM-, .blocklyWidgetDiv .goog-menu, .Popover-body {background: var(--accent) !important; color: var(--text) !important; border: 1px solid white !important;} .goog-menuitem-content, .color-picker_row-header_173LQ {color: var(--text) !important;} /*Highlight*/ .blocklyWidgetDiv .goog-menuitem-highlight, .blocklyWidgetDiv .goog-menuitem-hover, .context-menu_menu-item_3cioN:hover {background-color:#ffffff33 !important;}");
+                        //Palette
+                        css.push(".blocklyFlyoutBackground {fill: var(--accent) !important;}");
+                        //Palette text
+                        css.push(".blocklyFlyoutLabelText{fill: var(--text) !important;}");
+                        //Toolbox, extension connection box
+                        css.push(".connection-modal_bottom-area_AHeQ3, .connection-modal_body_3YO9j, .blocklyToolboxDiv, .scratchCategoryMenu {background: var(--accent) !important; color: var(--text) !important;}");
+                        //Selected category
+                        css.push(".scratchCategoryMenuItem.categorySelected {background: #ffffff22 !important;}");
+                        //Sprite and stage selection area
+                        css.push(".sprite-selector_sprite-selector_2KgCX, .stage-selector_stage-selector_3oWOr, .stage-selector_label_1MCfr, .stage-selector_count_2QK7D {background: var(--accent) !important; color: var(--text) !important;}");
+                        css.push(".sprite-info_sprite-info_3EyZh, .stage-selector_header_2GVr1, .stage-selector_header-title_33xCt, .stage-selector_header-title_33xCt, .sprite-selector-item_sprite-selector-item_kQm-i:hover {background: var(--secondary-bg) !important; color: var(--text) !important;}");
+                        //Palette Buttons
+                        css.push(".blocklyFlyoutButtonBackground {fill: var(--accent) !important;}.blocklyFlyoutButtonBackground:hover, .blocklyFlyoutButton:hover {fill: var(--accent) !important; filter: brightness(110%) !important;}");
+                        css.push("blocklyFlyoutButton > text.blocklyText {fill: var(--text) !important;}");
+                        //Text fill of "Make A" buttons
+                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;}");
+                        //Backpack header
+                        css.push(".backpack_backpack-header_6ltCS {background: var(--accent) !important; color: var(--text) !important;}");
+                        //Backpack
+                        css.push(".backpack_backpack-list-inner_10a2A {background: var(--secondary-bg) !important;} .backpack_backpack-item_hwqzQ{background: white !important;}");
+                        //Paint & sound editor sidebar
+                        css.push(".selector_list-area_1Xbj_{background: var(--accent) !important;} .selector_new-buttons_2qHDd::before {background: none !important;}");
+                        //Paint & sound editor main
+                        css.push(".asset-panel_wrapper_366X0{background: var(--secondary-bg) !important; color: var(--text) !important;} .sound-editor_effect-button_2zuzT, .sound-editor_trim-button_lSENI {color: var(--text) !important;}");
+                        //Paint and sound editor buttons
+                        css.push("img.tool-select-base_tool-select-icon_tJ-rr, .sound-editor_trim-button_lSENI{filter: brightness(2) !important;}");
+                        //Sprite costume selector text
+                        css.push(".selector_list-item_3N_u7, .sprite-selector-item_sprite-name_1PXjh, .sprite-selector-item_sprite-details_2UVpA {color: var(--text) !important;}");
+                        //Tabs
+                        css.push(".gui_tab_27Unf.gui_is-selected_sHAiu{background: var(--accent) !important; color: var(--text) !important;}.gui_tab_27Unf{background: var(--secondary-bg) !important; color: var(--text) !important;} .gui_tab_27Unf:hover{background: var(--accent) !important; filter: brightness(90%) !important; color: var(--text) !important;}");
+                        //New variable/list/custom block
+                        css.push(".prompt_body_18Z-I, .custom-procedures_body_SQBv6, div.custom-procedures_option-card_BtHt3 {background: var(--accent) !important; color: var(--text) !important;} .custom-procedures_button-row_2jBu3 > button:nth-child(1), .prompt_button-row_3Wc5Z > button:nth-child(1),.prompt_button-row_3Wc5Z > button:nth-child(1) {background: #ff3a5b !important;}");
+                        //Fullscreen view
+                        css.push(".stage_stage-wrapper-overlay_fmZuD, .stage-header_stage-header-wrapper-overlay_5vfJa{background: black !important;} .stage_stage-overlay-content_ePv_6 {border: none !important;} ");
+                        //Library background
+                        css.push(".library_library-scroll-grid_1jyXm, .modal_modal-content_1h3ll.modal_full-screen_FA4cr {background: var(--accent) !important; color: var(--text) !important;} ");
+                        //Library items & filter bar
+                        css.push(" .library-item_library-item-extension_3xus9, .library-item_library-item_1DcMO, .library_filter-bar_1W0DW {background: var(--accent) !important;} .library-item_library-item-extension_3xus9 span, .library-item_featured-extension-metadata_3D8E8, .library-item_library-item-name_2qMXu {color: var(--text) !important;}");
+                        //Text input
+                        css.push("input[type=text], .input_input-form_1Y0wX, .prompt_variable-name-text-input_1iu8- {background: var(--accent) !important; color: var(--text) !important;} input[type=text]:hover, input[type=text]:focus {background: var(--accent) !important; filter: brightness(90%) !important;}");
+                        //Buttons (inverted for dark theme)
+                        css.push(".blocklyZoom,  .stage-header_stage-button_hkl9B, .sound-editor_round-button_3NLcW, .sound-editor_button-group_SFPoV {filter: invert(100) hue-rotate(180deg) !important;}");
+                        //Set the selected costume/backdrop to have a transparent background as default
+                        css.push(".sprite-selector-item_is-selected_24tQj {background:transparent !important;}");
+
+                        editorStyle = GM_addStyle(css.join(" "));
+                    }
+                    break;
+                default:
+                    if (editorStyle !== null && editorStyle.parentElement !== null) {
+                        editorStyle.parentElement.remove(editorStyle);
+                        editorStyle = null;
+                    }
+                    break;
+            }
         }
     }
 
@@ -725,7 +817,7 @@ SOFTWARE.
     };
 
     //custom banner to display information that the user may want
-    function load_banner () {
+    function load_banner() {
         if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
             console.log("loading banner");
             let newsUpdatesExpanded = false;
@@ -783,6 +875,11 @@ SOFTWARE.
                 .add("li").t("Fixed dark theme on some pages").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed dark theme persisting when switching between project and see inside").a("style", "margin: 0px;").f()
                 .add("li").t("Fixed bugs involving theme changes").a("style", "margin: 0px;").f()
+                .f()
+                .add("p").a("style", "margin: 0px;").t("11.6:").f()
+                .add("ul").a("style", "margin: 0px;")
+                .add("li").t("Added dark theme setting for editor").a("style", "margin: 0px;").f()
+                .add('a').a('href', 'https://infinitytec.github.io/index.html').t("Thanks to infinitytec's Userscripts for themes").f()
                 .f()
                 .add("p").a("style", "margin: 0px;").t("News:").f()
                 .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
@@ -848,7 +945,7 @@ SOFTWARE.
         }
     }
 
-    function load_messages () {
+    function load_messages() {
         if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
             let load = setInterval(() => {
                 if (document.querySelector(".activity") && accountInfo.hasOwnProperty("user")) {
@@ -863,7 +960,7 @@ SOFTWARE.
         }
     }
 
-    function load_message (users) {
+    function load_message(users) {
         GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 285px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
         let html = JSON.parse(users.messages);
         let decodetext = (text) => {
@@ -990,7 +1087,7 @@ SOFTWARE.
         set_unread(users);
     }
 
-    function set_unread (user) {
+    function set_unread(user) {
         if (user.has_messages || true) {
             let x = new XMLHttpRequest();
             x.onreadystatechange = () => {
@@ -1034,7 +1131,7 @@ SOFTWARE.
         }
     }
 
-    function load_userinfo () {
+    function load_userinfo() {
         if (document.getElementsByTagName("a").length !== 0) {
             let userlinks = false;
             userinfo = GM_getValue("user", {});
@@ -1083,7 +1180,7 @@ SOFTWARE.
         }
     }
 
-    function set_userinfo (links) {
+    function set_userinfo(links) {
         GM_setValue("user", userinfo);
         //run final code here
         for (let a of links) {
@@ -1104,7 +1201,7 @@ SOFTWARE.
         console.log("Finished user info");
     }
 
-    function calcDate (date1, date2) {
+    function calcDate(date1, date2) {
         let diff = Math.floor(date1.getTime() - date2.getTime());
         let day = 1000 * 60 * 60 * 24;
         let months = Math.ceil(Math.floor(diff / day) / 31);
@@ -1135,7 +1232,7 @@ SOFTWARE.
         return message;
     }
 
-    function calcSmallest (date2) {
+    function calcSmallest(date2) {
         let date1 = new Date(), time, unit;
         if (date1.getFullYear() == date2.getFullYear()) {
             if (date1.getMonth() == date2.getMonth()) {
@@ -1167,7 +1264,7 @@ SOFTWARE.
 
     }
     //adds scratchblockcode load support
-    function load_scratchblockcode () {
+    function load_scratchblockcode() {
         if (GM_getValue("blockCode", true)) {
             if (document.querySelector(".blocks")) {
                 let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
@@ -1240,7 +1337,7 @@ SOFTWARE.
         }
     }
 
-    function load_bbcode () {
+    function load_bbcode() {
         console.log("load bbcode");
         let posts = document.getElementsByClassName("blockpost");
         for (let a of posts) {
@@ -1274,7 +1371,7 @@ SOFTWARE.
         }
     }
     //enlarging images on scratch
-    function load_images () {
+    function load_images() {
         console.log("load images");
 
         GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
@@ -1336,7 +1433,7 @@ SOFTWARE.
         }, 100);
     }
 
-    function timer () {
+    function timer() {
         const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 12, 2019", name: "Mother's Day" }, { newDate: "Jun 6, 2019", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 22, 2018", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
         let ordered = newEvents.map((e) => {
             let holiDate = (e.hasOwnProperty("newDate")) ? new Date(e.newDate).getTime() : new Date(e.date).setFullYear(currentYear);
@@ -1384,7 +1481,7 @@ SOFTWARE.
         }
     }
 
-    function create_falling (link, img, extreme, cursor = null, audio = false) {
+    function create_falling(link, img, extreme, cursor = null, audio = false) {
         if (url == link) {
             let we = [];
             let leaves = function (i) {
@@ -1448,7 +1545,7 @@ SOFTWARE.
         }
     }
 
-    function load_extras () {
+    function load_extras() {
         if (GM_getValue("extras", true)) {
             create_falling("https://scratch.mit.edu/users/DeleteThisAcount/", ["https://vignette.wikia.nocookie.net/operation-fortress/images/c/ca/Deletos.png/revision/latest?cb=20160815232601"], true, "http://i.cubeupload.com/gIEPOl.png", false);
         }
@@ -1457,7 +1554,7 @@ SOFTWARE.
         }
     }
     //add custom bbcode tags
-    function load_custombb () {
+    function load_custombb() {
         document.querySelectorAll('span[style="color:resimg"]').forEach(e => {
             $(e).replaceWith(`<img src="https://${e.innerHTML}"></img>`);
         });
@@ -1476,7 +1573,7 @@ SOFTWARE.
         });
     }
     //add extras bbcode buttons
-    function add_bbbuttons () {
+    function add_bbbuttons() {
         console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
         waitTillLoad(document.querySelector(".markItUpContainer"))
             .then(a => {
@@ -1546,7 +1643,7 @@ SOFTWARE.
             });
     }
 
-    function getSelectionText () {
+    function getSelectionText() {
         if (window.getSelection) {
             try {
                 var ta = $('textarea').get(0);
@@ -1561,7 +1658,7 @@ SOFTWARE.
         }
     }
 
-    function replaceIt (txtarea, newtxt) {
+    function replaceIt(txtarea, newtxt) {
         $(txtarea).val(
             $(txtarea).val().substring(0, txtarea.selectionStart) +
             newtxt +
@@ -1569,7 +1666,7 @@ SOFTWARE.
         );
     }
 
-    function inIframe () {
+    function inIframe() {
         try {
             return window.self !== window.top;
         } catch (e) {
@@ -1577,7 +1674,7 @@ SOFTWARE.
         }
     }
     //Tansitions and other cool functions
-    function collapse_full (speed, element, time) { //this function will collapse margin, padding, and width in order (this will ignore the border)
+    function collapse_full(speed, element, time) { //this function will collapse margin, padding, and width in order (this will ignore the border)
         const totalTime = time;
         let totalHeight = element.getBoundingClientRect().height;
         //sets up data for each layer
@@ -1629,7 +1726,7 @@ SOFTWARE.
         }
     }
 
-    function calculate_height_children (domElement) {
+    function calculate_height_children(domElement) {
         let height = 0;
         let children = domElement.children;
         for (let a of children) {
@@ -1644,7 +1741,7 @@ SOFTWARE.
         return height;
     }
     //this function is for svg elements
-    function svg (name, attr, action) {
+    function svg(name, attr, action) {
         const svgMap = new Map([
             ["write", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M18.303,4.742l-1.454-1.455c-0.171-0.171-0.475-0.171-0.646,0l-3.061,3.064H2.019c-0.251,0-0.457,0.205-0.457,0.456v9.578c0,0.251,0.206,0.456,0.457,0.456h13.683c0.252,0,0.457-0.205,0.457-0.456V7.533l2.144-2.146C18.481,5.208,18.483,4.917,18.303,4.742 M15.258,15.929H2.476V7.263h9.754L9.695,9.792c-0.057,0.057-0.101,0.13-0.119,0.212L9.18,11.36h-3.98c-0.251,0-0.457,0.205-0.457,0.456c0,0.253,0.205,0.456,0.457,0.456h4.336c0.023,0,0.899,0.02,1.498-0.127c0.312-0.077,0.55-0.137,0.55-0.137c0.08-0.018,0.155-0.059,0.212-0.118l3.463-3.443V15.929z M11.241,11.156l-1.078,0.267l0.267-1.076l6.097-6.091l0.808,0.808L11.241,11.156z"></path></svg>`]
             , ["downCircle", `<svg class="svg-icon" viewBox="0 0 20 20"><path d="M13.962,8.885l-3.736,3.739c-0.086,0.086-0.201,0.13-0.314,0.13S9.686,12.71,9.6,12.624l-3.562-3.56C5.863,8.892,5.863,8.611,6.036,8.438c0.175-0.173,0.454-0.173,0.626,0l3.25,3.247l3.426-3.424c0.173-0.172,0.451-0.172,0.624,0C14.137,8.434,14.137,8.712,13.962,8.885 M18.406,10c0,4.644-3.763,8.406-8.406,8.406S1.594,14.644,1.594,10S5.356,1.594,10,1.594S18.406,5.356,18.406,10 M17.521,10c0-4.148-3.373-7.521-7.521-7.521c-4.148,0-7.521,3.374-7.521,7.521c0,4.147,3.374,7.521,7.521,7.521C14.148,17.521,17.521,14.147,17.521,10"></path></svg>`]
@@ -1669,7 +1766,7 @@ SOFTWARE.
     }
 
     //uses a selector, has a timeout, and take in a update speed
-    function waitTillLoad (selector, timeout = 60000, updateSpeed = 100) {
+    function waitTillLoad(selector, timeout = 60000, updateSpeed = 100) {
         return new Promise((resolve, reject) => {
             let found = false;
 
@@ -1697,7 +1794,7 @@ SOFTWARE.
     }
 
     //the following is my own custom dom creation object that I continue to improve as I use it
-    function element (name, ns) {
+    function element(name, ns) {
         return new _element(name, ns);
     }
     class _element {
@@ -1709,7 +1806,7 @@ SOFTWARE.
                 this.dom = document.createElement(name);
             }
         }
-        a (name, value = "") {
+        a(name, value = "") {
             if (name.constructor === {}.constructor) {
                 for (let a in name) {
                     this.dom.setAttribute(a, name[a]);
@@ -1719,27 +1816,27 @@ SOFTWARE.
             }
             return this;
         }
-        t (text) {
+        t(text) {
             this.dom.appendChild(document.createTextNode(text));
             return this;
         }
-        e (trigger, callback) {
+        e(trigger, callback) {
             this.dom.addEventListener(trigger, callback);
             return this;
         }
-        append (element2) {
+        append(element2) {
             this.dom.appendChild(element2.dom);
             return this;
         }
-        ap (dom) {
+        ap(dom) {
             dom.appendChild(this.dom);
             return dom;
         }
-        apthis (dom) {
+        apthis(dom) {
             dom.appendChild(this.dom);
             return this.dom;
         }
-        o (options, selected) {
+        o(options, selected) {
             for (let a in options) {
                 if (options.hasOwnProperty(a)) {
                     console.log(a, options[a]);
@@ -1754,20 +1851,20 @@ SOFTWARE.
             }
             return this;
         }
-        add (elementName) {
+        add(elementName) {
             let newElement = element(elementName);
             newElement.pointer = this;
             return newElement;
         }
-        addDom (domElement) {
+        addDom(domElement) {
             this.dom.appendChild(domElement);
             return this;
         }
-        f () {
+        f() {
             this.pointer.append(this);
             return this.pointer;
         }
-        apAfter (target) {
+        apAfter(target) {
             target = document.querySelector(target);
             target.parentElement.insertBefore(this.dom, target.nextSibling);
             return this.dom;
