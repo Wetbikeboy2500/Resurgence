@@ -77,7 +77,7 @@ SOFTWARE.
                 projectPageClick();
             });
         } else {
-            
+
             console.log('not editor');
             if (GM_getValue("theme", false) === "dark") {
                 style1 = GM_addStyle(GM_getResourceText("CSS"));
@@ -515,64 +515,18 @@ SOFTWARE.
 
         $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
         $('#res-set-modal-back').click(toggleModal);
+
         //IO for sliders
-        $(document).on("click", "#extrasIO", (event) => {
-            if (GM_getValue("extras", true)) {
-                GM_setValue("extras", false);
-            } else {
-                GM_setValue("extras", true);
-            }
-        });
-        $(document).on("click", "#msgIO", (event) => {
-            if (GM_getValue("msg", true)) {
-                GM_setValue("msg", false);
-            } else {
-                GM_setValue("msg", true);
-            }
-        });
-        $(document).on("click", "#timerIO", (event) => {
-            if (GM_getValue("timer", true)) {
-                GM_setValue("timer", false);
-            } else {
-                GM_setValue("timer", true);
-            }
-        });
-        $(document).on("click", "#blocksIO", (event) => {
-            if (GM_getValue("blockCode", true)) {
-                GM_setValue("blockCode", false);
-            } else {
-                GM_setValue("blockCode", true);
-            }
-        });
-        $(document).on("click", "#embedIO", (event) => {
-            if (GM_getValue("embedFeature", true)) {
-                GM_setValue("embedFeature", false);
-            } else {
-                GM_setValue("embedFeature", true);
-            }
-        });
-        $(document).on("click", "#bannerIO", (event) => {
-            if (GM_getValue("bannerOff", true)) {
-                GM_setValue("bannerOff", false);
-            } else {
-                GM_setValue("bannerOff", true);
-            }
-        });
-        $(document).on("click", "#messageThemeIO", (event) => {
-            if (GM_getValue("messageTheme", true)) {
-                GM_setValue("messageTheme", false);
-            } else {
-                GM_setValue("messageTheme", true);
-            }
-        });
-        $(document).on("click", "#tweakThemeIO", (event) => {
-            if (GM_getValue("tweakTheme", true)) {
-                GM_setValue("tweakTheme", false);
-            } else {
-                GM_setValue("tweakTheme", true);
-            }
-            theme_tweaks();
-        });
+        $('#extrasIO').click(() => GM_setValue("extras", !GM_getValue("extras", false)));
+        $('#msgIO').click(() => GM_setValue("msg", !GM_getValue("msg", false)));
+        $('#timerIO').click(() => GM_setValue("timer", !GM_getValue("timer", false)));
+        $('#blocksIO').click(() => GM_setValue("blockCode", !GM_getValue("blockCode", false)));
+        $('#embedIO').click(() => GM_setValue("embedFeature", !GM_getValue("embedFeature", false)));
+        $('#bannerIO').click(() => GM_setValue("bannerOff", !GM_getValue("bannerOff", false)));
+        $('#messageThemeIO').click(() => GM_setValue("messageTheme", !GM_getValue("messageTheme", false)));
+        $('#tweakThemeIO').click(() => GM_setValue("tweakTheme", !GM_getValue("tweakTheme", false)));
+
+        //IO for dropdowns
         $(document).on("change", "#disText", (event) => {
             GM_setValue("forumTitle", document.getElementById("disText").value);
         });
@@ -583,23 +537,20 @@ SOFTWARE.
         $(document).on("change", "#posIO", (event) => {
             GM_setValue("pos", document.getElementById("posIO").value);
         });
-        if (pageType === "new") {
-            let test = setInterval(() => {
-                if (document.querySelector(".dropdown")) {
-                    $('.divider').before('<li id="res-set"><a>Resurgence Settings');
-                    $('#res-set').click(toggleModal);
-                    clearInterval(test);
-                }
-            }, 1000);
+
+        //adds settings option for user panel
+        if (pageType == 'new') {
+            waitTillLoad('.dropdown').then(() => {
+                $('.divider').before('<li id="res-set"><a>Resurgence Settings');
+                $('#res-set').click(toggleModal);
+            });
         } else {
-            let test = setInterval(() => {
-                if (document.getElementById("logout")) {
-                    $('#logout').before('<li id="res-set"><a>Resurgence Settings');
-                    $('#res-set').click(toggleModal);
-                    clearInterval(test);
-                }
-            }, 1000);
+            waitTillLoad('logout').then(() => {
+                $('#logout').before('<li id="res-set"><a>Resurgence Settings');
+                $('#res-set').click(toggleModal);
+            });
         }
+
         //adds the new page
         if ("https://scratch.mit.edu/resurgence" === url) {
             GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
