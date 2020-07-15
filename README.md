@@ -33,6 +33,6 @@ Version 11 changes and additions:
 
 ## Contributors:
 - Created by **Wetbikeboy2500** [Scratch](https://scratch.mit.edu/users/Wetbikeboy2500/)   [Github](https://github.com/Wetbikeboy2500/)
-- **NitroCipher** [Scratch](https://scratch.mit.edu/users/Nitrocipher/)   [Github](https://github.com/NitroCipher/)
+- **NitroCipher** [Scratch](https://scratch.mit.edu/users/NitroCipher/)   [Github](https://github.com/ZenithRogue/)
 
 [Forum Topic](http://scriftj.x10host.com/ScratchBrowser/userscripts/resurgence.html)(Backup Version since original was taken down)
