@@ -36,7 +36,7 @@ SOFTWARE.
 // @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
-// @resource     Modal http://s://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
+// @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
