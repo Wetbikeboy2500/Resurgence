@@ -791,51 +791,6 @@ SOFTWARE.
         }
     }
 
-    let messages = {
-        //this should instead see if the newest messgae equals our newesst message
-        check_unread: (user) => {
-            return new Promise((resolve, reject) => {
-                let r = new XMLHttpRequest();
-                r.onreadystatechange = () => {
-                    if (r.status == 200 && r.readyState == 4) {
-                        let rec = JSON.parse(r.responseText);
-                        let mes = JSON.parse(GM_getValue("message", true));
-                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
-                        resolve(user);
-                    }
-                };
-                r.onerror = (error) => {
-                    reject("Error checking unread messgaes" + error);
-                };
-                r.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages?limit=1&offset=0", true);
-                r.setRequestHeader("X-Token", user.token);
-                r.send(null);
-            });
-        },
-        get_message: (user) => {
-            return new Promise((resolve, reject) => {
-                if (user.has_messages) { //load new messages
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = () => {
-                        if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            user.messages = xhttp.responseText;
-                            resolve(user);
-                        }
-                    };
-                    xhttp.onerror = (error) => {
-                        reject("Error loading messages" + error);
-                    };
-                    xhttp.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages?limit=40&offset=0", true);
-                    xhttp.setRequestHeader("X-Token", user.token);
-                    xhttp.send(null);
-                } else { //load form presave
-                    user.messages = GM_getValue("message", {});
-                    resolve(user);
-                }
-            });
-        }
-    };
-
     function load_messages_panel() {
         const box = element('div')
             .a('class', 'box custom-messages')
@@ -843,10 +798,211 @@ SOFTWARE.
             .add('h4').t('Messages').f().f()
             .div().a('class', 'box-content').f();
 
-        //$('.mod-splash').after();
+        GM_addStyle('.custom-messages .box-content { overflow-y: scroll; height: 285px; } .custom-messages .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}');
 
-        //document.getElementsByClassName("mod-splash")[0].prepend(box.dom, document.getElementsByClassName("mod-splash")[0].children[0]);
         box.apAfter('.splash-header');
+
+        _waitTillLoad(() => accountInfo.hasOwnProperty("user")).then(() => {
+            console.log('loading wait code');
+
+            //local reference
+            let user = { token: accountInfo.user.token, username: accountInfo.user.username };
+
+            const checkUnread = (response) => {
+                let request = JSON.parse(response);
+                const stored = JSON.parse(GM_getValue("message", null));
+
+                if (stored == null) {
+                    return true;
+                }
+
+                //comapre newest comment by time
+                return request[0].datetime_created !== stored[0].datetime_created;
+            };
+
+            const decodetext = (text) => {
+                let txt = element("textarea").dom;
+                txt.innerHTML = text;
+                return txt.value;
+            };
+
+            const loadMessages = (messages) => {
+                console.log('load messgaes');
+                if (messages == null)
+                    return;
+
+                let html = JSON.parse(messages);
+                GM_setValue("message", messages);
+                let ul = element("ul").a("id", "messages")
+                for (let a of html) {
+                    let timePassed = calcSmallest(new Date(Date.parse(a.datetime_created)));
+                    switch (a.type) {
+                        case "forumpost":
+                            ul.add("li")
+                                .add("span").t("There are new posts in the forum: ").f()
+                                .add("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/").f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "studioactivity":
+                            ul.add("li")
+                                .add("span").t("There was new activity in ").f()
+                                .add("a").t(a.title).a("href", "/studios/" + a.gallery_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "favoriteproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" favorited your project ").f()
+                                .add("a").t(a.project_title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "loveproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" loved your project ").f()
+                                .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "followuser":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" followed you").f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "remixproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" remixed your project ").f()
+                                .add("a").t(a.parent_title).a("href", "/projects/" + a.parent_id).f()
+                                .add("span").t(" as ").f()
+                                .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "addcomment":
+                            if (a.comment_type === 0) { //project
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project ').f()
+                                    .add("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else if (a.comment_type === 1) { //profile page
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile ').f()
+                                    .add("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else if (a.comment_type === 2) {
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio ').f()
+                                    .add("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else {
+                                console.warn("Comment type not found");
+                            }
+                            break;
+                        case "curatorinvite":
+                            ul.add("li")
+                                .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                .add("span").t(' invited you to curate ').f()
+                                .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "becomeownerstudio":
+                            ul.add("li")
+                                .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                .add("span").t(' promoted you to manager in ').f()
+                                .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "userjoin":
+                            ul.add("li")
+                                .add("span").t('Welcome to Scratch').f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        default:
+                            console.warn(a, "Not Found");
+                    }
+                }
+
+                ul.ap(document.querySelector('.custom-messages .box-content'));
+
+                return;
+            };
+
+            const setUnread = (text) => {
+                const count = JSON.parse(text).count;
+                const messages = document.querySelectorAll('.custom-messages li');
+
+                if (count <= 0) {
+                    return;
+                }
+
+                for (let i = 0; i < count; i++) {
+                    if (GM_getValue("theme", false) === "dark") {
+                        messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
+                    } else {
+                        messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                    }
+
+                }
+
+                //add the clear messgaes button
+                element("button").t("Clear Messages").a({ "style": "float: right;" })
+                    .e("click", () => {
+                        fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
+                            method: "POST",
+                            headers: {
+                                'X-CSRFToken': getCookie("scratchcsrftoken")
+                            }
+                        })
+                            .then((res) => res.text())
+                            .then((res) => console.log(res))
+                            .catch((err) => {
+                                console.warn(err);
+                            })
+                    })
+                    .apthis(document.querySelector(".custom-messages > .box-header"));
+            };
+
+
+            fetch(`https://api.scratch.mit.edu/users/${user.username}/messages?limit=1&offset=0`, {
+                method: 'GET',
+                headers: {
+                    'X-Token': user.token
+                }
+            })
+                .then(response => response.text())
+                .then(checkUnread)
+                .then((response) => {
+                    if (response) {
+                        return fetch(`https://api.scratch.mit.edu/users/${user.username}/messages?limit=40&offset=0`, {
+                            method: 'GET',
+                            headers: {
+                                'X-Token': user.token
+                            }
+                        }).then((response) => response.text());
+                    } else {
+                        return GM_getValue("message", null);
+                    }
+                })
+                .then(loadMessages)
+                .then(() => fetch(`https://api.scratch.mit.edu/users/${user.username}/messages/count`).then(response => response.text()))
+                .then(setUnread)
+                .catch((e) => console.log(e));
+        });
     }
 
     //custom banner to display information that the user may want
@@ -975,192 +1131,6 @@ SOFTWARE.
                 .catch((e) => {
                     console.warn("An error occured while getting the version", e);
                 });
-        }
-    }
-
-    function load_messages() {
-        if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
-            let load = setInterval(() => {
-                if (document.querySelector(".activity") && accountInfo.hasOwnProperty("user")) {
-                    clearInterval(load);
-                    messages.check_unread({ token: accountInfo.user.token, username: accountInfo.user.username })
-                        .then(user => messages.get_message(user))
-                        .then(user => load_message(user))
-                        .catch((error) => console.warn(error));
-                }
-            }, 1000);
-
-        }
-    }
-
-    function load_message(users) {
-        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 285px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
-        let html = JSON.parse(users.messages);
-        let decodetext = (text) => {
-            let txt = element("textarea").dom;
-            txt.innerHTML = text;
-            return txt.value;
-        };
-        GM_setValue("username", users.username);
-        GM_setValue("message", users.messages);
-        let ul = element("ul").a("id", "messages")
-        for (let a of html) {
-            let timePassed = calcSmallest(new Date(Date.parse(a.datetime_created)));
-            switch (a.type) {
-                case "forumpost":
-                    ul.add("li")
-                        .add("span").t("There are new posts in the forum: ").f()
-                        .add("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/").f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "studioactivity":
-                    ul.add("li")
-                        .add("span").t("There was new activity in ").f()
-                        .add("a").t(a.title).a("href", "/studios/" + a.gallery_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "favoriteproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" favorited your project ").f()
-                        .add("a").t(a.project_title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "loveproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" loved your project ").f()
-                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "followuser":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" followed you").f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "remixproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" remixed your project ").f()
-                        .add("a").t(a.parent_title).a("href", "/projects/" + a.parent_id).f()
-                        .add("span").t(" as ").f()
-                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "addcomment":
-                    if (a.comment_type === 0) { //project
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project ').f()
-                            .add("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else if (a.comment_type === 1) { //profile page
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile ').f()
-                            .add("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else if (a.comment_type === 2) {
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio ').f()
-                            .add("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else {
-                        console.warn("Comment type not found");
-                    }
-                    break;
-                case "curatorinvite":
-                    ul.add("li")
-                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                        .add("span").t(' invited you to curate ').f()
-                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "becomeownerstudio":
-                    ul.add("li")
-                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                        .add("span").t(' promoted you to manager in ').f()
-                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "userjoin":
-                    ul.add("li")
-                        .add("span").t('Welcome to Scratch').f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                default:
-                    console.warn(a, "Not Found");
-            }
-        }
-        const activity = document.querySelector(".splash-header > .activity");//better conditions for selection
-        const messageHeader = activity.querySelector(".box-header");
-        messageHeader.querySelector("h4").innerHTML = "Messages";
-
-        //clears current content
-        const messageBody = activity.querySelector(".box-content");
-        for (let a of messageBody.children) {
-            messageBody.removeChild(a);
-        }
-        ul.ap(messageBody);
-
-        set_unread(users);
-    }
-
-    function set_unread(user) {
-        if (user.has_messages || true) {
-            let x = new XMLHttpRequest();
-            x.onreadystatechange = () => {
-                if (x.readyState == 4 && x.status == 200) {
-                    let count = JSON.parse(x.responseText).count;
-                    let messages = document.getElementById("messages").getElementsByTagName("li");
-
-                    if (count > 0) {///site-api/messages/messages-clear/
-
-                        console.log(user.token)
-                        console.log(getCookie("scratchcsrftoken"))
-                        element("button").t("Clear Messages").a({ "style": "float: right;" })
-                            .e("click", () => {
-                                fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
-                                    method: "POST",
-                                    headers: {
-                                        'X-CSRFToken': getCookie("scratchcsrftoken")
-                                    }
-                                })
-                                    .then((res) => res.text())
-                                    .then((res) => console.log(res))
-                                    .catch((err) => {
-                                        console.warn(err);
-                                    })
-                            })
-                            .apthis(document.querySelector(".activity > .box-header"));
-                    }
-
-                    for (let i = 0; i < count; i++) {
-                        if (GM_getValue("theme", false) === "dark") {
-                            messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
-                        } else {
-                            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
-                        }
-
-                    }
-                }
-            };
-            x.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages/count", true);
-            x.send();
         }
     }
 
@@ -1800,19 +1770,23 @@ SOFTWARE.
 
     //uses a selector, has a timeout, and take in a update speed
     function waitTillLoad(selector, timeout = 60000, updateSpeed = 100) {
+        return _waitTillLoad(() => document.querySelector(selector), timeout, updateSpeed);
+    }
+
+    function _waitTillLoad(func, timeout = 60000, updateSpeed = 100) {
         return new Promise((resolve, reject) => {
             let found = false;
 
-            if (document.querySelector(selector)) {
+            if (func()) {
                 found = true;
-                resolve(document.querySelector(selector));
+                resolve(func());
             } else {
                 let _loading = setInterval(() => {
-                    if (document.querySelector(selector)) {
+                    if (func()) {
                         found = true;
-                        resolve(document.querySelector(selector));
+                        resolve(func());
                     }
-                }, 100)
+                }, updateSpeed)
 
                 if (!found) {
                     setTimeout(() => {
