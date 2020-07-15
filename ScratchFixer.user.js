@@ -587,45 +587,44 @@ SOFTWARE.
                 .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
 
             element("p").t("Made By ")
-                .append(element("a").t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/"))
+                .link().t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/").f()
                 .ap(main);
             element("p").t("Special thanks to ")
-                .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
+                .link().t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/").f()
                 .ap(main);
             element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
                 .ap(main);
             element("p")
-                .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
+                .link().t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer").f()
                 .ap(main);
 
             element("h3").t("Features").ap(main);
 
             element("ul")
-                .append(element("li").t("Forums tab instead of ideas tab"))
-                .append(element("li").t("Customization of Forum tab name"))
-                .append(element("li").t("Adds messages to the main page"))
-                .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
-                .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
-                .append(element("li").t("Quick info when hovering over usernames"))
-                .append(element("li").t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"))
-                .append(element("li").t("Click on a new button “BBCode” to switch between the BBCode and the original post"))
-                .append(element("li").t("Changes the messages area to look like how it use to look"))
-                .append(element("li").t("Adds this page to Scratch"))
-                .append(element("li").t("Adds option for Dark Theme for Scratch"))
-                .append(element("li").t("Enlarge photos in forum posts"))
-                .append(element("li").t("Settings pop-up on all pages"))
-                .append(element("li").t("Add extras BBcode Features"))
-                .append(element("li").t("Embed Featured projects on user page"))
-                .append(element("li").t("Embed Gist content"))
+                .add('li').t("Forums tab instead of ideas tab").f()
+                .add('li').t("Customization of Forum tab name").f()
+                .add('li').t("Adds messages to the main page").f()
+                .add('li').t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player").f()
+                .add('li').t("Adds google search so you can search the whole Scratch site with google").f()
+                .add('li').t("Quick info when hovering over usernames").f()
+                .add('li').t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code").f()
+                .add('li').t("Click on a new button “BBCode” to switch between the BBCode and the original post").f()
+                .add('li').t("Changes the messages area to look like how it use to look").f()
+                .add('li').t("Adds this page to Scratch").f()
+                .add('li').t("Adds option for Dark Theme for Scratch").f()
+                .add('li').t("Enlarge photos in forum posts").f()
+                .add('li').t("Settings pop-up on all pages").f()
+                .add('li').t("Add extras BBcode Features").f()
+                .add('li').t("Embed Featured projects on user page").f()
+                .add('li').t("Embed Gist content").f()
                 .ap(main);
 
             element("h3").t("Special Features/Extras").ap(main);
 
             element("Extras")
-                .append(element("li").t("Holiday countdown timer"))
-                .append(element("li").t("Falling leaves on the homepage"))
-                .append(element("li")
-                    .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
+                .add('li').t("Holiday countdown timer").f()
+                .add('li').t("Falling leaves on the homepage").f()
+                .add('li').add('a').t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/").f().f()
                 .ap(main);
 
             element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
@@ -1112,7 +1111,7 @@ SOFTWARE.
 
             //gets the current version of the code from the github page
             fetch("https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js")
-                .then((response) => { return response.text() })
+                .then(response => response.text())
                 .then((text) => {
                     const version = text.substring(text.indexOf("@version") + 9, text.indexOf("// @description") - 1);
                     let tmpVersion = Number(version);
@@ -1264,7 +1263,6 @@ SOFTWARE.
         } else {
             return " " + time + unit + "s ago";
         }
-
     }
     //adds scratchblockcode load support
     function load_scratchblockcode() {
@@ -1379,65 +1377,61 @@ SOFTWARE.
 
         GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
         //adds the faded background
-        let load = setInterval((e) => {
-            if (document.querySelector("#pagewrapper")) {
-                clearInterval(load);
+        waitTillLoad('#pagewrapper').then(() => {
+            let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
+            //div that holds the image
+            let div1 = document.createElement("div");
+            div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
+            //the img element that will display the image
+            let img = document.createElement("img");
+            img.setAttribute("src", "");
+            img.setAttribute("id", "display_img_img");
+            div1.appendChild(img);
+            //this causes the faded background and image to disappear
+            document.getElementById("pagewrapper").appendChild(div1);
+            div1.addEventListener("click", (event) => {
+                div.style.display = "none";
+                div1.style.display = "none";
+            });
 
-                let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
-                //div that holds the image
-                let div1 = document.createElement("div");
-                div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
-                //the img element that will display the image
-                let img = document.createElement("img");
-                img.setAttribute("src", "");
-                img.setAttribute("id", "display_img_img");
-                div1.appendChild(img);
-                //this causes the faded background and image to disappear
-                document.getElementById("pagewrapper").appendChild(div1);
-                div1.addEventListener("click", (event) => {
-                    div.style.display = "none";
-                    div1.style.display = "none";
-                });
+            let posts = document.getElementsByClassName("postright");
+            for (let a of posts) {
+                let imgs = a.getElementsByTagName("img");
+                for (let b of imgs) {
+                    b.addEventListener("click", (event) => {
+                        img.setAttribute("src", event.currentTarget.src);
+                        //gets current image size
+                        let img_width = event.currentTarget.clientWidth;
+                        let img_height = event.currentTarget.clientHeight;
+                        //going to be used for the dialation
+                        let scale_factor = 1.5;//this is the maximun a small image can be scalled up
+                        const display_width = window.innerWidth;
+                        const display_height = window.innerHeight - 50;
+                        let final_height = 0, final_width = 0;
 
-                let posts = document.getElementsByClassName("postright");
-                for (let a of posts) {
-                    let imgs = a.getElementsByTagName("img");
-                    for (let b of imgs) {
-                        b.addEventListener("click", (event) => {
-                            img.setAttribute("src", event.currentTarget.src);
-                            //gets current image size
-                            let img_width = event.currentTarget.clientWidth;
-                            let img_height = event.currentTarget.clientHeight;
-                            //going to be used for the dialation
-                            let scale_factor = 1.5;//this is the maximun a small image can be scalled up
-                            const display_width = window.innerWidth;
-                            const display_height = window.innerHeight - 50;
-                            let final_height = 0, final_width = 0;
+                        final_height = img_height * scale_factor;
+                        final_width = img_width * scale_factor;
 
+                        //this is the best solution to deal with all different screen sizes and images sizes
+                        //It have tried making multilayer if/else statemanets but they don't work well for this
+                        while (final_height > display_height || final_width > display_width) {
+                            scale_factor -= 0.1;
                             final_height = img_height * scale_factor;
                             final_width = img_width * scale_factor;
+                        }
+                        //makes it cerntered vertically and makes sure it has right hieght and width
+                        img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
 
-                            //this is the best solution to deal with all different screen sizes and images sizes
-                            //It have tried making multilayer if/else statemanets but they don't work well for this
-                            while (final_height > display_height || final_width > display_width) {
-                                scale_factor -= 0.1;
-                                final_height = img_height * scale_factor;
-                                final_width = img_width * scale_factor;
-                            }
-                            //makes it cerntered vertically and makes sure it has right hieght and width
-                            img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
-
-                            div.style.display = "block";
-                            div1.style.display = "block";
-                        });
-                    }
+                        div.style.display = "block";
+                        div1.style.display = "block";
+                    });
                 }
             }
-        }, 100);
+        });
     }
 
     function timer() {
-        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 12, 2019", name: "Mother's Day" }, { newDate: "Jun 6, 2019", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 22, 2018", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
+        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 9, 2021", name: "Mother's Day" }, { newDate: "Jun 20, 2021", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 26, 2020", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
         let ordered = newEvents.map((e) => {
             let holiDate = (e.hasOwnProperty("newDate")) ? new Date(e.newDate).getTime() : new Date(e.date).setFullYear(currentYear);
             return {
@@ -1459,26 +1453,23 @@ SOFTWARE.
 
         if (Holiday) {
             const holidayDate = Holiday.date, holidayName = Holiday.name;
-            let load = setInterval(() => {
-                if (document.querySelector(".box-header")) {
-                    clearInterval(load);
-                    let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").apthis(document.querySelector(".box-header"));
-                    let x = setInterval(() => {
-                        const difference = holidayDate - new Date().getTime(),
-                            days = Math.floor(difference / (1000 * 60 * 60 * 24)),
-                            hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                            minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                            seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            waitTillLoad('.box-header').then(() => {
+                let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").apthis(document.querySelector(".box-header"));
+                let x = setInterval(() => {
+                    const difference = holidayDate - new Date().getTime(),
+                        days = Math.floor(difference / (1000 * 60 * 60 * 24)),
+                        hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                        minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                        seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-                        if (difference < 0) {
-                            clearInterval(x);
-                            dateElement.innerHTML = "It's " + holidayName;
-                        } else {
-                            dateElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s 'til " + holidayName;
-                        }
-                    }, 0);
-                }
-            }, 1000);
+                    if (difference < 0) {
+                        clearInterval(x);
+                        dateElement.innerHTML = "It's " + holidayName;
+                    } else {
+                        dateElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s 'til " + holidayName;
+                    }
+                }, 900);
+            });
         } else {
             console.log("No holiday found");
         }
