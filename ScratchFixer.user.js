@@ -138,18 +138,13 @@ SOFTWARE.
             //new theme
             pageType = "new";
             document.querySelector(".ideas").childNodes[0].setAttribute("href", "/discuss");
-            element("dd")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.querySelector(".lists").querySelectorAll("dl")[1]);
         } else {
+            console.log('old')
             //old theme
             pageType = "old";
-            let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
+            const tips = document.querySelector('.site-nav > :nth-child(3) > a');
             tips.setAttribute("href", "/discuss");
             tips.innerHTML = GM_getValue("forumTitle", "Forums");
-            element("li")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
         }
     }
 
@@ -572,71 +567,10 @@ SOFTWARE.
                 $('#res-set').click(toggleModal);
             });
         } else {
-            waitTillLoad('logout').then(() => {
+            waitTillLoad('#logout').then(() => {
                 $('#logout').before('<li id="res-set"><a>Resurgence Settings');
                 $('#res-set').click(toggleModal);
             });
-        }
-
-        //adds the new page
-        if ("https://scratch.mit.edu/resurgence" === url) {
-            GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
-            let main = document.getElementsByClassName("box-content")[0];
-            main.innerHTML = "";
-            element("h4").t("Resurgence Userscript")
-                .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
-
-            element("p").t("Made By ")
-                .link().t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/").f()
-                .ap(main);
-            element("p").t("Special thanks to ")
-                .link().t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/").f()
-                .ap(main);
-            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
-                .ap(main);
-            element("p")
-                .link().t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer").f()
-                .ap(main);
-
-            element("h3").t("Features").ap(main);
-
-            element("ul")
-                .add('li').t("Forums tab instead of ideas tab").f()
-                .add('li').t("Customization of Forum tab name").f()
-                .add('li').t("Adds messages to the main page").f()
-                .add('li').t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player").f()
-                .add('li').t("Adds google search so you can search the whole Scratch site with google").f()
-                .add('li').t("Quick info when hovering over usernames").f()
-                .add('li').t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code").f()
-                .add('li').t("Click on a new button “BBCode” to switch between the BBCode and the original post").f()
-                .add('li').t("Changes the messages area to look like how it use to look").f()
-                .add('li').t("Adds this page to Scratch").f()
-                .add('li').t("Adds option for Dark Theme for Scratch").f()
-                .add('li').t("Enlarge photos in forum posts").f()
-                .add('li').t("Settings pop-up on all pages").f()
-                .add('li').t("Add extras BBcode Features").f()
-                .add('li').t("Embed Featured projects on user page").f()
-                .add('li').t("Embed Gist content").f()
-                .ap(main);
-
-            element("h3").t("Special Features/Extras").ap(main);
-
-            element("Extras")
-                .add('li').t("Holiday countdown timer").f()
-                .add('li').t("Falling leaves on the homepage").f()
-                .add('li').add('a').t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/").f().f()
-                .ap(main);
-
-            element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
-                .e("click", () => {
-                    if (GM_getValue("extras", true)) {
-                        GM_setValue("extras", false);
-                        alert('Extras are now disabled.');
-                    } else {
-                        GM_setValue("extras", true);
-                        alert('Extras are now enabled.');
-                    }
-                }).ap(main);
         }
 
         //embeds users featured project
