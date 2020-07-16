@@ -627,13 +627,14 @@ SOFTWARE.
 
             switch (GM_getValue('editorTheme', 'default')) {
                 case 'dark':
+                    //TODO: check editor with dark theme
                     if (editorStyle === null) {
                         //Set colors for the editor. Names should explain what they are. They will automatically be applied to different parts of the editor. For the purpose of simplification, the red cancel button and the hover/active/focus effects are hard-coded. The effects use filters so they should be good-to-go in most cases.
                         css.push(`:root {--main-bg: ${mainBG}; --secondary-bg: ${secondaryBG}; --accent: ${accent}; --text: ${text};}`);
                         //Main UI bar, similar bars, and dropdown menu
                         css.push(".menu-bar_main-menu_3wjWH, .modal_header_1h7ps, .menu-bar_account-info-group_MeJZP, .menu_menu_3k7QT, .project-title-input_title-field_en5Gd:focus {background: var(--accent) !important;}");
                         //Main background
-                        css.push(".gui_body-wrapper_-N0sA{background: var(--main-bg) !important;}");
+                        css.push(".gui_body-wrapper_-N0sA, .blocklySvg {background: var(--main-bg) !important;}");
                         //Scripting area background
                         css.push(".blocklyMainBackground{fill: var(--secondary-bg) !important;}");
                         //Right-click & pop-ups
@@ -653,11 +654,11 @@ SOFTWARE.
                         css.push(".blocklyFlyoutButtonBackground {fill: var(--accent) !important;}.blocklyFlyoutButtonBackground:hover, .blocklyFlyoutButton:hover {fill: var(--accent) !important; filter: brightness(110%) !important;}");
                         css.push("blocklyFlyoutButton > text.blocklyText {fill: var(--text) !important;}");
                         //Text fill of "Make A" buttons
-                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;}");
+                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;");
                         //Backpack header
                         css.push(".backpack_backpack-header_6ltCS {background: var(--accent) !important; color: var(--text) !important;}");
                         //Backpack
-                        css.push(".backpack_backpack-list-inner_10a2A {background: var(--secondary-bg) !important;} .backpack_backpack-item_hwqzQ{background: white !important;}");
+                        css.push(".backpack_backpack-list-inner_10a2A {background: var(--secondary-bg) !important;} .backpack_backpack-item_hwqzQ, .sprite-selector-item_sprite-image-outer_Xs0wN, .backpack_backpack-item_hwqzQ > div {background: var(--main-bg) !important;} .backpack_backpack-item_hwqzQ img {mix-blend-mode: normal !important;}");
                         //Paint & sound editor sidebar
                         css.push(".selector_list-area_1Xbj_{background: var(--accent) !important;} .selector_new-buttons_2qHDd::before {background: none !important;}");
                         //Paint & sound editor main
@@ -682,7 +683,10 @@ SOFTWARE.
                         css.push(".blocklyZoom,  .stage-header_stage-button_hkl9B, .sound-editor_round-button_3NLcW, .sound-editor_button-group_SFPoV {filter: invert(100) hue-rotate(180deg) !important;}");
                         //Set the selected costume/backdrop to have a transparent background as default
                         css.push(".sprite-selector-item_is-selected_24tQj {background:transparent !important;}");
-
+                        //Fixing white area around the paint editor
+                        css.push(".paint-editor_canvas-container_x2D0a {border: 1px solid var(--accent) !important; overflow: hidden !important; }");
+                        //Tweaks for updated paint editor
+                        css.push(".paper-canvas_paper-canvas_1y588 {background-color: var(--secondary-bg) !important; border-radius: .4rem !important;} .paint-editor_canvas-container_x2D0a {border: 2px solid var(--accent) !important; border-radius: .4rem !important; }");
                         editorStyle = GM_addStyle(css.join(" "));
                     }
                     break;
