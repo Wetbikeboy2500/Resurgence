@@ -48,11 +48,10 @@ SOFTWARE.
     'use strict';
     let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
     const getCookie = (cname) => {
-        var name = cname + "=";
-        var decodedCookie = decodeURIComponent(document.cookie);
-        var ca = decodedCookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
+        const name = cname + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (const cookie of ca) {
             while (c.charAt(0) == ' ') {
                 c = c.substring(1);
             }
@@ -68,7 +67,7 @@ SOFTWARE.
         editorTheme();
 
         $(window).bind('hashchange', function () {
-            console.log('Chnage to hash');
+            console.log('Change to hash');
         });
 
         if (url.includes('/editor')) {
@@ -347,7 +346,7 @@ SOFTWARE.
                             .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                             .f()
-                            .apthis(document.querySelector("#customfeatured"));
+                            .apto(document.querySelector("#customfeatured"));
                     });
 
                     json["community_featured_studios"].forEach((a) => {
@@ -358,7 +357,7 @@ SOFTWARE.
                             .f()
                             .add("a").t(a["title"]).a({ "href": `/studios/${a["id"]}/`, "title": a["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .f()
-                            .apthis(document.querySelector("#featuredStudiosContent"));
+                            .apto(document.querySelector("#featuredStudiosContent"));
                     });
 
                     json["curator_top_projects"].forEach((a) => {
@@ -370,7 +369,7 @@ SOFTWARE.
                             .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                             .f()
-                            .apthis(document.querySelector("#customCuratedProjects"));
+                            .apto(document.querySelector("#customCuratedProjects"));
                     })
 
                     json["scratch_design_studio"].forEach((a) => {
@@ -382,7 +381,7 @@ SOFTWARE.
                             .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                             .f()
-                            .apthis(document.querySelector("#designStudioProjects"));
+                            .apto(document.querySelector("#designStudioProjects"));
                     })
 
                     json["community_most_remixed_projects"].forEach((a) => {
@@ -394,7 +393,7 @@ SOFTWARE.
                             .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                             .f()
-                            .apthis(document.querySelector("#communityRemixingProjects"));
+                            .apto(document.querySelector("#communityRemixingProjects"));
                     })
 
                     json["community_most_loved_projects"].forEach((a) => {
@@ -406,7 +405,7 @@ SOFTWARE.
                             .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
                             .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
                             .f()
-                            .apthis(document.querySelector("#communityLovingProjects"));
+                            .apto(document.querySelector("#communityLovingProjects"));
                     })
 
                     //lightweight carousel for projects
@@ -907,7 +906,7 @@ SOFTWARE.
                                 console.warn(err);
                             })
                     })
-                    .apthis(document.querySelector(".custom-messages > .box-header"));
+                    .apto(document.querySelector(".custom-messages > .box-header"));
             };
 
 
@@ -1040,7 +1039,7 @@ SOFTWARE.
             if (GM_getValue("pos", "top") == "top") {
                 document.querySelector('.mod-splash').prepend(box.dom);
             } else {
-                box.apthis(document.getElementsByClassName("mod-splash")[0]);
+                box.apto(document.getElementsByClassName("mod-splash")[0]);
             }
 
             //gets the current version of the code from the github page
@@ -1052,10 +1051,10 @@ SOFTWARE.
                     if (tmpVersion != currentVersion) {
                         if (tmpVersion < GM_info.script.version) {
                             document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
-                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Downgrade (Your version is too revolutionary)").apthis(document.getElementById("recent_version"));
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Downgrade (Your version is too revolutionary)").apto(document.getElementById("recent_version"));
                         } else {
                             document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
-                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Update").apthis(document.getElementById("recent_version"));
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Update").apto(document.getElementById("recent_version"));
                         }
                     } else {
                         document.getElementById("recent_version").innerHTML = "Recent Version: " + version;
@@ -1068,73 +1067,55 @@ SOFTWARE.
     }
 
     function load_userinfo() {
-        if (document.getElementsByTagName("a").length !== 0) {
-            let userlinks = false;
-            userinfo = GM_getValue("user", {});
-            console.log("New profile loader");
-            let links = document.getElementsByTagName("a");
-            for (let a of links) {
-                if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
-                    userlinks = true;
-                    if (!users.includes(a.getAttribute("href")) && !userinfo.hasOwnProperty(a.getAttribute("href"))) {
-                        users.push(a.getAttribute("href"));
-                        console.log("load new user info");
-                    }
+        const loadMap = () => new Map(JSON.parse(GM_getValue('userinfo', [])));
+        const saveMap = (map) => GM_setValue('userinfo', JSON.stringify(Array.from(map.entries)));
+        const setUserInfo = (dom, info) => {
+            dom.addEventListener("mouseenter", (e) => {
+                if (document.querySelector('.userwindow')) {
+                    $('.userwindow').remove();
                 }
-            }
 
-            userinfo.fulllength = users.length;
-            userinfo.length = 0;
-            if (!userlinks) {
-                console.log("No user links");
-            } else if (users.length === 0) {
-                set_userinfo(links);
-            } else {
-                for (let i = 0; i < users.length; i++) {
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = () => {
-                        if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            userinfo.length += 1;
-                            userinfo[String(users[i])] = JSON.parse(xhttp.responseText);
-                            if (userinfo.fulllength === userinfo.length) {
-                                set_userinfo(links);
-                            }
-                        }
-                    };
-                    let string = users[i];
-                    if (users[i].lastIndexOf("/") + 1 === users[i].length) {
-                        string = string.slice(0, -1);
+                const date = new Date(Date.parse(info.history.joined)), dif = calcDate(new Date(), date);
+                element('div').a({ 'class': 'userwindow', 'style': (GM_getValue("theme", false) === "dark") ? `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #000` : `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #fff` })
+                    .t(`${info.username} joined ${dif} from ${info.profile.country}`)
+                    .ap(document.body);
+            });
+            a.addEventListener("mouseleave", (e) => {
+                if (document.querySelector(".userwindow")) {
+                    $('.userwindow').remove();
+                }
+            });
+        };
+
+        if (document.querySelector('a')) {
+            let userinfo = loadMap();
+
+            let htmlUrls = document.querySelector('a');
+            for (const a of htmlUrls) {
+                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/')) {
+                    const url = a.getAttribute('href');
+
+                    if (url.lastIndexOf('/') === url.length) {
+                        url = url.slice(0, -1);
                     }
-                    if (users[i].includes("https://scratch.mit.edu/users/") || users[i].includes("http://scratch.mit.edu/users/")) {
-                        xhttp.open("GET", "https://api.scratch.mit.edu/users/" + string.substring(string.indexOf("/users/") + 7), true);
+
+                    //check if already loaded
+                    if (userinfo.has(url)) {
+                        setUserInfo(a, userinfo.get(url));
                     } else {
-                        xhttp.open("GET", "https://api.scratch.mit.edu" + string, true);
+                        //make new request
+                        fetch(url.includes("https://scratch.mit.edu/users/") || url.includes("http://scratch.mit.edu/users/") ? url : `https://api.scratch.mit.edu${url}`)
+                        .then(response => response.json())
+                        .then(json => {
+                            userinfo.set(url, json);
+                            setUserInfo(a, json);
+                        }).catch(e => console.log(e));
                     }
-                    xhttp.send(null);
                 }
             }
-        }
-    }
 
-    function set_userinfo(links) {
-        GM_setValue("user", userinfo);
-        //run final code here
-        for (let a of links) {
-            if (userinfo.hasOwnProperty(a.getAttribute("href")) && !a.getAttribute("href").includes(GM_getValue("username", ""))) {
-                a.addEventListener("mouseenter", (e) => {
-                    const info = userinfo[a.getAttribute("href")], date = new Date(Date.parse(info.history.joined)), dif = calcDate(new Date(), date);
-                    element("div").a("class", "userwindow").a("style", (GM_getValue("theme", false) === "dark") ? `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #000` : `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #fff`)
-                        .t(`${info.username} joined ${dif} from ${info.profile.country}`)
-                        .ap(document.body);
-                });
-                a.addEventListener("mouseleave", (e) => {
-                    if (document.querySelector(".userwindow")) {
-                        document.querySelector(".userwindow").parentElement.removeChild(document.querySelector(".userwindow"));
-                    }
-                });
-            }
+            saveMap(userinfo);
         }
-        console.log("Finished user info");
     }
 
     function calcDate(date1, date2) {
@@ -1312,7 +1293,7 @@ SOFTWARE.
         GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
         //adds the faded background
         waitTillLoad('#pagewrapper').then(() => {
-            let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
+            let div = element("div").a("id", "display_img").apto(document.getElementById("pagewrapper"));
             //div that holds the image
             let div1 = document.createElement("div");
             div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
@@ -1388,7 +1369,7 @@ SOFTWARE.
         if (Holiday) {
             const holidayDate = Holiday.date, holidayName = Holiday.name;
             waitTillLoad('.box-header').then(() => {
-                let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").apthis(document.querySelector(".box-header"));
+                let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").apto(document.querySelector(".box-header"));
                 let x = setInterval(() => {
                     const difference = holidayDate - new Date().getTime(),
                         days = Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -1764,7 +1745,7 @@ SOFTWARE.
             dom.appendChild(this.dom);
             return dom;
         }
-        apthis(dom) {
+        apto(dom) {
             dom.appendChild(this.dom);
             return this.dom;
         }
