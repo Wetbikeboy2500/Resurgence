@@ -33,7 +33,7 @@ SOFTWARE.
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
 // @require      https://raw.githubusercontent.com/pawelgrzybek/siema/master/dist/siema.min.js
-// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
+// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
 // @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
@@ -46,40 +46,31 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
+    let url = location.protocol + '//' + location.host + location.pathname, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
     const getCookie = (cname) => {
         const name = cname + "=";
         const decodedCookie = decodeURIComponent(document.cookie);
         const ca = decodedCookie.split(';');
-        for (const cookie of ca) {
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
+        for (let cookie of ca) {
+            while (cookie.charAt(0) == ' ') {
+                cookie = cookie.substring(1);
             }
-            if (c.indexOf(name) == 0) {
-                return c.substring(name.length, c.length);
+            if (cookie.indexOf(name) == 0) {
+                return cookie.substring(name.length, cookie.length);
             }
         }
         return "";
     };
     if (!inIframe()) {
-        window.addEventListener('popstate', () => console.log('url change'));
-
         editorTheme();
 
-        $(window).bind('hashchange', function () {
-            console.log('Change to hash');
-        });
-
         if (url.includes('/editor')) {
-            console.log('editor');
             document.addEventListener("DOMContentLoaded", () => {
                 betterDesign();
 
                 projectPageClick();
             });
         } else {
-
-            console.log('not editor');
             if (GM_getValue("theme", false) === "dark") {
                 style1 = GM_addStyle(GM_getResourceText("CSS"));
             } else {
@@ -111,7 +102,6 @@ SOFTWARE.
                 GM_addStyle(styleTip);
                 dark_theme();
                 fix_nav();
-                //load_messages();
                 add_search();
                 load_extras();
                 load_banner();
@@ -125,8 +115,6 @@ SOFTWARE.
                             build_carousel();
                         });
                 }
-
-                //fixProjectPage(); this will need to be a function to fix the cloud variables view data
             });
         }
     }
@@ -138,7 +126,6 @@ SOFTWARE.
             pageType = "new";
             document.querySelector(".ideas").childNodes[0].setAttribute("href", "/discuss");
         } else {
-            console.log('old')
             //old theme
             pageType = "old";
             const tips = document.querySelector('.site-nav > :nth-child(3) > a');
@@ -161,11 +148,7 @@ SOFTWARE.
     }
 
     function betterDesign() {
-        console.log('better design');
-
-
         let design = GM_getValue("design", 3);
-
 
         //uses a new promise that will wait for it to be loaded to help async actions
         waitTillLoad("[class^=menu-bar_main-menu] [class^=button_outlined-button]")
@@ -209,7 +192,6 @@ SOFTWARE.
                     .add("span").a("class", [a.classList.item(0), a.classList.item(1), "design_toggle"].join(" ")).a("style", "background: hsla(30, 100%, 55%, 1);")
                     .e("click", (e) => {
                         adjustDesign();
-                        console.log("clicked");
 
                         if (document.querySelector('[class^=target-pane_target-pane]').classList.contains("reversed")) {
                             GM_setValue("design", 2);
@@ -258,8 +240,6 @@ SOFTWARE.
             fetch("https://api.scratch.mit.edu/proxy/featured")
                 .then((response) => response.json())
                 .then((json) => {
-                    console.log("Got projects to load");
-
                     //mark the old boxes to remove in future
                     let elements = document.querySelectorAll(".splash .inner .box");
 
@@ -478,7 +458,6 @@ SOFTWARE.
     }
 
     function load_newpage() {
-        console.log("load newpage");
         let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
                 $('body').attr('style', 'overflow-y:scroll;');
@@ -585,7 +564,6 @@ SOFTWARE.
     function add_search() {
         //adds google to the search
         if (url.includes("/search/")) {
-            console.log("search");
             //first load new search
             let search = document.createElement("gcse:searchresults-only");
             let display = document.getElementById("projectBox");
@@ -616,7 +594,6 @@ SOFTWARE.
     }
     //adds dark theme button
     function dark_theme() {
-        console.log(GM_getValue("theme", false));
         removeTheme();
         if (GM_getValue("theme", false) === "dark") {
             //want dark theme
@@ -641,11 +618,7 @@ SOFTWARE.
     //adds dark theme for 3.0 editor
     function editorTheme() {
         //3.0 Theme Userscript Framework by infinitytec modified by Wetbikeboy2500. Released under the MIT license.
-        console.log('Editor Theme: ' + url.includes('/projects'));
         if (url.includes('/projects')) {
-            console.log('run theme');
-            console.log(GM_getValue('editorTheme', 'default'));
-
             let css = [];
             const mainBG = '#111111';
             const secondaryBG = '#151515';
@@ -735,8 +708,6 @@ SOFTWARE.
         box.apAfter('.splash-header');
 
         _waitTillLoad(() => accountInfo.hasOwnProperty("user")).then(() => {
-            console.log('loading wait code');
-
             //local reference
             let user = { token: accountInfo.user.token, username: accountInfo.user.username };
 
@@ -759,7 +730,6 @@ SOFTWARE.
             };
 
             const loadMessages = (messages) => {
-                console.log('load messgaes');
                 if (messages == null)
                     return;
 
@@ -940,7 +910,6 @@ SOFTWARE.
     //custom banner to display information that the user may want
     function load_banner() {
         if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
-            console.log("loading banner");
             let newsUpdatesExpanded = false;
 
             let svgCircle = svg("downCircle");
@@ -1105,11 +1074,11 @@ SOFTWARE.
                     } else {
                         //make new request
                         fetch(url.includes("https://scratch.mit.edu/users/") || url.includes("http://scratch.mit.edu/users/") ? url : `https://api.scratch.mit.edu${url}`)
-                        .then(response => response.json())
-                        .then(json => {
-                            userinfo.set(url, json);
-                            setUserInfo(a, json);
-                        }).catch(e => console.log(e));
+                            .then(response => response.json())
+                            .then(json => {
+                                userinfo.set(url, json);
+                                setUserInfo(a, json);
+                            }).catch(e => console.log(e));
                     }
                 }
             }
@@ -1179,6 +1148,8 @@ SOFTWARE.
             return " " + time + unit + "s ago";
         }
     }
+
+    //TODO: look into an addall for these blocks
     //adds scratchblockcode load support
     function load_scratchblockcode() {
         if (GM_getValue("blockCode", true)) {
@@ -1243,7 +1214,6 @@ SOFTWARE.
                                 }, false);
                             }
                         }
-                        console.log("Finished ScratchBlocks");
                     }
                 };
                 xhttp.open("GET", url, true);
@@ -1254,7 +1224,6 @@ SOFTWARE.
     }
 
     function load_bbcode() {
-        console.log("load bbcode");
         let posts = document.getElementsByClassName("blockpost");
         for (let a of posts) {
             fetch(`https://scratch.mit.edu${a.querySelector(".box-head").querySelector("a").getAttribute("href")}source/`)
