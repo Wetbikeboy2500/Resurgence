@@ -235,7 +235,6 @@ SOFTWARE.
 
     function build_carousel() {
         if (GM_getValue('carousel', false)) {
-
             //changes how projects are cycled through with them no longer using the same theme
             fetch("https://api.scratch.mit.edu/proxy/featured")
                 .then((response) => response.json())
@@ -243,14 +242,26 @@ SOFTWARE.
                     //mark the old boxes to remove in future
                     let elements = document.querySelectorAll(".splash .inner .box");
 
-                    for (let a of elements) {
+                    for (const a of elements) {
                         console.log(a.querySelector(".box-header > h4").innerHTML.trim());
-                        let name = a.querySelector(".box-header > h4").innerHTML.trim();
-                        let list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
-                        for (let b of list) {
+                        const name = a.querySelector(".box-header > h4").innerHTML.trim();
+                        const list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
+                        const list2 = [`Projects by Scratchers I'm Following`, `Projects in Studios I'm Following`];
+                        let found = false;
+                        for (const b of list) {
                             if (name.toLowerCase().includes(b.toLowerCase())) {
                                 a.classList.add("marked");
+                                found = true;
                                 break;
+                            }
+                        }
+                        if (!found) {
+                            for (const b of list2) {
+                                if (name.toLowerCase().includes(b.toLowerCase())) {
+                                    a.classList.add("markedSecond");
+                                    found = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -316,40 +327,51 @@ SOFTWARE.
                         },
                     ]
 
-                    //build all the scrolls
-                    element().each(templates, (elem, template) => {
-                        elem.add('div').a({ "class": "box", "id": template.id })
-                            .add("div").a("class", "box-header")
-                            .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { template.siema().prev(5); }))
-                            .add("h4").t(template.name).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                            .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { template.siema().next(5); }))
-                            .add("a").a({ "style": "float: right", href: (template.link) ? template.link.href : '#' }).t((template.link) ? template.link.name : '').f().f()
-                            .add("div").a({ "class": "box-content", "id": template.contentID, "style": "height: 160px;" })
-                            .each(template.json, (elem, data) => {
-                                if (template.jsonType === 'project') {
-                                    elem.add('div').a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${data["id"]}/`)
-                                        .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(data["title"]).a({ "href": `/projects/${data["id"]}/`, "title": data["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(data["creator"]).a({ "href": `/users/${data["creator"]}/`, "title": data["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .f();
-                                } else {
-                                    elem.add('div').a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
-                                        .add("div").a({ "style": "width: 160px; height: 120px; padding: 5px;" })
-                                        .add("a").a("href", `/studios/${data["id"]}/`)
-                                        .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(data["title"]).a({ "href": `/studios/${data["id"]}/`, "title": data["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .f()
-                                        .f();
-                                }
-                            })
-                            .f()
-                            .f();
-                    }).aftap(document.querySelector(target));
+                    const buildTemplate = (_templates, _height = '160px') => {
+                        //build all the scrolls
+                        element().each(_templates, (elem, template) => {
+                            elem.add('div').a({ "class": "box", "id": template.id })
+                                .add("div").a("class", "box-header")
+                                .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { template.siema().prev(5); }))
+                                .add("h4").t(template.name).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { template.siema().next(5); }))
+                                .add("a").a({ "style": "float: right", href: (template.link) ? template.link.href : '#' }).t((template.link) ? template.link.name : '').f().f()
+                                .add("div").a({ "class": "box-content", "id": template.contentID, "style": `height: ${_height};` })
+                                .each(template.json, (elem, data) => {
+                                    if (template.jsonType === 'project') {
+                                        elem.add('div').a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                            .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                            .add("a").a("href", `/projects/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/projects/${data["id"]}/`, "title": data["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .add("a").t(data["creator"]).a({ "href": `/users/${data["creator"]}/`, "title": data["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                            .close();
+                                    } else if (template.jsonType === 'newProject') {
+                                        //this is to support the independent calls with use a different format
+                                        elem.add('div').a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
+                                            .add("div").a({ "style": "width: 160px; height: 140px; padding: 5px;" })
+                                            .add("a").a("href", `/projects/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["image"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/projects/${data["id"]}/`, "title": data["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .add("a").t(data["author"]["username"]).a({ "href": `/users/${data["author"]["username"]}/`, "title": data["author"]["username"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                            .close();
+                                    } else {
+                                        elem.add('div').a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
+                                            .add("div").a({ "style": "width: 160px; height: 120px; padding: 5px;" })
+                                            .add("a").a("href", `/studios/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/studios/${data["id"]}/`, "title": data["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .close();
+                                    }
+                                })
+                                .close();
+                        }).aftap(document.querySelector(target));
+                    };
+
+                    buildTemplate(templates);
 
                     //these need to be called after content is added to current dom since there is no delay for the selector
                     const siema1 = new Siema({
@@ -389,6 +411,62 @@ SOFTWARE.
                     });
 
                     GM_addStyle(".marked {display: none;}");
+
+                    //load in the other two scrolls
+                    _waitTillLoad(() => accountInfo.hasOwnProperty("user")).then(async () => {
+                        const [userFollowed, studioFollowed] = await Promise.all([
+                            fetch(`https://api.scratch.mit.edu/users/${accountInfo.user.username}/following/users/projects`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Token': accountInfo.user.token
+                                }
+                            }).then(r => r.json()),
+                            fetch(`https://api.scratch.mit.edu/users/${accountInfo.user.username}/following/studios/projects`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Token': accountInfo.user.token
+                                }
+                            }).then(r => r.json()),
+                        ]);
+
+                        console.log(userFollowed);
+
+                        const info = [
+                            {
+                                id: 'followedProjects',
+                                name: 'Projects by Scratchers You Follow',
+                                contentID: 'followedProjectsContent',
+                                json: userFollowed,
+                                jsonType: 'newProject',
+                                siema: () => siema10,
+                            },
+                            {
+                                id: 'followedStudios',
+                                name: 'Projects From Studios You Follow',
+                                contentID: 'followedStudiosContent',
+                                json: studioFollowed,
+                                jsonType: 'newProject',
+                                siema: () => siema11,
+                            },
+                        ];
+
+                        buildTemplate(info, '150px');
+
+                        const siema10 = new Siema({
+                            selector: "#" + info[0].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                            siema11 = new Siema({
+                                selector: "#" + info[1].contentID,
+                                perPage: 5,
+                                loop: false
+                            });
+
+                        myLazyLoad.update();
+
+                        GM_addStyle(".markedSecond {display: none;}");
+                    });
                 })
                 .catch((e) => {
                     console.warn("An error occured in theme tweaks in fetch", e);
@@ -418,67 +496,64 @@ SOFTWARE.
     function load_newpage() {
         let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
-                $('body').attr('style', 'overflow-y:scroll;');
+                document.body.setAttribute('style', 'overflow-y:scroll;');
                 $('#res-set-modal').hide(500);
-                $('#res-set-modal-back').toggleClass('modal-hidden');
+                document.querySelector('#res-set-modal-back').classList.toggle('modal-hidden');
                 displaySettingsModal = false;
             } else {
-                $('body').attr('style', 'overflow-y:hidden;');
+                document.body.setAttribute('style', 'overflow-y:hidden;');
                 $('#res-set-modal').show(500);
-                $('#res-set-modal-back').toggleClass('modal-hidden');
-                if (GM_getValue("extras", true)) {
-                    $("#extrasIO").prop('checked', "checked");
+                document.querySelector('#res-set-modal-back').classList.toggle('modal-hidden');
+
+                try {
+                    document.querySelector('#extrasIO').checked = GM_getValue("extras", true);
+                    document.querySelector('#msgIO').checked = GM_getValue("msg", true);
+                    document.querySelector('#timerIO').checked = GM_getValue("timer", true);
+                    document.querySelector('#blocksIO').checked = GM_getValue("blockCode", true);
+                    document.querySelector('#embedIO').checked = GM_getValue("embedFeature", true);
+                    document.querySelector('#bannerIO').checked = GM_getValue("bannerOff", true);
+                    document.querySelector('#messageThemeIO').checked = GM_getValue("messageTheme", false);
+                    document.querySelector('#tweakThemeIO').checked = GM_getValue("tweakTheme", false);
+
+                    document.querySelector('#themeIO').value = GM_getValue("theme", "light");
+                    document.querySelector('#editorThemeIO').value = GM_getValue("editorTheme", "default");
+                    document.querySelector('#posIO').value = GM_getValue("pos", "top");
+                    document.querySelector('#disText').value = GM_getValue("forumTitle", "Forums");
+
+                    //put the newest modal values at the bottom since they will throw an error in dev and prevent other values from being set
+                    document.querySelector('#carouselIO').checked = GM_getValue("carousel", false);
+                } catch (e) {
+                    console.log('Error with setting modal values', e);
                 }
-                if (GM_getValue("msg", true)) {
-                    $("#msgIO").prop('checked', "checked");
-                }
-                if (GM_getValue("timer", true)) {
-                    $("#timerIO").prop('checked', "checked");
-                }
-                if (GM_getValue("blockCode", true)) {
-                    $("#blocksIO").prop('checked', "checked");
-                }
-                if (GM_getValue("embedFeature", true)) {
-                    $("#embedIO").prop('checked', "checked");
-                }
-                if (GM_getValue("bannerOff", true)) {
-                    $("#bannerIO").prop('checked', "checked");
-                }
-                if (GM_getValue("messageTheme", false)) {
-                    $("#messageThemeIO").prop("checked", "checked");
-                }
-                if (GM_getValue("tweakTheme", false)) {
-                    $("#tweakThemeIO").prop("checked", "checked");
-                }
-                if (GM_getValue("carousel", false)) {
-                    $("#carouselIO").prop("checked", "checked");
-                }
-                $("#playerIO").val(GM_getValue("player", "D"));
-                $("#themeIO").val(GM_getValue("theme", "light"));
-                $("#editorThemeIO").val(GM_getValue("editorTheme", "default"));
-                $("#posIO").val(GM_getValue("pos", "top"));
-                $("#disText").val(GM_getValue("forumTitle", "Forums"));
+
                 displaySettingsModal = true;
             }
         };
         //adds popup settings modal
         GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
-        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').append(GM_getResourceText("Modal"));//use resources instead of direct loading to avoid cors issues and changing of data location
 
-        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
-        $('#res-set-modal-back').click(toggleModal);
+        element('div').a({ id: 'res-set-modal', class: 'modal-hidden', tabindex: '1' })
+            .addDom(document.createRange().createContextualFragment(GM_getResourceText("Modal")))
+            .close()
+            .add('div').a({ id: 'res-set-modal-back', class: 'modal-hidden' })
+            .e('click', toggleModal)
+            .close()
+            .ap(document.body);
 
         //IO for sliders
-        $('#extrasIO').click(() => GM_setValue("extras", !GM_getValue("extras", false)));
-        $('#msgIO').click(() => GM_setValue("msg", !GM_getValue("msg", false)));
-        $('#timerIO').click(() => GM_setValue("timer", !GM_getValue("timer", false)));
-        $('#blocksIO').click(() => GM_setValue("blockCode", !GM_getValue("blockCode", false)));
-        $('#embedIO').click(() => GM_setValue("embedFeature", !GM_getValue("embedFeature", false)));
-        $('#bannerIO').click(() => GM_setValue("bannerOff", !GM_getValue("bannerOff", false)));
-        $('#messageThemeIO').click(() => GM_setValue("messageTheme", !GM_getValue("messageTheme", false)));
-        $('#tweakThemeIO').click(() => { GM_setValue("tweakTheme", !GM_getValue("tweakTheme", false)); theme_tweaks(); });
-        $('#carouselIO').click(() => GM_setValue("carousel", !GM_getValue("carousel", false)));
+        try {
+            document.querySelector('#extrasIO').addEventListener('click', (event) => GM_setValue("extras", event.currentTarget.checked));
+            document.querySelector('#msgIO').addEventListener('click', (event) => GM_setValue("msg", event.currentTarget.checked));
+            document.querySelector('#timerIO').addEventListener('click', (event) => GM_setValue("timer", event.currentTarget.checked));
+            document.querySelector('#blocksIO').addEventListener('click', (event) => GM_setValue("blockCode", event.currentTarget.checked));
+            document.querySelector('#embedIO').addEventListener('click', (event) => GM_setValue("embedFeature", event.currentTarget.checked));
+            document.querySelector('#bannerIO').addEventListener('click', (event) => GM_setValue("bannerOff", event.currentTarget.checked));
+            document.querySelector('#messageThemeIO').addEventListener('click', (event) => GM_setValue("messageTheme", event.currentTarget.checked));
+            document.querySelector('#tweakThemeIO').addEventListener('click', (event) => GM_setValue("tweakTheme", event.currentTarget.checked));
+            document.querySelector('#carouselIO').addEventListener('click', (event) => GM_setValue("carousel", event.currentTarget.checked));
+        } catch (e) {
+            console.log('Error adding modal event' + e);
+        }
 
         //IO for dropdowns
         $(document).on("change", "#disText", (event) => {
@@ -519,6 +594,7 @@ SOFTWARE.
             }
         }
     }
+
     function add_search() {
         //adds google to the search
         if (url.includes("/search/")) {
@@ -1022,20 +1098,30 @@ SOFTWARE.
             let userinfo = loadMap();
 
             let htmlUrls = document.querySelectorAll('a');
+
+            //TODO: this needs to first determine all the user urls and compile those so it only does a single request for the user info for multiple of the same user links
             for (const a of htmlUrls) {
                 if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/')) {
-                    const url = a.getAttribute('href');
+                    let url = a.getAttribute('href');
 
                     if (url.lastIndexOf('/') === url.length) {
                         url = url.slice(0, -1);
                     }
 
+                    console.log(url);
+
                     //check if already loaded
                     if (userinfo.has(url)) {
                         setUserInfo(a, userinfo.get(url));
                     } else {
+                        if (url.includes(`http://scratch.mit.edu/users/`)) {
+                            url = url.replace(`http://`, `https://`);
+                        }
+
+                        url = url.replace(`https://scratch.mit.edu`, ``);
+
                         //make new request
-                        fetch(url.includes("https://scratch.mit.edu/users/") || url.includes("http://scratch.mit.edu/users/") ? url : `https://api.scratch.mit.edu${url}`)
+                        fetch(`https://api.scratch.mit.edu${url}`)
                             .then(response => response.json())
                             .then(json => {
                                 userinfo.set(url, json);
@@ -1639,7 +1725,7 @@ SOFTWARE.
 
 
     /*
-    dom-creation 1.2.0-modified https://github.com/Wetbikeboy2500/dom-creation
+    dom-creation 1.2.1-modified https://github.com/Wetbikeboy2500/dom-creation
 
     MIT License
 
@@ -1771,12 +1857,23 @@ SOFTWARE.
          * This will only work if the element is not on the top level
          */
         f() {
-            if (this.pointer === null) {
+            if (this.pointer == null) {
                 console.warn('Called .f() on a top level element');
                 return this;
             } else {
                 this.pointer.dom.appendChild(this.dom);
                 return this.pointer;
+            }
+        }
+        /**
+         * Cloes all elements up to the top layer
+         */
+        close() {
+            if (this.pointer) {
+                this.pointer.dom.appendChild(this.dom);
+                return this.pointer.close();
+            } else {
+                return this;
             }
         }
         /**
