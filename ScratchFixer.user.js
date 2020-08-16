@@ -203,7 +203,7 @@ SOFTWARE.
                     })
                     .add("div")
                     .add("span").t("2.0 Design")
-                    .f().f().f()
+                    .close()
                     .aftap(document.querySelector("[class^=menu-bar_main-menu] div:nth-child(6)"));
             })
             .catch((err) => {
@@ -243,7 +243,6 @@ SOFTWARE.
                     let elements = document.querySelectorAll(".splash .inner .box");
 
                     for (const a of elements) {
-                        console.log(a.querySelector(".box-header > h4").innerHTML.trim());
                         const name = a.querySelector(".box-header > h4").innerHTML.trim();
                         const list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
                         const list2 = [`Projects by Scratchers I'm Following`, `Projects in Studios I'm Following`];
@@ -429,8 +428,6 @@ SOFTWARE.
                             }).then(r => r.json()),
                         ]);
 
-                        console.log(userFollowed);
-
                         const info = [
                             {
                                 id: 'followedProjects',
@@ -556,41 +553,57 @@ SOFTWARE.
         }
 
         //IO for dropdowns
-        $(document).on("change", "#disText", (event) => {
-            GM_setValue("forumTitle", document.getElementById("disText").value);
-        });
-        $(document).on("change", "#themeIO", (event) => {
-            GM_setValue("theme", document.getElementById("themeIO").value);
-            dark_theme();
-        });
-        $(document).on("change", "#editorThemeIO", (event) => {
-            GM_setValue("editorTheme", document.getElementById("editorThemeIO").value);
-            editorTheme();
-        });
-        $(document).on("change", "#posIO", (event) => {
-            GM_setValue("pos", document.getElementById("posIO").value);
-        });
+        try {
+            document.querySelector('#disText').addEventListener('change', (event) => GM_setValue("forumTitle", event.currentTarget.value));
+            document.querySelector('#themeIO').addEventListener('change', (event) => {
+                GM_setValue("theme", event.currentTarget.value);
+                dark_theme();
+            });
+            document.querySelector('#editorThemeIO').addEventListener('change', (event) => {
+                GM_setValue("editorTheme", event.currentTarget.value);
+                editorTheme();
+            });
+            document.querySelector('#posIO').addEventListener('change', (event) => GM_setValue("pos", event.currentTarget.value));
+        } catch (e) {
+            console.log('Error adding modal event' + e);
+        }
 
         //adds settings option for user panel
         if (pageType == 'new') {
-            waitTillLoad('.dropdown').then(() => {
-                $('.divider').before('<li id="res-set"><a>Resurgence Settings');
-                $('#res-set').click(toggleModal);
+            waitTillLoad('.dropdown').then((elem) => {
+                const divider = elem.querySelector('.divider');
+                const dom = element('li').a('id', 'res-set')
+                    .e('click', toggleModal)
+                    .add('a').t('Resurgence Settings').close().dom;
+                divider.parentElement.insertBefore(dom, divider);
             });
         } else {
-            waitTillLoad('#logout').then(() => {
-                $('#logout').before('<li id="res-set"><a>Resurgence Settings');
-                $('#res-set').click(toggleModal);
+            waitTillLoad('#logout').then((elem) => {
+                const dom = element('li').a('id', 'res-set')
+                    .e('click', toggleModal)
+                    .add('a').t('Resurgence Settings').close().dom;
+
+                elem.parentElement.insertBefore(dom, elem);
             });
         }
 
         //embeds users featured project
         if (GM_getValue("embedFeature", true)) {
             if (url.includes("/users/")) {
-                var featProject = $("#featured-project").attr("href").substr(9);
-                var projectPlayer = '<iframe allowtransparency="true" width="282" height="220" src="//scratch.mit.edu/projects/embed' + featProject + '?autostart=false" frameborder="0" allowfullscreen>';
-                $("div.stage").replaceWith(projectPlayer);
-                //alert(featProject);
+                const featuredProject = new URL(document.querySelector('#featured-project').href).pathname.substr(9);
+                const height = 220;
+                const width = Math.round(1.2 * 220);
+                const dom = element('iframe').a({
+                    allowtransparency: 'true',
+                    width: width.toString(),
+                    height: height.toString(),
+                    src: '//scratch.mit.edu/projects/embed' + featuredProject + '?autostart=false',
+                    frameborder: '0',
+                    allowfullscreen: '',
+                    scrolling: 'no',
+                }).f().dom;
+                const stage = document.querySelector('div.stage');
+                stage.replaceWith(dom);
             }
         }
     }
@@ -611,7 +624,7 @@ SOFTWARE.
             let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
-            element("a").e("click", () => {
+            element('a').e('click', () => {
                 //make button look selected
                 document.getElementsByClassName("active")[0].removeAttribute("class");
                 document.getElementById("active").setAttribute("class", "active");
@@ -619,10 +632,11 @@ SOFTWARE.
                 display.childNodes[0].style.display = "none";
                 display.childNodes[1].style.display = "none";
                 document.getElementById("___gcse_0").style.display = "block";
-            }, false)
-                .append(element("li").a("id", "active")
-                    .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
-                    .append(element("span").t("Google")))
+            })
+                .add('li').a('id', 'active')
+                .add('img').a({ 'class': 'tab-icon', 'style': 'height: 24px;' }).f()
+                .add('span').t('Google').f()
+                .close()
                 .ap(document.getElementsByClassName("sub-nav tabs")[0]);
         }
     }
@@ -1099,39 +1113,64 @@ SOFTWARE.
 
             let htmlUrls = document.querySelectorAll('a');
 
+            let finalUrls = {};
+
+            const filter = ['/studio', '/projects',];
+
             //TODO: this needs to first determine all the user urls and compile those so it only does a single request for the user info for multiple of the same user links
             for (const a of htmlUrls) {
-                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/')) {
+                //this won't work if your username has studio in it. I am not too concerned about that
+                
+                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/') && !a.getAttribute('href').includes('/studio') && !a.getAttribute('href').includes('/projects')) {
                     let url = a.getAttribute('href');
 
+                    console.log(url);
+
+                    //remove last slash
                     if (url.lastIndexOf('/') === url.length) {
                         url = url.slice(0, -1);
                     }
 
+                    //convert to a safe call
+                    if (url.includes(`http://scratch.mit.edu/users/`)) {
+                        url = url.replace(`http://`, `https://`);
+                    }
+
+                    url = url.replace(`https://scratch.mit.edu`, ``);
+
                     console.log(url);
 
-                    //check if already loaded
-                    if (userinfo.has(url)) {
-                        setUserInfo(a, userinfo.get(url));
+                    if (finalUrls.hasOwnProperty(url)) {
+                        finalUrls[url].push(a);
                     } else {
-                        if (url.includes(`http://scratch.mit.edu/users/`)) {
-                            url = url.replace(`http://`, `https://`);
-                        }
-
-                        url = url.replace(`https://scratch.mit.edu`, ``);
-
-                        //make new request
-                        fetch(`https://api.scratch.mit.edu${url}`)
-                            .then(response => response.json())
-                            .then(json => {
-                                userinfo.set(url, json);
-                                setUserInfo(a, json);
-                            }).catch(e => console.log(e));
+                        finalUrls[url] = [a];
                     }
                 }
             }
 
-            saveMap(userinfo);
+            return;
+
+            for (const key in finalUrls) {
+                const value = finalUrls[key];
+
+                //check if already loaded
+                if (userinfo.has(key)) {
+                    for (const a of value) {
+                        setUserInfo(a, userinfo.get(key));
+                    }
+                } else {
+                    //make new request
+                    fetch(`https://api.scratch.mit.edu${url}`)
+                        .then(response => response.json())
+                        .then(json => {
+                            userinfo.set(url, json);
+                            for (const a of value) {
+                                setUserInfo(a, json);
+                            }
+                            saveMap(userinfo);
+                        }).catch(e => console.log(e));
+                }
+            }
         }
     }
 
