@@ -1089,7 +1089,7 @@ SOFTWARE.
 
     function load_userinfo() {
         const loadMap = () => new Map(JSON.parse(GM_getValue('userinfo', '[]')));
-        const saveMap = (map) => GM_setValue('userinfo', JSON.stringify(Array.from(map.entries)));
+        const saveMap = (map) => GM_setValue('userinfo', JSON.stringify(Array.from(map.entries())));
         const setUserInfo = (dom, info) => {
             dom.addEventListener("mouseenter", (e) => {
                 if (document.querySelector('.userwindow')) {
@@ -1115,16 +1115,12 @@ SOFTWARE.
 
             let finalUrls = {};
 
-            const filter = ['/studio', '/projects',];
+            const filter = ['/studio', '/projects', '/followers', '/following', '/favorites'];
 
             //TODO: this needs to first determine all the user urls and compile those so it only does a single request for the user info for multiple of the same user links
             for (const a of htmlUrls) {
-                //this won't work if your username has studio in it. I am not too concerned about that
-                
-                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/') && !a.getAttribute('href').includes('/studio') && !a.getAttribute('href').includes('/projects')) {
+                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/') && !filter.some((value) => a.getAttribute('href').includes(value))) {
                     let url = a.getAttribute('href');
-
-                    console.log(url);
 
                     //remove last slash
                     if (url.lastIndexOf('/') === url.length) {
@@ -1138,8 +1134,6 @@ SOFTWARE.
 
                     url = url.replace(`https://scratch.mit.edu`, ``);
 
-                    console.log(url);
-
                     if (finalUrls.hasOwnProperty(url)) {
                         finalUrls[url].push(a);
                     } else {
@@ -1148,22 +1142,21 @@ SOFTWARE.
                 }
             }
 
-            return;
-
             for (const key in finalUrls) {
                 const value = finalUrls[key];
 
                 //check if already loaded
                 if (userinfo.has(key)) {
+                    console.log('info already exists', key);
                     for (const a of value) {
                         setUserInfo(a, userinfo.get(key));
                     }
                 } else {
                     //make new request
-                    fetch(`https://api.scratch.mit.edu${url}`)
+                    fetch(`https://api.scratch.mit.edu${key}`)
                         .then(response => response.json())
                         .then(json => {
-                            userinfo.set(url, json);
+                            userinfo.set(key, json);
                             for (const a of value) {
                                 setUserInfo(a, json);
                             }
