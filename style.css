@@ -918,6 +918,10 @@ element.style {
     filter: invert(100%) !important;
 }
 
+.custombb {
+    filter: invert(100%) !important;
+}
+
 .preview .project-description {
     border-radius: 0px !important;
 }
