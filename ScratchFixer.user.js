@@ -28,7 +28,6 @@ SOFTWARE.
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
-// @match        https://projects.scratch.mit.edu/resurgence
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
@@ -675,7 +674,6 @@ SOFTWARE.
 
             switch (GM_getValue('editorTheme', 'default')) {
                 case 'dark':
-                    //TODO: check editor with dark theme
                     if (editorStyle === null) {
                         //Set colors for the editor. Names should explain what they are. They will automatically be applied to different parts of the editor. For the purpose of simplification, the red cancel button and the hover/active/focus effects are hard-coded. The effects use filters so they should be good-to-go in most cases.
                         css.push(`:root {--main-bg: ${mainBG}; --secondary-bg: ${secondaryBG}; --accent: ${accent}; --text: ${text};}`);
@@ -702,7 +700,7 @@ SOFTWARE.
                         css.push(".blocklyFlyoutButtonBackground {fill: var(--accent) !important;}.blocklyFlyoutButtonBackground:hover, .blocklyFlyoutButton:hover {fill: var(--accent) !important; filter: brightness(110%) !important;}");
                         css.push("blocklyFlyoutButton > text.blocklyText {fill: var(--text) !important;}");
                         //Text fill of "Make A" buttons
-                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;");
+                        css.push(".blocklyFlyoutButton .blocklyText {fill: var(--text) !important;}");
                         //Backpack header
                         css.push(".backpack_backpack-header_6ltCS {background: var(--accent) !important; color: var(--text) !important;}");
                         //Backpack
@@ -735,6 +733,7 @@ SOFTWARE.
                         css.push(".paint-editor_canvas-container_x2D0a {border: 1px solid var(--accent) !important; overflow: hidden !important; }");
                         //Tweaks for updated paint editor
                         css.push(".paper-canvas_paper-canvas_1y588 {background-color: var(--secondary-bg) !important; border-radius: .4rem !important;} .paint-editor_canvas-container_x2D0a {border: 2px solid var(--accent) !important; border-radius: .4rem !important; }");
+
                         editorStyle = GM_addStyle(css.join(" "));
                     }
                     break;
@@ -1237,73 +1236,73 @@ SOFTWARE.
                 let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
 
                 fetch(url)
-                .then(r => r.text())
-                .then((r) => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(r, 'text/html');
-                    let originalPost = [], displayedPost = [], originalDescription = [], displayedDescription = [];
+                    .then(r => r.text())
+                    .then((r) => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(r, 'text/html');
+                        let originalPost = [], displayedPost = [], originalDescription = [], displayedDescription = [];
 
-                    let posts = document.querySelectorAll('.post_body_html');
-                    for (const a of posts) {
-                        if (a.querySelector('.blocks')) {
-                            displayedPost.push(...a.querySelectorAll('.blocks'));
+                        let posts = document.querySelectorAll('.post_body_html');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                displayedPost.push(...a.querySelectorAll('.blocks'));
+                            }
                         }
-                    }
 
-                    posts = doc.querySelectorAll('.post_body_html');
-                    for (const a of posts) {
-                        if (a.querySelector('.blocks')) {
-                            originalPost.push(...a.querySelectorAll('.blocks'));
+                        posts = doc.querySelectorAll('.post_body_html');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                originalPost.push(...a.querySelectorAll('.blocks'));
+                            }
                         }
-                    }
 
-                    if (displayedPost.length > 0) {
-                        let i = 0;
-                        for (const elem of displayedPost) {
-                            let id = i;
-                            elem.setAttribute('style', 'cursor: pointer;');
-                            elem.addEventListener('click', (event) => {
-                                event.currentTarget.replaceWith(originalPost[id]);
-                            });
-                            originalPost[id].setAttribute('title', 'Double-Click to Restore');
-                            originalPost[id].addEventListener('dblclick', (event) => {
-                                event.currentTarget.replaceWith(elem);
-                            });
-                            ++i;
+                        if (displayedPost.length > 0) {
+                            let i = 0;
+                            for (const elem of displayedPost) {
+                                let id = i;
+                                elem.setAttribute('style', 'cursor: pointer;');
+                                elem.addEventListener('click', (event) => {
+                                    event.currentTarget.replaceWith(originalPost[id]);
+                                });
+                                originalPost[id].setAttribute('title', 'Double-Click to Restore');
+                                originalPost[id].addEventListener('dblclick', (event) => {
+                                    event.currentTarget.replaceWith(elem);
+                                });
+                                ++i;
+                            }
                         }
-                    }
 
-                    posts = doc.querySelectorAll('.postsignature');
-                    for (const a of posts) {
-                        if (a.querySelector('.blocks')) {
-                            originalDescription.push(...a.querySelectorAll('.blocks'));
+                        posts = doc.querySelectorAll('.postsignature');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                originalDescription.push(...a.querySelectorAll('.blocks'));
+                            }
                         }
-                    }
-                    
-                    posts = document.querySelectorAll('.postsignature');
-                    for (const a of posts) {
-                        if (a.querySelector('.blocks')) {
-                            displayedDescription.push(...a.querySelectorAll('.blocks'));
-                        }
-                    }
 
-                    if (displayedDescription.length > 0) {
-                        let i = 0;
-                        for (const elem of displayedDescription) {
-                            let id = i;
-                            elem.setAttribute('style', 'cursor: pointer;');
-                            elem.addEventListener('click', (event) => {
-                                event.currentTarget.replaceWith(originalDescription[id]);
-                            });
-                            originalDescription[id].setAttribute('title', 'Double-Click to Restore');
-                            originalDescription[id].addEventListener('dblclick', (event) => {
-                                event.currentTarget.replaceWith(elem);
-                            });
-                            ++i;
+                        posts = document.querySelectorAll('.postsignature');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                displayedDescription.push(...a.querySelectorAll('.blocks'));
+                            }
                         }
-                    }
 
-                });
+                        if (displayedDescription.length > 0) {
+                            let i = 0;
+                            for (const elem of displayedDescription) {
+                                let id = i;
+                                elem.setAttribute('style', 'cursor: pointer;');
+                                elem.addEventListener('click', (event) => {
+                                    event.currentTarget.replaceWith(originalDescription[id]);
+                                });
+                                originalDescription[id].setAttribute('title', 'Double-Click to Restore');
+                                originalDescription[id].addEventListener('dblclick', (event) => {
+                                    event.currentTarget.replaceWith(elem);
+                                });
+                                ++i;
+                            }
+                        }
+
+                    });
             }
         }
     }
