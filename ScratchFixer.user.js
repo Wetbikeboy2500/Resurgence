@@ -24,16 +24,15 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.6
+// @version      12.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
-// @match        https://projects.scratch.mit.edu/resurgence
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js
 // @require      https://cdn.rawgit.com/Stuk/jszip-utils/dfdd631c4249bc495d0c335727ee547702812aa5/dist/jszip-utils.min.js
 // @require      https://raw.githubusercontent.com/pawelgrzybek/siema/master/dist/siema.min.js
-// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@10.19.0/dist/lazyload.min.js
+// @require      https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js
 // @resource     CSS https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style.min.css
 // @resource     CSSlight https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/style_light.min.css
 // @resource     Modal https://raw.githubusercontent.com/Wetbikeboy2500/ScratchFixer/master/modal.html
@@ -46,41 +45,31 @@ SOFTWARE.
 // ==/UserScript==
 (function () {
     'use strict';
-    let url = location.protocol + '//' + location.host + location.pathname, users = [], userinfo = {}, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
+    let url = location.protocol + '//' + location.host + location.pathname, style = null, style1 = null, editorStyle = null, currentVersion = GM_info.script.version, pageType = "", accountInfo = {}, themeTweakStyle = null;
     const getCookie = (cname) => {
-        var name = cname + "=";
-        var decodedCookie = decodeURIComponent(document.cookie);
-        var ca = decodedCookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
+        const name = cname + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let cookie of ca) {
+            while (cookie.charAt(0) == ' ') {
+                cookie = cookie.substring(1);
             }
-            if (c.indexOf(name) == 0) {
-                return c.substring(name.length, c.length);
+            if (cookie.indexOf(name) == 0) {
+                return cookie.substring(name.length, cookie.length);
             }
         }
         return "";
     };
     if (!inIframe()) {
-        window.addEventListener('popstate', () => console.log('url change'));
-
         editorTheme();
 
-        $(window).bind('hashchange', function () {
-            console.log('Chnage to hash');
-        });
-
         if (url.includes('/editor')) {
-            console.log('editor');
             document.addEventListener("DOMContentLoaded", () => {
                 betterDesign();
 
                 projectPageClick();
             });
         } else {
-
-            console.log('not editor');
             if (GM_getValue("theme", false) === "dark") {
                 style1 = GM_addStyle(GM_getResourceText("CSS"));
             } else {
@@ -112,17 +101,19 @@ SOFTWARE.
                 GM_addStyle(styleTip);
                 dark_theme();
                 fix_nav();
-                load_messages();
                 add_search();
                 load_extras();
                 load_banner();
                 load_newpage();
-                console.log("Theme tweak");
                 theme_tweaks();
 
-                //fixProjectPage(); this will need to be a function to fix the cloud variables view data
-
-
+                if (url == "https://scratch.mit.edu/") {
+                    waitTillLoad(".splash-header")
+                        .then(() => {
+                            load_messages_panel();
+                            build_carousel();
+                        });
+                }
             });
         }
     }
@@ -133,18 +124,12 @@ SOFTWARE.
             //new theme
             pageType = "new";
             document.querySelector(".ideas").childNodes[0].setAttribute("href", "/discuss");
-            element("dd")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.querySelector(".lists").querySelectorAll("dl")[1]);
         } else {
             //old theme
             pageType = "old";
-            let tips = document.getElementsByClassName("site-nav")[0].childNodes[3].childNodes[0];
+            const tips = document.querySelector('.site-nav > :nth-child(3) > a');
             tips.setAttribute("href", "/discuss");
             tips.innerHTML = GM_getValue("forumTitle", "Forums");
-            element("li")
-                .append(element("a").a("href", "/resurgence").t("Resurgence Userscript"))
-                .ap(document.querySelector(".footer-col").childNodes[3].childNodes[3]);
         }
     }
 
@@ -162,11 +147,7 @@ SOFTWARE.
     }
 
     function betterDesign() {
-        console.log('better design');
-
-
         let design = GM_getValue("design", 3);
-
 
         //uses a new promise that will wait for it to be loaded to help async actions
         waitTillLoad("[class^=menu-bar_main-menu] [class^=button_outlined-button]")
@@ -210,7 +191,6 @@ SOFTWARE.
                     .add("span").a("class", [a.classList.item(0), a.classList.item(1), "design_toggle"].join(" ")).a("style", "background: hsla(30, 100%, 55%, 1);")
                     .e("click", (e) => {
                         adjustDesign();
-                        console.log("clicked");
 
                         if (document.querySelector('[class^=target-pane_target-pane]').classList.contains("reversed")) {
                             GM_setValue("design", 2);
@@ -222,8 +202,8 @@ SOFTWARE.
                     })
                     .add("div")
                     .add("span").t("2.0 Design")
-                    .f().f().f()
-                    .apAfter("[class^=menu-bar_main-menu] div:nth-child(6)");
+                    .close()
+                    .aftap(document.querySelector("[class^=menu-bar_main-menu] div:nth-child(6)"));
             })
             .catch((err) => {
                 console.warn(err);
@@ -252,388 +232,373 @@ SOFTWARE.
             });
     }
 
-    //these are changes to the theme that are preferences rather than necessary to the overall experience of the user
-    function theme_tweaks() {
-        if (GM_getValue("tweakTheme", false) && themeTweakStyle == null) {
-            //removes borders on boxes which I think looks better
-            themeTweakStyle = GM_addStyle(".box {border: 0px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12);}");
+    function build_carousel() {
+        if (GM_getValue('carousel', false)) {
+            //changes how projects are cycled through with them no longer using the same theme
+            fetch("https://api.scratch.mit.edu/proxy/featured")
+                .then((response) => response.json())
+                .then((json) => {
+                    //mark the old boxes to remove in future
+                    let elements = document.querySelectorAll(".splash .inner .box");
 
-            if (url == "https://scratch.mit.edu/") {
-                //changes how projects are cycled through with them no longer using the same theme
-                waitTillLoad(".splash-header")
-                    .then(() => {
-                        fetch("https://api.scratch.mit.edu/proxy/featured")
-                            .then((response) => response.json())
-                            .then((json) => {
-                                console.log("Got projects to load");
+                    for (const a of elements) {
+                        const name = a.querySelector(".box-header > h4").innerHTML.trim();
+                        const list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
+                        for (const b of list) {
+                            if (name.toLowerCase().includes(b.toLowerCase())) {
+                                a.classList.add("marked");
+                                break;
+                            }
+                        }
+                    }
 
-                                //mark the old boxes to remove in future
-                                let elements = document.querySelectorAll(".splash .inner .box");
+                    const target = (document.querySelector('.custom-messages')) ? '.custom-messages' : '.splash-header';
 
-                                for (let a of elements) {
-                                    console.log(a.querySelector(".box-header > h4").innerHTML.trim());
-                                    let name = a.querySelector(".box-header > h4").innerHTML.trim();
-                                    let list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
-                                    for (let b of list) {
-                                        if (name.toLowerCase().includes(b.toLowerCase())) {
-                                            a.classList.add("marked");
-                                            break;
-                                        }
+                    const templates = [
+                        {
+                            id: 'featuredProjects',
+                            name: 'Featured Projects',
+                            contentID: 'customfeatured',
+                            json: json["community_featured_projects"],
+                            jsonType: 'project',
+                            siema: () => siema1,
+                        },
+                        {
+                            id: 'featuredStudios',
+                            name: 'Featured Studios',
+                            contentID: 'featuredStudiosContent',
+                            json: json["community_featured_studios"],
+                            jsonType: 'studio',
+                            siema: () => siema2,
+                        },
+                        {
+                            id: 'curatedProjects',
+                            name: `Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`,
+                            contentID: 'customCuratedProjects',
+                            link: {
+                                href: '/studios/386359/',
+                                name: 'Learn More',
+                            },
+                            json: json["curator_top_projects"],
+                            jsonType: 'project',
+                            siema: () => siema3,
+                        },
+                        {
+                            id: 'designStudio',
+                            name: `Scratch Design Studio - ${json["scratch_design_studio"][0]["gallery_title"]}`,
+                            contentID: 'designStudioProjects',
+                            link: {
+                                href: `/studios/${json["scratch_design_studio"][0]["gallery_id"]}/`,
+                                name: 'Visit Studio',
+                            },
+                            json: json["scratch_design_studio"],
+                            jsonType: 'project',
+                            siema: () => siema4,
+                        },
+                        {
+                            id: 'communityRemixing',
+                            name: `What is being remixed`,
+                            contentID: 'communityRemixingProjects',
+                            json: json["community_most_remixed_projects"],
+                            jsonType: 'project',
+                            siema: () => siema5,
+                        },
+                        {
+                            id: 'communityLoving',
+                            name: `What is being loved`,
+                            contentID: 'communityLovingProjects',
+                            json: json["community_most_loved_projects"],
+                            jsonType: 'project',
+                            siema: () => siema6,
+                        },
+                    ]
+
+                    const buildTemplate = (_templates, _height = '160px') => {
+                        //build all the scrolls
+                        element().each(_templates, (elem, template) => {
+                            elem.add('div').a({ "class": "box", "id": template.id })
+                                .add("div").a("class", "box-header")
+                                .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { template.siema().prev(5); }))
+                                .add("h4").t(template.name).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
+                                .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { template.siema().next(5); }))
+                                .add("a").a({ "style": "float: right", href: (template.link) ? template.link.href : '#' }).t((template.link) ? template.link.name : '').f().f()
+                                .add("div").a({ "class": "box-content", "id": template.contentID, "style": `height: ${_height};` })
+                                .each(template.json, (elem, data) => {
+                                    if (template.jsonType === 'project') {
+                                        elem.add('div').a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
+                                            .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
+                                            .add("a").a("href", `/projects/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/projects/${data["id"]}/`, "title": data["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .add("a").t(data["creator"]).a({ "href": `/users/${data["creator"]}/`, "title": data["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                            .close();
+                                    } else if (template.jsonType === 'newProject') {
+                                        //this is to support the independent calls with use a different format
+                                        elem.add('div').a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
+                                            .add("div").a({ "style": "width: 160px; height: 140px; padding: 5px;" })
+                                            .add("a").a("href", `/projects/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["image"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/projects/${data["id"]}/`, "title": data["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .add("a").t(data["author"]["username"]).a({ "href": `/users/${data["author"]["username"]}/`, "title": data["author"]["username"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
+                                            .close();
+                                    } else {
+                                        elem.add('div').a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
+                                            .add("div").a({ "style": "width: 160px; height: 120px; padding: 5px;" })
+                                            .add("a").a("href", `/studios/${data["id"]}/`)
+                                            .add("img").a({ "data-src": data["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
+                                            .f()
+                                            .add("a").t(data["title"]).a({ "href": `/studios/${data["id"]}/`, "title": data["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
+                                            .close();
                                     }
-                                }
-
-                                //yes this is very repetitive but can be fixed in the future
-                                //this will process the different categories that will be displayed on the main page of scratch
-                                element("div").a({ "class": "box", "id": "featuredProjects" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema.prev(5); }))
-                                    .add("h4").t("Featured Projects").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema.next(5); })).f()
-                                    .add("div").a({ "class": "box-content", "id": "customfeatured", "style": "height: 160px;" }).f()
-                                    .apAfter(".splash-header");
-
-                                element("div").a({ "class": "box", "id": "featuredStudios" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema1.prev(5); }))
-                                    .add("h4").t("Featured Studios").a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema1.next(5); })).f()
-                                    .add("div").a({ "class": "box-content", "id": "featuredStudiosContent", "style": "height: 130px;" }).f()
-                                    .apAfter("#featuredProjects");
-
-                                element("div").a({ "class": "box", "id": "curatedProjects" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema2.prev(5); }))
-                                    .add("h4").t(`Projects Curated by ${json["curator_top_projects"][0]["curator_name"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema2.next(5); }))
-                                    .add("a").a({ "style": "float: right", href: "/studios/386359/" }).t("Learn More").f().f()
-                                    .add("div").a({ "class": "box-content", "id": "customCuratedProjects", "style": "height: 160px;" }).f()
-                                    .apAfter("#featuredStudios");
-
-                                element("div").a({ "class": "box", "id": "designStudio" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema3.prev(5); }))
-                                    .add("h4").t(`Scratch Design Studio - ${json["scratch_design_studio"][0]["gallery_title"]}`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema3.next(5); }))
-                                    .add("a").a({ "style": "float: right", href: `/studios/${json["scratch_design_studio"][0]["gallery_id"]}/` }).t("Visit Studio").f().f()
-                                    .add("div").a({ "class": "box-content", "id": "designStudioProjects", "style": "height: 160px;" }).f()
-                                    .apAfter("#curatedProjects");
-
-                                element("div").a({ "class": "box", "id": "communityRemixing" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema4.prev(5); }))
-                                    .add("h4").t(`What is being remixed`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema4.next(5); })).f()
-                                    .add("div").a({ "class": "box-content", "id": "communityRemixingProjects", "style": "height: 160px;" }).f()
-                                    .apAfter("#designStudio");
-
-                                element("div").a({ "class": "box", "id": "communityLoving" })
-                                    .add("div").a("class", "box-header")
-                                    .addDom(svg("leftCircle", { "style": "float: left; cursor: pointer;" }, (e) => { siema5.prev(5); }))
-                                    .add("h4").t(`What is being loved`).a("style", "padding: 1.5px 10px 0px 10px; user-select: none;").f()
-                                    .addDom(svg("rightCircle", { "style": "cursor: pointer;" }, (e) => { siema5.next(5); })).f()
-                                    .add("div").a({ "class": "box-content", "id": "communityLovingProjects", "style": "height: 160px;" }).f()
-                                    .apAfter("#communityRemixing");
-
-                                for (let a in json) {
-                                    console.log(a, json[a]);
-                                }
-
-                                //add a container for these so they can pop out and still fill the screen and see them
-                                json["community_featured_projects"].forEach((a) => {
-                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#customfeatured"));
-                                });
-
-                                json["community_featured_studios"].forEach((a) => {
-                                    element("div").a({ "style": "width: 170px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -10px;" })
-                                        .add("div").a({ "style": "width: 160px; height: 120px; padding: 5px;" })
-                                        .add("a").a("href", `/studios/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 170px; height: 100px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/studios/${a["id"]}/`, "title": a["title"], "style": "max-width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#featuredStudiosContent"));
-                                });
-
-                                json["curator_top_projects"].forEach((a) => {
-                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#customCuratedProjects"));
                                 })
+                                .close();
+                        }).aftap(document.querySelector(target));
+                    };
 
-                                json["scratch_design_studio"].forEach((a) => {
-                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#designStudioProjects"));
-                                })
+                    buildTemplate(templates);
 
-                                json["community_most_remixed_projects"].forEach((a) => {
-                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#communityRemixingProjects"));
-                                })
+                    //these need to be called after content is added to current dom since there is no delay for the selector
+                    const siema1 = new Siema({
+                        selector: "#" + templates[0].contentID,
+                        perPage: 5,
+                        loop: false
+                    }),
+                        siema2 = new Siema({
+                            selector: "#" + templates[1].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                        siema3 = new Siema({
+                            selector: "#" + templates[2].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                        siema4 = new Siema({
+                            selector: "#" + templates[3].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                        siema5 = new Siema({
+                            selector: "#" + templates[4].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                        siema6 = new Siema({
+                            selector: "#" + templates[5].contentID,
+                            perPage: 5,
+                            loop: false
+                        });
 
-                                json["community_most_loved_projects"].forEach((a) => {
-                                    element("div").a({ "style": "width: 156px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12); margin-left: -5px;" })
-                                        .add("div").a({ "style": "width: 146px; height: 150px; padding: 5px;" })
-                                        .add("a").a("href", `/projects/${a["id"]}/`)
-                                        .add("img").a({ "data-src": a["thumbnail_url"], "alt": "...", "style": "width: 156px; height: 115px; position: relative; bottom: 5px; right: 5px; cursor: pointer;", "class": "lazy" }).f()
-                                        .f()
-                                        .add("a").t(a["title"]).a({ "href": `/projects/${a["id"]}/`, "title": a["title"], "style": "width: 100%; overflow: hidden; display: inline-block; height: 25px; line-height: 25px; white-space: nowrap; position: relative; bottom: 9px; float: left;" }).f()
-                                        .add("a").t(a["creator"]).a({ "href": `/users/${a["creator"]}/`, "title": a["creator"], "style": "max-width: 100%; overflow: hidden; display: inline-block; font-size: .8462em; height: 20px; line-height: 20px; white-space: nowrap; position: relative; bottom: 12px; " }).f()
-                                        .f()
-                                        .apthis(document.querySelector("#communityLovingProjects"));
-                                })
-
-                                //lightweight carousel for projects
-                                let siema = new Siema({
-                                    selector: "#customfeatured",
-                                    perPage: 5,
-                                    loop: false
-                                });
-
-                                let siema1 = new Siema({
-                                    selector: "#featuredStudiosContent",
-                                    perPage: 5,
-                                    loop: false
-                                })
-
-                                let siema2 = new Siema({
-                                    selector: "#customCuratedProjects",
-                                    perPage: 5,
-                                    loop: false
-                                })
-
-                                let siema3 = new Siema({
-                                    selector: "#designStudioProjects",
-                                    perPage: 5,
-                                    loop: false
-                                })
-
-                                let siema4 = new Siema({
-                                    selector: "#communityRemixingProjects",
-                                    perPage: 5,
-                                    loop: false
-                                })
-
-                                let siema5 = new Siema({
-                                    selector: "#communityLovingProjects",
-                                    perPage: 5,
-                                    loop: false
-                                })
-
-                                //lazy loading for the images
-                                let myLazyLoad = new LazyLoad({
-                                    elements_selector: ".lazy"
-                                });
-
-                                GM_addStyle(".marked {display: none;}");
-
-                            })
-                            .catch((e) => {
-                                console.warn("An error occured in theme tweaks in fetch", e);
-                            });
+                    //lazy loading for the images
+                    let myLazyLoad = new LazyLoad({
+                        elements_selector: ".lazy"
                     });
-            }
 
-        } else if (themeTweakStyle) {
-            themeTweakStyle.parentElement.removeChild(themeTweakStyle);
-            themeTweakStyle = null;
+                    GM_addStyle(".marked {display: none;}");
+
+                    //load in the other two scrolls
+                    _waitTillLoad(() => accountInfo.hasOwnProperty("user")).then(async () => {
+                        const [userFollowed, studioFollowed] = await Promise.all([
+                            fetch(`https://api.scratch.mit.edu/users/${accountInfo.user.username}/following/users/projects`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Token': accountInfo.user.token
+                                }
+                            }).then(r => r.json()),
+                            fetch(`https://api.scratch.mit.edu/users/${accountInfo.user.username}/following/studios/projects`, {
+                                method: 'GET',
+                                headers: {
+                                    'X-Token': accountInfo.user.token
+                                }
+                            }).then(r => r.json()),
+                        ]);
+
+                        const info = [
+                            {
+                                id: 'followedProjects',
+                                name: 'Projects by Scratchers You Follow',
+                                contentID: 'followedProjectsContent',
+                                json: userFollowed,
+                                jsonType: 'newProject',
+                                siema: () => siema10,
+                            },
+                            {
+                                id: 'followedStudios',
+                                name: 'Projects From Studios You Follow',
+                                contentID: 'followedStudiosContent',
+                                json: studioFollowed,
+                                jsonType: 'newProject',
+                                siema: () => siema11,
+                            },
+                        ];
+
+                        buildTemplate(info, '150px');
+
+                        const siema10 = new Siema({
+                            selector: "#" + info[0].contentID,
+                            perPage: 5,
+                            loop: false
+                        }),
+                            siema11 = new Siema({
+                                selector: "#" + info[1].contentID,
+                                perPage: 5,
+                                loop: false
+                            });
+
+                        myLazyLoad.update();
+
+                        //stop displaying to hide the default boxes
+                        document.querySelector('.splash .inner:nth-child(2)').style.display = 'none';
+                    });
+                })
+                .catch((e) => {
+                    console.warn("An error occured in theme tweaks in fetch", e);
+                });
         }
     }
 
+    //a specific tweak that can chnage how a lot of the theme looks
+    function theme_tweaks() {
+        //prevent null value
+        if (GM_getValue('tweakTheme', null) == null) {
+            GM_setValue('tweakTheme', false);
+        }
+
+        //removes theme tweak
+        if (GM_getValue("tweakTheme", null) == false) {
+            if (themeTweakStyle) {
+                themeTweakStyle.parentElement.removeChild(themeTweakStyle);
+                themeTweakStyle = null;
+            }
+            return;
+        }
+
+        themeTweakStyle = GM_addStyle(".box {border: 0px; box-shadow: 1px 1.5px 1px rgba(0, 0, 0, 0.12);}");
+    }
+
     function load_newpage() {
-        console.log("load newpage");
         let displaySettingsModal = false, toggleModal = () => {
             if (displaySettingsModal) {
-                $('body').attr('style', 'overflow-y:scroll;');
+                document.body.setAttribute('style', 'overflow-y:scroll;');
                 $('#res-set-modal').hide(500);
-                $('#res-set-modal-back').toggleClass('modal-hidden');
+                document.querySelector('#res-set-modal-back').classList.toggle('modal-hidden');
                 displaySettingsModal = false;
             } else {
-                $('body').attr('style', 'overflow-y:hidden;');
+                document.body.setAttribute('style', 'overflow-y:hidden;');
                 $('#res-set-modal').show(500);
-                $('#res-set-modal-back').toggleClass('modal-hidden');
-                if (GM_getValue("extras", true)) {
-                    $("#extrasIO").prop('checked', "checked");
+                document.querySelector('#res-set-modal-back').classList.toggle('modal-hidden');
+
+                try {
+                    document.querySelector('#extrasIO').checked = GM_getValue("extras", true);
+                    document.querySelector('#msgIO').checked = GM_getValue("msg", true);
+                    document.querySelector('#timerIO').checked = GM_getValue("timer", true);
+                    document.querySelector('#blocksIO').checked = GM_getValue("blockCode", true);
+                    document.querySelector('#embedIO').checked = GM_getValue("embedFeature", true);
+                    document.querySelector('#bannerIO').checked = GM_getValue("bannerOff", true);
+                    document.querySelector('#messageThemeIO').checked = GM_getValue("messageTheme", false);
+                    document.querySelector('#tweakThemeIO').checked = GM_getValue("tweakTheme", false);
+
+                    document.querySelector('#themeIO').value = GM_getValue("theme", "light");
+                    document.querySelector('#editorThemeIO').value = GM_getValue("editorTheme", "default");
+                    document.querySelector('#posIO').value = GM_getValue("pos", "top");
+                    document.querySelector('#disText').value = GM_getValue("forumTitle", "Forums");
+
+                    //put the newest modal values at the bottom since they will throw an error in dev and prevent other values from being set
+                    document.querySelector('#carouselIO').checked = GM_getValue("carousel", false);
+                } catch (e) {
+                    console.log('Error with setting modal values', e);
                 }
-                if (GM_getValue("msg", true)) {
-                    $("#msgIO").prop('checked', "checked");
-                }
-                if (GM_getValue("timer", true)) {
-                    $("#timerIO").prop('checked', "checked");
-                }
-                if (GM_getValue("blockCode", true)) {
-                    $("#blocksIO").prop('checked', "checked");
-                }
-                if (GM_getValue("embedFeature", true)) {
-                    $("#embedIO").prop('checked', "checked");
-                }
-                if (GM_getValue("bannerOff", true)) {
-                    $("#bannerIO").prop('checked', "checked");
-                }
-                if (GM_getValue("messageTheme", false)) {
-                    $("#messageThemeIO").prop("checked", "checked");
-                }
-                if (GM_getValue("tweakTheme", false)) {
-                    $("#tweakThemeIO").prop("checked", "checked");
-                }
-                $("#playerIO").val(GM_getValue("player", "D"));
-                $("#themeIO").val(GM_getValue("theme", "light"));
-                $("#editorThemeIO").val(GM_getValue("editorTheme", "default"));
-                $("#posIO").val(GM_getValue("pos", "top"));
-                $("#disText").val(GM_getValue("forumTitle", "Forums"));
+
                 displaySettingsModal = true;
             }
         };
         //adds popup settings modal
         GM_addStyle('.modal-hidden {display:none;} #res-set-modal {position:fixed; background-color:#00000000; width:40%; height:80%; border-radius:5px; outline:none; left:30%; top:10%; z-index: 9999; color: black !important; padding:20px; text-align:center;} #res-set-modal-back {position:fixed; width: 100%; height: 100%; background-color:#212121; left:0; top:0; z-index:9998; opacity:.5;}');
-        $('body').append('<div id="res-set-modal" class="modal-hidden" tabindex="1">');
-        $('#res-set-modal').append(GM_getResourceText("Modal"));//use resources instead of direct loading to avoid cors issues and changing of data location
 
-        $('body').append('<div id="res-set-modal-back" class="modal-hidden">');
-        $('#res-set-modal-back').click(toggleModal);
+        element('div').a({ id: 'res-set-modal', class: 'modal-hidden', tabindex: '1' })
+            .addDom(document.createRange().createContextualFragment(GM_getResourceText("Modal")))
+            .close()
+            .add('div').a({ id: 'res-set-modal-back', class: 'modal-hidden' })
+            .e('click', toggleModal)
+            .close()
+            .ap(document.body);
 
         //IO for sliders
-        $('#extrasIO').click(() => GM_setValue("extras", !GM_getValue("extras", false)));
-        $('#msgIO').click(() => GM_setValue("msg", !GM_getValue("msg", false)));
-        $('#timerIO').click(() => GM_setValue("timer", !GM_getValue("timer", false)));
-        $('#blocksIO').click(() => GM_setValue("blockCode", !GM_getValue("blockCode", false)));
-        $('#embedIO').click(() => GM_setValue("embedFeature", !GM_getValue("embedFeature", false)));
-        $('#bannerIO').click(() => GM_setValue("bannerOff", !GM_getValue("bannerOff", false)));
-        $('#messageThemeIO').click(() => GM_setValue("messageTheme", !GM_getValue("messageTheme", false)));
-        $('#tweakThemeIO').click(() => GM_setValue("tweakTheme", !GM_getValue("tweakTheme", false)));
+        try {
+            document.querySelector('#extrasIO').addEventListener('click', (event) => GM_setValue("extras", event.currentTarget.checked));
+            document.querySelector('#msgIO').addEventListener('click', (event) => GM_setValue("msg", event.currentTarget.checked));
+            document.querySelector('#timerIO').addEventListener('click', (event) => GM_setValue("timer", event.currentTarget.checked));
+            document.querySelector('#blocksIO').addEventListener('click', (event) => GM_setValue("blockCode", event.currentTarget.checked));
+            document.querySelector('#embedIO').addEventListener('click', (event) => GM_setValue("embedFeature", event.currentTarget.checked));
+            document.querySelector('#bannerIO').addEventListener('click', (event) => GM_setValue("bannerOff", event.currentTarget.checked));
+            document.querySelector('#messageThemeIO').addEventListener('click', (event) => GM_setValue("messageTheme", event.currentTarget.checked));
+            document.querySelector('#tweakThemeIO').addEventListener('click', (event) => GM_setValue("tweakTheme", event.currentTarget.checked));
+            document.querySelector('#carouselIO').addEventListener('click', (event) => GM_setValue("carousel", event.currentTarget.checked));
+        } catch (e) {
+            console.log('Error adding modal event' + e);
+        }
 
         //IO for dropdowns
-        $(document).on("change", "#disText", (event) => {
-            GM_setValue("forumTitle", document.getElementById("disText").value);
-        });
-        $(document).on("change", "#themeIO", (event) => {
-            GM_setValue("theme", document.getElementById("themeIO").value);
-            dark_theme();
-        });
-        $(document).on("change", "#editorThemeIO", (event) => {
-            GM_setValue("editorTheme", document.getElementById("editorThemeIO").value);
-            editorTheme();
-        });
-        $(document).on("change", "#posIO", (event) => {
-            GM_setValue("pos", document.getElementById("posIO").value);
-        });
+        try {
+            document.querySelector('#disText').addEventListener('change', (event) => GM_setValue("forumTitle", event.currentTarget.value));
+            document.querySelector('#themeIO').addEventListener('change', (event) => {
+                GM_setValue("theme", event.currentTarget.value);
+                dark_theme();
+            });
+            document.querySelector('#editorThemeIO').addEventListener('change', (event) => {
+                GM_setValue("editorTheme", event.currentTarget.value);
+                editorTheme();
+            });
+            document.querySelector('#posIO').addEventListener('change', (event) => GM_setValue("pos", event.currentTarget.value));
+        } catch (e) {
+            console.log('Error adding modal event' + e);
+        }
 
         //adds settings option for user panel
         if (pageType == 'new') {
-            waitTillLoad('.dropdown').then(() => {
-                $('.divider').before('<li id="res-set"><a>Resurgence Settings');
-                $('#res-set').click(toggleModal);
+            waitTillLoad('.dropdown').then((elem) => {
+                const divider = elem.querySelector('.divider');
+                const dom = element('li').a('id', 'res-set')
+                    .e('click', toggleModal)
+                    .add('a').t('Resurgence Settings').close().dom;
+                divider.parentElement.insertBefore(dom, divider);
             });
         } else {
-            waitTillLoad('logout').then(() => {
-                $('#logout').before('<li id="res-set"><a>Resurgence Settings');
-                $('#res-set').click(toggleModal);
+            waitTillLoad('#logout').then((elem) => {
+                const dom = element('li').a('id', 'res-set')
+                    .e('click', toggleModal)
+                    .add('a').t('Resurgence Settings').close().dom;
+
+                elem.parentElement.insertBefore(dom, elem);
             });
-        }
-
-        //adds the new page
-        if ("https://scratch.mit.edu/resurgence" === url) {
-            GM_addStyle('.box-content li {width: 50%; position: relative; left: 25%; text-align: left;} .box-content {padding-bottom: 10px;}');
-            let main = document.getElementsByClassName("box-content")[0];
-            main.innerHTML = "";
-            element("h4").t("Resurgence Userscript")
-                .ap(document.getElementsByClassName("box-head")[0]).setAttribute("style", "padding: 10px 0px 0px 7px !important;");
-
-            element("p").t("Made By ")
-                .append(element("a").t("Wetbikeboy2500").a("href", "https://scratch.mit.edu/users/Wetbikeboy2500/"))
-                .ap(main);
-            element("p").t("Special thanks to ")
-                .append(element("a").t("NitroCipher").a("href", "https://scratch.mit.edu/users/NitroCipher/"))
-                .ap(main);
-            element("p").t("Resurgence Userscript (previously named ScratchFixer until NitroCipher suggested its current name) was originally going to be a chrome extension, but I ended up going with a userscript since it was going to be easier to update and change. The userscript started out by just adding the forums button, messages to the main page, and letting you use the Phosphorus player for projects. Since then, more features have been added to the userscript with more to come in the future.")
-                .ap(main);
-            element("p")
-                .append(element("a").t("Click this to go to the Github repo").a("href", "https://github.com/Wetbikeboy2500/ScratchFixer"))
-                .ap(main);
-
-            element("h3").t("Features").ap(main);
-
-            element("ul")
-                .append(element("li").t("Forums tab instead of ideas tab"))
-                .append(element("li").t("Customization of Forum tab name"))
-                .append(element("li").t("Adds messages to the main page"))
-                .append(element("li").t("Switch between Scratch player, Phosphorus player, Sulfurous player, and the Scratch 3 player"))
-                .append(element("li").t("Adds google search so you can search the whole Scratch site with google"))
-                .append(element("li").t("Quick info when hovering over usernames"))
-                .append(element("li").t("When you click on Scratch Blocks in the forums it will show the original Scrachblock code"))
-                .append(element("li").t("Click on a new button “BBCode” to switch between the BBCode and the original post"))
-                .append(element("li").t("Changes the messages area to look like how it use to look"))
-                .append(element("li").t("Adds this page to Scratch"))
-                .append(element("li").t("Adds option for Dark Theme for Scratch"))
-                .append(element("li").t("Enlarge photos in forum posts"))
-                .append(element("li").t("Settings pop-up on all pages"))
-                .append(element("li").t("Add extras BBcode Features"))
-                .append(element("li").t("Embed Featured projects on user page"))
-                .append(element("li").t("Embed Gist content"))
-                .ap(main);
-
-            element("h3").t("Special Features/Extras").ap(main);
-
-            element("Extras")
-                .append(element("li").t("Holiday countdown timer"))
-                .append(element("li").t("Falling leaves on the homepage"))
-                .append(element("li")
-                    .append(element("a").t("DeleteThisAcount").a("href", "https://scratch.mit.edu/users/DeleteThisAcount/")))
-                .ap(main);
-
-            element("button").t("Extras").a("title", "Enables/disables display of leaves/deletos")
-                .e("click", () => {
-                    if (GM_getValue("extras", true)) {
-                        GM_setValue("extras", false);
-                        alert('Extras are now disabled.');
-                    } else {
-                        GM_setValue("extras", true);
-                        alert('Extras are now enabled.');
-                    }
-                }).ap(main);
         }
 
         //embeds users featured project
         if (GM_getValue("embedFeature", true)) {
             if (url.includes("/users/")) {
-                var featProject = $("#featured-project").attr("href").substr(9);
-                var projectPlayer = '<iframe allowtransparency="true" width="282" height="220" src="//scratch.mit.edu/projects/embed' + featProject + '?autostart=false" frameborder="0" allowfullscreen>';
-                $("div.stage").replaceWith(projectPlayer);
-                //alert(featProject);
+                const featuredProject = new URL(document.querySelector('#featured-project').href).pathname.substr(9);
+                const height = 220;
+                const width = Math.round(1.2 * 220);
+                const dom = element('iframe').a({
+                    allowtransparency: 'true',
+                    width: width.toString(),
+                    height: height.toString(),
+                    src: '//scratch.mit.edu/projects/embed' + featuredProject + '?autostart=false',
+                    frameborder: '0',
+                    allowfullscreen: '',
+                    scrolling: 'no',
+                }).f().dom;
+                const stage = document.querySelector('div.stage');
+                stage.replaceWith(dom);
             }
         }
     }
+
     function add_search() {
         //adds google to the search
         if (url.includes("/search/")) {
-            console.log("search");
             //first load new search
             let search = document.createElement("gcse:searchresults-only");
             let display = document.getElementById("projectBox");
@@ -647,7 +612,7 @@ SOFTWARE.
             let s = document.getElementsByTagName('script')[0];
             s.parentNode.insertBefore(gcse, s);
 
-            element("a").e("click", () => {
+            element('a').e('click', () => {
                 //make button look selected
                 document.getElementsByClassName("active")[0].removeAttribute("class");
                 document.getElementById("active").setAttribute("class", "active");
@@ -655,16 +620,16 @@ SOFTWARE.
                 display.childNodes[0].style.display = "none";
                 display.childNodes[1].style.display = "none";
                 document.getElementById("___gcse_0").style.display = "block";
-            }, false)
-                .append(element("li").a("id", "active")
-                    .append(element("img").a("class", "tab-icon").a("style", "height: 24px;"))
-                    .append(element("span").t("Google")))
+            })
+                .add('li').a('id', 'active')
+                .add('img').a({ 'class': 'tab-icon', 'style': 'height: 24px;' }).f()
+                .add('span').t('Google').f()
+                .close()
                 .ap(document.getElementsByClassName("sub-nav tabs")[0]);
         }
     }
     //adds dark theme button
     function dark_theme() {
-        console.log(GM_getValue("theme", false));
         removeTheme();
         if (GM_getValue("theme", false) === "dark") {
             //want dark theme
@@ -689,11 +654,7 @@ SOFTWARE.
     //adds dark theme for 3.0 editor
     function editorTheme() {
         //3.0 Theme Userscript Framework by infinitytec modified by Wetbikeboy2500. Released under the MIT license.
-        console.log('Editor Theme: ' + url.includes('/projects'));
         if (url.includes('/projects')) {
-            console.log('run theme');
-            console.log(GM_getValue('editorTheme', 'default'));
-
             let css = [];
             const mainBG = '#111111';
             const secondaryBG = '#151515';
@@ -708,7 +669,7 @@ SOFTWARE.
                         //Main UI bar, similar bars, and dropdown menu
                         css.push(".menu-bar_main-menu_3wjWH, .modal_header_1h7ps, .menu-bar_account-info-group_MeJZP, .menu_menu_3k7QT, .project-title-input_title-field_en5Gd:focus {background: var(--accent) !important;}");
                         //Main background
-                        css.push(".gui_body-wrapper_-N0sA{background: var(--main-bg) !important;}");
+                        css.push(".gui_body-wrapper_-N0sA, .blocklySvg {background: var(--main-bg) !important;}");
                         //Scripting area background
                         css.push(".blocklyMainBackground{fill: var(--secondary-bg) !important;}");
                         //Right-click & pop-ups
@@ -732,7 +693,7 @@ SOFTWARE.
                         //Backpack header
                         css.push(".backpack_backpack-header_6ltCS {background: var(--accent) !important; color: var(--text) !important;}");
                         //Backpack
-                        css.push(".backpack_backpack-list-inner_10a2A {background: var(--secondary-bg) !important;} .backpack_backpack-item_hwqzQ{background: white !important;}");
+                        css.push(".backpack_backpack-list-inner_10a2A {background: var(--secondary-bg) !important;} .backpack_backpack-item_hwqzQ, .sprite-selector-item_sprite-image-outer_Xs0wN, .backpack_backpack-item_hwqzQ > div {background: var(--main-bg) !important;} .backpack_backpack-item_hwqzQ img {mix-blend-mode: normal !important;}");
                         //Paint & sound editor sidebar
                         css.push(".selector_list-area_1Xbj_{background: var(--accent) !important;} .selector_new-buttons_2qHDd::before {background: none !important;}");
                         //Paint & sound editor main
@@ -750,13 +711,17 @@ SOFTWARE.
                         //Library background
                         css.push(".library_library-scroll-grid_1jyXm, .modal_modal-content_1h3ll.modal_full-screen_FA4cr {background: var(--accent) !important; color: var(--text) !important;} ");
                         //Library items & filter bar
-                        css.push(" .library-item_library-item-extension_3xus9, .library-item_library-item_1DcMO, .library_filter-bar_1W0DW {background: var(--accent) !important;} .library-item_library-item-extension_3xus9 span, .library-item_featured-extension-metadata_3D8E8, .library-item_library-item-name_2qMXu {color: var(--text) !important;}");
+                        css.push(".library-item_library-item-extension_3xus9, .library-item_library-item_1DcMO, .library_filter-bar_1W0DW {background: var(--accent) !important;} .library-item_library-item-extension_3xus9 span, .library-item_featured-extension-metadata_3D8E8, .library-item_library-item-name_2qMXu {color: var(--text) !important;}");
                         //Text input
                         css.push("input[type=text], .input_input-form_1Y0wX, .prompt_variable-name-text-input_1iu8- {background: var(--accent) !important; color: var(--text) !important;} input[type=text]:hover, input[type=text]:focus {background: var(--accent) !important; filter: brightness(90%) !important;}");
                         //Buttons (inverted for dark theme)
                         css.push(".blocklyZoom,  .stage-header_stage-button_hkl9B, .sound-editor_round-button_3NLcW, .sound-editor_button-group_SFPoV {filter: invert(100) hue-rotate(180deg) !important;}");
                         //Set the selected costume/backdrop to have a transparent background as default
                         css.push(".sprite-selector-item_is-selected_24tQj {background:transparent !important;}");
+                        //Fixing white area around the paint editor
+                        css.push(".paint-editor_canvas-container_x2D0a {border: 1px solid var(--accent) !important; overflow: hidden !important; }");
+                        //Tweaks for updated paint editor
+                        css.push(".paper-canvas_paper-canvas_1y588 {background-color: var(--secondary-bg) !important; border-radius: .4rem !important;} .paint-editor_canvas-container_x2D0a {border: 2px solid var(--accent) !important; border-radius: .4rem !important; }");
 
                         editorStyle = GM_addStyle(css.join(" "));
                     }
@@ -771,55 +736,220 @@ SOFTWARE.
         }
     }
 
-    let messages = {
-        //this should instead see if the newest messgae equals our newesst message
-        check_unread: (user) => {
-            return new Promise((resolve, reject) => {
-                let r = new XMLHttpRequest();
-                r.onreadystatechange = () => {
-                    if (r.status == 200 && r.readyState == 4) {
-                        let rec = JSON.parse(r.responseText);
-                        let mes = JSON.parse(GM_getValue("message", true));
-                        user.has_messages = GM_getValue("message", true) === true || GM_getValue("username", true) != user.username || mes[0].datetime_created !== rec[0].datetime_created;
-                        resolve(user);
-                    }
-                };
-                r.onerror = (error) => {
-                    reject("Error checking unread messgaes" + error);
-                };
-                r.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages?limit=1&offset=0", true);
-                r.setRequestHeader("X-Token", user.token);
-                r.send(null);
-            });
-        },
-        get_message: (user) => {
-            return new Promise((resolve, reject) => {
-                if (user.has_messages) { //load new messages
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = () => {
-                        if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            user.messages = xhttp.responseText;
-                            resolve(user);
-                        }
-                    };
-                    xhttp.onerror = (error) => {
-                        reject("Error loading messages" + error);
-                    };
-                    xhttp.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages?limit=40&offset=0", true);
-                    xhttp.setRequestHeader("X-Token", user.token);
-                    xhttp.send(null);
-                } else { //load form presave
-                    user.messages = GM_getValue("message", {});
-                    resolve(user);
+    function load_messages_panel() {
+        const box = element('div')
+            .a('class', 'box custom-messages')
+            .add('div').a('class', 'box-header')
+            .add('h4').t('Messages').f().f()
+            .add('div').a('class', 'box-content').f();
+
+        GM_addStyle('.custom-messages .box-content { overflow-y: scroll; height: 285px; } .custom-messages .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}');
+
+        box.aftap(document.querySelector('.splash-header'));
+
+        _waitTillLoad(() => accountInfo.hasOwnProperty("user")).then(() => {
+            //local reference
+            let user = { token: accountInfo.user.token, username: accountInfo.user.username };
+
+            const checkUnread = (response) => {
+                let request = JSON.parse(response);
+                const stored = JSON.parse(GM_getValue("message", null));
+
+                if (stored == null) {
+                    return true;
                 }
-            });
-        }
-    };
+
+                //comapre newest comment by time
+                return request[0].datetime_created !== stored[0].datetime_created;
+            };
+
+            const decodetext = (text) => {
+                let txt = element("textarea").dom;
+                txt.innerHTML = text;
+                return txt.value;
+            };
+
+            const loadMessages = (messages) => {
+                if (messages == null)
+                    return;
+
+                let html = JSON.parse(messages);
+                GM_setValue("message", messages);
+                let ul = element("ul").a("id", "messages")
+                for (let a of html) {
+                    let timePassed = calcSmallest(new Date(Date.parse(a.datetime_created)));
+                    switch (a.type) {
+                        case "forumpost":
+                            ul.add("li")
+                                .add("span").t("There are new posts in the forum: ").f()
+                                .add("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/").f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "studioactivity":
+                            ul.add("li")
+                                .add("span").t("There was new activity in ").f()
+                                .add("a").t(a.title).a("href", "/studios/" + a.gallery_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "favoriteproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" favorited your project ").f()
+                                .add("a").t(a.project_title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "loveproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" loved your project ").f()
+                                .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "followuser":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" followed you").f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "remixproject":
+                            ul.add("li")
+                                .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
+                                .add("span").t(" remixed your project ").f()
+                                .add("a").t(a.parent_title).a("href", "/projects/" + a.parent_id).f()
+                                .add("span").t(" as ").f()
+                                .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "addcomment":
+                            if (a.comment_type === 0) { //project
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project ').f()
+                                    .add("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else if (a.comment_type === 1) { //profile page
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile ').f()
+                                    .add("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else if (a.comment_type === 2) {
+                                ul.add("li")
+                                    .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                    .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio ').f()
+                                    .add("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
+                                    .add("span").t(timePassed).f()
+                                    .f();
+                            } else {
+                                console.warn("Comment type not found");
+                            }
+                            break;
+                        case "curatorinvite":
+                            ul.add("li")
+                                .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                .add("span").t(' invited you to curate ').f()
+                                .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "becomeownerstudio":
+                            ul.add("li")
+                                .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
+                                .add("span").t(' promoted you to manager in ').f()
+                                .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        case "userjoin":
+                            ul.add("li")
+                                .add("span").t('Welcome to Scratch').f()
+                                .add("span").t(timePassed).f()
+                                .f();
+                            break;
+                        default:
+                            console.warn(a, "Not Found");
+                    }
+                }
+
+                ul.ap(document.querySelector('.custom-messages .box-content'));
+
+                return;
+            };
+
+            const setUnread = (text) => {
+                const count = JSON.parse(text).count;
+                const messages = document.querySelectorAll('.custom-messages li');
+
+                if (count <= 0) {
+                    return;
+                }
+
+                for (let i = 0; i < count; i++) {
+                    if (GM_getValue("theme", false) === "dark") {
+                        messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
+                    } else {
+                        messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
+                    }
+
+                }
+
+                //add the clear messgaes button
+                element("button").t("Clear Messages").a({ "style": "float: right;" })
+                    .e("click", () => {
+                        fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
+                            method: "POST",
+                            headers: {
+                                'X-CSRFToken': getCookie("scratchcsrftoken")
+                            }
+                        })
+                            .then((res) => res.text())
+                            .then((res) => console.log(res))
+                            .catch((err) => {
+                                console.warn(err);
+                            })
+                    })
+                    .ap(document.querySelector(".custom-messages > .box-header"));
+            };
+
+
+            fetch(`https://api.scratch.mit.edu/users/${user.username}/messages?limit=1&offset=0`, {
+                method: 'GET',
+                headers: {
+                    'X-Token': user.token
+                }
+            })
+                .then(response => response.text())
+                .then(checkUnread)
+                .then((response) => {
+                    if (response) {
+                        return fetch(`https://api.scratch.mit.edu/users/${user.username}/messages?limit=40&offset=0`, {
+                            method: 'GET',
+                            headers: {
+                                'X-Token': user.token
+                            }
+                        }).then((response) => response.text());
+                    } else {
+                        return GM_getValue("message", null);
+                    }
+                })
+                .then(loadMessages)
+                .then(() => fetch(`https://api.scratch.mit.edu/users/${user.username}/messages/count`).then(response => response.text()))
+                .then(setUnread)
+                .catch((e) => console.log(e));
+        });
+    }
 
     //custom banner to display information that the user may want
     function load_banner() {
         if (url == "https://scratch.mit.edu/" && GM_getValue("pos", "top") != "none") {//on main page
-            console.log("loading banner");
             let newsUpdatesExpanded = false;
 
             let svgCircle = svg("downCircle");
@@ -841,48 +971,17 @@ SOFTWARE.
                 .add("div").a({ "id": "newsUpdates", "style": "height: 0px; overflow: hidden;" })
                 .add("div").a({ "style": "text-align: left; user-select: text; cursor: auto; border-bottom: 1px solid #d9d9d9; padding: 0px 20px 10px 20px; overflow: hidden;" })
                 .add("h3").a("style", "margin: 0px; text-align: center;").t("Updates and News").f()
-                .add("p").a("style", "margin: 0px;").t("Updates:").f()
+                .add("p").a("style", "margin: 0px;").t("Updates for 12.0:").f()
                 .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Smooth transitions and reskins for many pages").a("style", "margin: 0px;").f()
-                .add("li").t("A material like theme is applied if theme tweaks is enabled").a("style", "margin: 0px;").f()
-                .add("li").t("A better changelog").a("style", "margin: 0px;").f()
-                .add("li").t("Drafts tab in forums (This is currently a placeholder)").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed theme with messages page").a("style", "margin: 0px;").f()
-                .add("li").t("Added a clear message button (this hasn't been tested much)").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed issues with countdown timer").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed any interference with the new editor").a("style", "margin: 0px;").f()
-                .add("li").t("Refactoring of a lot of code").a("style", "margin: 0px;").f()
+                .add("li").t("Messages are now a seperate box with better loading").a("style", "margin: 0px;").f()
+                .add("li").t("User info when hoving is more efficient").a("style", "margin: 0px;").f()
+                .add("li").t("Custom BBCode buttons for the forums are back").a("style", "margin: 0px;").f()
+                .add("li").t("Removed /resurgence since it wasn't being updated").a("style", "margin: 0px;").f()
+                .add("li").t("Overall redo of how a lot of systems are built internally").a("style", "margin: 0px;").f()
+                .add("li").t("Code clean-up and fixes").a("style", "margin: 0px;").f()
                 .f()
-                .add("p").a("style", "margin: 0px;").t("11.1:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Removed different project players and download button").a("style", "margin: 0px;").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("11.2:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("2.0 design for editor").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed issues with url for editor").a("style", "margin: 0px;").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("11.3:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Saved design for editor with better management of its changes in code").a("style", "margin: 0px;").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("11.4:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Theme tweaks setting should now work as intended").a("style", "margin: 0px;").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("11.5:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Fixed dark theme on some pages").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed dark theme persisting when switching between project and see inside").a("style", "margin: 0px;").f()
-                .add("li").t("Fixed bugs involving theme changes").a("style", "margin: 0px;").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("11.6:").f()
-                .add("ul").a("style", "margin: 0px;")
-                .add("li").t("Added dark theme setting for editor").a("style", "margin: 0px;").f()
-                .add('a').a('href', 'https://infinitytec.github.io/index.html').t("Thanks to infinitytec's Userscripts for themes").f()
-                .f()
-                .add("p").a("style", "margin: 0px;").t("News:").f()
-                .add("p").t("This is the news and rant section. I spent way too long to make this update and a lot of things are still partially done. I have also done a lot with the code with it going from 1638 lines to 2378+ lines with over 24 commits. This is even after trying to condense a lot of it down. It was all worth it though. I am trying to focus more on the looks now instead of just slapping together some half-baked UI. Userscripts are banned from promotion on this site which really was a sad day. The ATs have really died down with most of it being necroposting. I'm getting off topic but where else can I say anything about this userscript. I at least know infinitytec and NitroCipher is helping out. This is just a thought but there should be a topic on the ATs that only have really cryptic sayings. Worst case, it gets lost in the many pages or it has no interest. I just need something to do on the ATs. That is enough from me. I'll update this in the next big update (maybe). - Wetbikeboy2500").f()
+                .add("p").a("style", "margin: 0px;").t("News/Rant:").f()
+                .add("p").t("It took a while to get here, but it was worth it. The site and the userscript might still feel the same as before, but a lot has changed behind the scenes. This userscript is a passion project of mine and is what I leave behind to Scratch and its users who helped me learn to code. I will continue to maintain this userscript which is what version 12 is all about. There were lots of ambitious plans that would never actually work out, so I went through and removed there traces from the code. Other pieces were 3 years old that need some reworking to make it more manageable. As this script gets older, I want to make it more robust but also have it to try and conform with modern web standards. This could've just been another version 11, but this version is about the stability of the userscript. These are the main thoughts I wanted to get out about this version. - Wetbikeboy2500").f()
                 .f().f()
                 .add("p").t("Read More").a("style", "margin: 0px; font-size: 15px; line-height: 20px; margin-top: 2px;").addDom(svgCircle)
                 .e("click", (e) => {
@@ -916,24 +1015,24 @@ SOFTWARE.
                 }).f()
                 .f();
             if (GM_getValue("pos", "top") == "top") {
-                document.getElementsByClassName("mod-splash")[0].insertBefore(box.dom, document.getElementsByClassName("mod-splash")[0].children[0]);
+                document.querySelector('.mod-splash').prepend(box.dom);
             } else {
-                box.apthis(document.getElementsByClassName("mod-splash")[0]);
+                box.ap(document.getElementsByClassName("mod-splash")[0]);
             }
 
             //gets the current version of the code from the github page
             fetch("https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js")
-                .then((response) => { return response.text() })
+                .then(response => response.text())
                 .then((text) => {
                     const version = text.substring(text.indexOf("@version") + 9, text.indexOf("// @description") - 1);
                     let tmpVersion = Number(version);
                     if (tmpVersion != currentVersion) {
                         if (tmpVersion < GM_info.script.version) {
                             document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
-                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Downgrade (Your version is too revolutionary)").apthis(document.getElementById("recent_version"));
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Downgrade (Your version is too revolutionary)").ap(document.getElementById("recent_version"));
                         } else {
                             document.getElementById("recent_version").innerHTML = "Recent Version: " + version + " ";
-                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Update").apthis(document.getElementById("recent_version"));
+                            element("a").a("href", "https://raw.githubusercontent.com/Wetbikeboy2500/Resurgence/master/ScratchFixer.user.js").t("Update").ap(document.getElementById("recent_version"));
                         }
                     } else {
                         document.getElementById("recent_version").innerHTML = "Recent Version: " + version;
@@ -945,260 +1044,84 @@ SOFTWARE.
         }
     }
 
-    function load_messages() {
-        if (url == "https://scratch.mit.edu/" && GM_getValue("msg", true)) {
-            let load = setInterval(() => {
-                if (document.querySelector(".activity") && accountInfo.hasOwnProperty("user")) {
-                    clearInterval(load);
-                    messages.check_unread({ token: accountInfo.user.token, username: accountInfo.user.username })
-                        .then(user => messages.get_message(user))
-                        .then(user => load_message(user))
-                        .catch((error) => console.warn(error));
-                }
-            }, 1000);
-
-        }
-    }
-
-    function load_message(users) {
-        GM_addStyle(".activity .box-content{ overflow-y: scroll; height: 285px;} .username_link {cursor: pointer; color: #6b6b6b !important; text-decoration: none;}");
-        let html = JSON.parse(users.messages);
-        let decodetext = (text) => {
-            let txt = element("textarea").dom;
-            txt.innerHTML = text;
-            return txt.value;
-        };
-        GM_setValue("username", users.username);
-        GM_setValue("message", users.messages);
-        let ul = element("ul").a("id", "messages")
-        for (let a of html) {
-            let timePassed = calcSmallest(new Date(Date.parse(a.datetime_created)));
-            switch (a.type) {
-                case "forumpost":
-                    ul.add("li")
-                        .add("span").t("There are new posts in the forum: ").f()
-                        .add("a").t(a.topic_title).a("href", "/discuss/topic/" + a.topic_id + "/unread/").f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "studioactivity":
-                    ul.add("li")
-                        .add("span").t("There was new activity in ").f()
-                        .add("a").t(a.title).a("href", "/studios/" + a.gallery_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "favoriteproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" favorited your project ").f()
-                        .add("a").t(a.project_title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "loveproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" loved your project ").f()
-                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "followuser":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" followed you").f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "remixproject":
-                    ul.add("li")
-                        .add("a").t(a.actor_username).a("href", "/users/" + a.actor_username).a("class", "username_link").f()
-                        .add("span").t(" remixed your project ").f()
-                        .add("a").t(a.parent_title).a("href", "/projects/" + a.parent_id).f()
-                        .add("span").t(" as ").f()
-                        .add("a").t(a.title).a("href", "/projects/" + a.project_id).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "addcomment":
-                    if (a.comment_type === 0) { //project
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your project ').f()
-                            .add("a").a("href", "/projects/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else if (a.comment_type === 1) { //profile page
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your profile ').f()
-                            .add("a").a("href", "/users/" + a.comment_obj_title + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else if (a.comment_type === 2) {
-                        ul.add("li")
-                            .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                            .add("span").t(' commented "' + decodetext(a.comment_fragment) + '" on your studio ').f()
-                            .add("a").a("href", "/studios/" + a.comment_obj_id + "/#comments-" + a.comment_id).t(a.comment_obj_title).f()
-                            .add("span").t(timePassed).f()
-                            .f();
-                    } else {
-                        console.warn("Comment type not found");
-                    }
-                    break;
-                case "curatorinvite":
-                    ul.add("li")
-                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                        .add("span").t(' invited you to curate ').f()
-                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "becomeownerstudio":
-                    ul.add("li")
-                        .add("a").a("href", "/users/" + a.actor_username).a("class", "username_link").t(a.actor_username).f()
-                        .add("span").t(' promoted you to manager in ').f()
-                        .add("a").a("href", "/studios/" + a.gallery_id).t(a.gallery_title).f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                case "userjoin":
-                    ul.add("li")
-                        .add("span").t('Welcome to Scratch').f()
-                        .add("span").t(timePassed).f()
-                        .f();
-                    break;
-                default:
-                    console.warn(a, "Not Found");
-            }
-        }
-        const activity = document.querySelector(".splash-header > .activity");//better conditions for selection
-        const messageHeader = activity.querySelector(".box-header");
-        messageHeader.querySelector("h4").innerHTML = "Messages";
-
-        //clears current content
-        const messageBody = activity.querySelector(".box-content");
-        for (let a of messageBody.children) {
-            messageBody.removeChild(a);
-        }
-        ul.ap(messageBody);
-
-        set_unread(users);
-    }
-
-    function set_unread(user) {
-        if (user.has_messages || true) {
-            let x = new XMLHttpRequest();
-            x.onreadystatechange = () => {
-                if (x.readyState == 4 && x.status == 200) {
-                    let count = JSON.parse(x.responseText).count;
-                    let messages = document.getElementById("messages").getElementsByTagName("li");
-
-                    if (count > 0) {///site-api/messages/messages-clear/
-
-                        console.log(user.token)
-                        console.log(getCookie("scratchcsrftoken"))
-                        element("button").t("Clear Messages").a({ "style": "float: right;" })
-                            .e("click", () => {
-                                fetch("https://scratch.mit.edu/site-api/messages/messages-clear/", {
-                                    method: "POST",
-                                    headers: {
-                                        'X-CSRFToken': getCookie("scratchcsrftoken")
-                                    }
-                                })
-                                    .then((res) => res.text())
-                                    .then((res) => console.log(res))
-                                    .catch((err) => {
-                                        console.warn(err);
-                                    })
-                            })
-                            .apthis(document.querySelector(".activity > .box-header"));
-                    }
-
-                    for (let i = 0; i < count; i++) {
-                        if (GM_getValue("theme", false) === "dark") {
-                            messages[i].setAttribute("style", "background-color: #36393f; opacity: 1;");
-                        } else {
-                            messages[i].setAttribute("style", "background-color: #eed; opacity: 1;");
-                        }
-
-                    }
-                }
-            };
-            x.open("GET", "https://api.scratch.mit.edu/users/" + user.username + "/messages/count", true);
-            x.send();
-        }
-    }
-
     function load_userinfo() {
-        if (document.getElementsByTagName("a").length !== 0) {
-            let userlinks = false;
-            userinfo = GM_getValue("user", {});
-            console.log("New profile loader");
-            let links = document.getElementsByTagName("a");
-            for (let a of links) {
-                if (a.hasAttribute("href") && a.getAttribute("href").includes("/users/")) {
-                    userlinks = true;
-                    if (!users.includes(a.getAttribute("href")) && !userinfo.hasOwnProperty(a.getAttribute("href"))) {
-                        users.push(a.getAttribute("href"));
-                        console.log("load new user info");
-                    }
+        const loadMap = () => new Map(JSON.parse(GM_getValue('userinfo', '[]')));
+        const saveMap = (map) => GM_setValue('userinfo', JSON.stringify(Array.from(map.entries())));
+        const setUserInfo = (dom, info) => {
+            dom.addEventListener("mouseenter", (e) => {
+                if (document.querySelector('.userwindow')) {
+                    $('.userwindow').remove();
                 }
-            }
 
-            userinfo.fulllength = users.length;
-            userinfo.length = 0;
-            if (!userlinks) {
-                console.log("No user links");
-            } else if (users.length === 0) {
-                set_userinfo(links);
-            } else {
-                for (let i = 0; i < users.length; i++) {
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = () => {
-                        if (xhttp.status == 200 && xhttp.readyState == 4) {
-                            userinfo.length += 1;
-                            userinfo[String(users[i])] = JSON.parse(xhttp.responseText);
-                            if (userinfo.fulllength === userinfo.length) {
-                                set_userinfo(links);
-                            }
-                        }
-                    };
-                    let string = users[i];
-                    if (users[i].lastIndexOf("/") + 1 === users[i].length) {
-                        string = string.slice(0, -1);
+                const date = new Date(Date.parse(info.history.joined)), dif = calcDate(new Date(), date);
+                element('div').a({ 'class': 'userwindow', 'style': (GM_getValue("theme", false) === "dark") ? `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #000` : `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #fff` })
+                    .t(`${info.username} joined ${dif} from ${info.profile.country}`)
+                    .ap(document.body);
+            });
+            dom.addEventListener("mouseleave", (e) => {
+                if (document.querySelector(".userwindow")) {
+                    $('.userwindow').remove();
+                }
+            });
+        };
+
+        if (document.querySelector('a')) {
+            let userinfo = loadMap();
+
+            let htmlUrls = document.querySelectorAll('a');
+
+            let finalUrls = {};
+
+            const filter = ['/studio', '/projects', '/followers', '/following', '/favorites'];
+
+            //TODO: this needs to first determine all the user urls and compile those so it only does a single request for the user info for multiple of the same user links
+            for (const a of htmlUrls) {
+                if (a.hasAttribute('href') && a.getAttribute('href').includes('/users/') && !filter.some((value) => a.getAttribute('href').includes(value))) {
+                    let url = a.getAttribute('href');
+
+                    //remove last slash
+                    if (url.lastIndexOf('/') === url.length) {
+                        url = url.slice(0, -1);
                     }
-                    if (users[i].includes("https://scratch.mit.edu/users/") || users[i].includes("http://scratch.mit.edu/users/")) {
-                        xhttp.open("GET", "https://api.scratch.mit.edu/users/" + string.substring(string.indexOf("/users/") + 7), true);
+
+                    //convert to a safe call
+                    if (url.includes(`http://scratch.mit.edu/users/`)) {
+                        url = url.replace(`http://`, `https://`);
+                    }
+
+                    url = url.replace(`https://scratch.mit.edu`, ``);
+
+                    if (finalUrls.hasOwnProperty(url)) {
+                        finalUrls[url].push(a);
                     } else {
-                        xhttp.open("GET", "https://api.scratch.mit.edu" + string, true);
+                        finalUrls[url] = [a];
                     }
-                    xhttp.send(null);
+                }
+            }
+
+            for (const key in finalUrls) {
+                const value = finalUrls[key];
+
+                //check if already loaded
+                if (userinfo.has(key)) {
+                    console.log('info already exists', key);
+                    for (const a of value) {
+                        setUserInfo(a, userinfo.get(key));
+                    }
+                } else {
+                    //make new request
+                    fetch(`https://api.scratch.mit.edu${key}`)
+                        .then(response => response.json())
+                        .then(json => {
+                            userinfo.set(key, json);
+                            for (const a of value) {
+                                setUserInfo(a, json);
+                            }
+                            saveMap(userinfo);
+                        }).catch(e => console.log(e));
                 }
             }
         }
-    }
-
-    function set_userinfo(links) {
-        GM_setValue("user", userinfo);
-        //run final code here
-        for (let a of links) {
-            if (userinfo.hasOwnProperty(a.getAttribute("href")) && !a.getAttribute("href").includes(GM_getValue("username", ""))) {
-                a.addEventListener("mouseenter", (e) => {
-                    const info = userinfo[a.getAttribute("href")], date = new Date(Date.parse(info.history.joined)), dif = calcDate(new Date(), date);
-                    element("div").a("class", "userwindow").a("style", (GM_getValue("theme", false) === "dark") ? `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #000` : `position: absolute; left: ${e.pageX}px; top: ${(e.pageY + 10)}px; width: inherit; height: 20px; line-height: 20px; background-color: #fff`)
-                        .t(`${info.username} joined ${dif} from ${info.profile.country}`)
-                        .ap(document.body);
-                });
-                a.addEventListener("mouseleave", (e) => {
-                    if (document.querySelector(".userwindow")) {
-                        document.querySelector(".userwindow").parentElement.removeChild(document.querySelector(".userwindow"));
-                    }
-                });
-            }
-        }
-        console.log("Finished user info");
     }
 
     function calcDate(date1, date2) {
@@ -1261,84 +1184,88 @@ SOFTWARE.
         } else {
             return " " + time + unit + "s ago";
         }
-
     }
+
+    //TODO: look into an addall for these blocks
     //adds scratchblockcode load support
     function load_scratchblockcode() {
         if (GM_getValue("blockCode", true)) {
             if (document.querySelector(".blocks")) {
                 let blocks = [], blocks1 = [], blocks2 = [], blocks3 = [];
-                console.log("contains scratch blocks");
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = () => {
-                    if (xhttp.status == 200 && xhttp.readyState == 4) {
-                        let doc = xhttp.responseXML;
-                        //only do the elements in post body html
-                        let posts = document.getElementsByClassName("post_body_html");
-                        let posts1 = doc.getElementsByClassName("post_body_html");
-                        for (let a of posts) {
-                            if (a.querySelector(".blocks")) {
-                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                    blocks.push(a.querySelectorAll(".blocks")[l]);
-                                }
+
+                fetch(url)
+                    .then(r => r.text())
+                    .then((r) => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(r, 'text/html');
+                        let originalPost = [], displayedPost = [], originalDescription = [], displayedDescription = [];
+
+                        let posts = document.querySelectorAll('.post_body_html');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                displayedPost.push(...a.querySelectorAll('.blocks'));
                             }
                         }
-                        for (let a of posts1) {
-                            if (a.querySelector(".blocks")) {
-                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                    blocks1.push(a.querySelectorAll(".blocks")[l]);
-                                }
+
+                        posts = doc.querySelectorAll('.post_body_html');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                originalPost.push(...a.querySelectorAll('.blocks'));
                             }
                         }
-                        if (blocks.length > 0) {
-                            for (let i = 0; i < blocks1.length; i++) {
-                                blocks[i].setAttribute("id", i);
-                                blocks[i].setAttribute("style", "cursor: pointer;");
-                                blocks[i].addEventListener("click", (event) => {
-                                    let target = event.currentTarget;
-                                    target.parentElement.replaceChild(blocks1[target.id], blocks[target.id]);
-                                }, false);
+
+                        if (displayedPost.length > 0) {
+                            let i = 0;
+                            for (const elem of displayedPost) {
+                                let id = i;
+                                elem.setAttribute('style', 'cursor: pointer;');
+                                elem.addEventListener('click', (event) => {
+                                    event.currentTarget.replaceWith(originalPost[id]);
+                                });
+                                originalPost[id].setAttribute('title', 'Double-Click to Restore');
+                                originalPost[id].addEventListener('dblclick', (event) => {
+                                    event.currentTarget.replaceWith(elem);
+                                });
+                                ++i;
                             }
                         }
-                        //do elements for signatures
-                        posts = document.getElementsByClassName("postsignature");
-                        posts1 = doc.getElementsByClassName("postsignature");
-                        for (let a of posts) {
-                            if (a.querySelector(".blocks")) {
-                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                    blocks2.push(a.querySelectorAll(".blocks")[l]);
-                                }
+
+                        posts = doc.querySelectorAll('.postsignature');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                originalDescription.push(...a.querySelectorAll('.blocks'));
                             }
                         }
-                        for (let a of posts1) {
-                            if (a.querySelector(".blocks")) {
-                                for (let l = 0; l < a.getElementsByClassName("blocks").length; l++) {
-                                    blocks3.push(a.querySelectorAll(".blocks")[l]);
-                                }
+
+                        posts = document.querySelectorAll('.postsignature');
+                        for (const a of posts) {
+                            if (a.querySelector('.blocks')) {
+                                displayedDescription.push(...a.querySelectorAll('.blocks'));
                             }
                         }
-                        if (blocks2.length > 0) {
-                            for (let i = 0; i < blocks3.length; i++) {
-                                blocks2[i].setAttribute("id", i);
-                                blocks2[i].setAttribute("style", "cursor: pointer;");
-                                blocks2[i].addEventListener("click", (event) => {
-                                    let target = event.currentTarget;
-                                    target.parentElement.replaceChild(blocks3[target.id], blocks2[target.id]);
-                                }, false);
+
+                        if (displayedDescription.length > 0) {
+                            let i = 0;
+                            for (const elem of displayedDescription) {
+                                let id = i;
+                                elem.setAttribute('style', 'cursor: pointer;');
+                                elem.addEventListener('click', (event) => {
+                                    event.currentTarget.replaceWith(originalDescription[id]);
+                                });
+                                originalDescription[id].setAttribute('title', 'Double-Click to Restore');
+                                originalDescription[id].addEventListener('dblclick', (event) => {
+                                    event.currentTarget.replaceWith(elem);
+                                });
+                                ++i;
                             }
                         }
-                        console.log("Finished ScratchBlocks");
-                    }
-                };
-                xhttp.open("GET", url, true);
-                xhttp.responseType = "document";
-                xhttp.send(null);
+
+                    });
             }
         }
     }
 
     function load_bbcode() {
-        console.log("load bbcode");
         let posts = document.getElementsByClassName("blockpost");
         for (let a of posts) {
             fetch(`https://scratch.mit.edu${a.querySelector(".box-head").querySelector("a").getAttribute("href")}source/`)
@@ -1376,65 +1303,61 @@ SOFTWARE.
 
         GM_addStyle("#display_img {position: fixed; left: 0px; top: 50px; opacity: 0.6; background-color: #000; width: 100%; height: calc(100% - 50px); display: none;} .postright img {cursor: zoom-in;}");
         //adds the faded background
-        let load = setInterval((e) => {
-            if (document.querySelector("#pagewrapper")) {
-                clearInterval(load);
+        waitTillLoad('#pagewrapper').then(() => {
+            let div = element("div").a("id", "display_img").ap(document.getElementById("pagewrapper"));
+            //div that holds the image
+            let div1 = document.createElement("div");
+            div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
+            //the img element that will display the image
+            let img = document.createElement("img");
+            img.setAttribute("src", "");
+            img.setAttribute("id", "display_img_img");
+            div1.appendChild(img);
+            //this causes the faded background and image to disappear
+            document.getElementById("pagewrapper").appendChild(div1);
+            div1.addEventListener("click", (event) => {
+                div.style.display = "none";
+                div1.style.display = "none";
+            });
 
-                let div = element("div").a("id", "display_img").apthis(document.getElementById("pagewrapper"));
-                //div that holds the image
-                let div1 = document.createElement("div");
-                div1.setAttribute("style", "position: fixed; left: 0px; top: 50px; width: 100%; height: calc(100% - 50px); text-align: center; display: none; cursor: zoom-out;");
-                //the img element that will display the image
-                let img = document.createElement("img");
-                img.setAttribute("src", "");
-                img.setAttribute("id", "display_img_img");
-                div1.appendChild(img);
-                //this causes the faded background and image to disappear
-                document.getElementById("pagewrapper").appendChild(div1);
-                div1.addEventListener("click", (event) => {
-                    div.style.display = "none";
-                    div1.style.display = "none";
-                });
+            let posts = document.getElementsByClassName("postright");
+            for (let a of posts) {
+                let imgs = a.getElementsByTagName("img");
+                for (let b of imgs) {
+                    b.addEventListener("click", (event) => {
+                        img.setAttribute("src", event.currentTarget.src);
+                        //gets current image size
+                        let img_width = event.currentTarget.clientWidth;
+                        let img_height = event.currentTarget.clientHeight;
+                        //going to be used for the dialation
+                        let scale_factor = 1.5;//this is the maximun a small image can be scalled up
+                        const display_width = window.innerWidth;
+                        const display_height = window.innerHeight - 50;
+                        let final_height = 0, final_width = 0;
 
-                let posts = document.getElementsByClassName("postright");
-                for (let a of posts) {
-                    let imgs = a.getElementsByTagName("img");
-                    for (let b of imgs) {
-                        b.addEventListener("click", (event) => {
-                            img.setAttribute("src", event.currentTarget.src);
-                            //gets current image size
-                            let img_width = event.currentTarget.clientWidth;
-                            let img_height = event.currentTarget.clientHeight;
-                            //going to be used for the dialation
-                            let scale_factor = 1.5;//this is the maximun a small image can be scalled up
-                            const display_width = window.innerWidth;
-                            const display_height = window.innerHeight - 50;
-                            let final_height = 0, final_width = 0;
+                        final_height = img_height * scale_factor;
+                        final_width = img_width * scale_factor;
 
+                        //this is the best solution to deal with all different screen sizes and images sizes
+                        //It have tried making multilayer if/else statemanets but they don't work well for this
+                        while (final_height > display_height || final_width > display_width) {
+                            scale_factor -= 0.1;
                             final_height = img_height * scale_factor;
                             final_width = img_width * scale_factor;
+                        }
+                        //makes it cerntered vertically and makes sure it has right hieght and width
+                        img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
 
-                            //this is the best solution to deal with all different screen sizes and images sizes
-                            //It have tried making multilayer if/else statemanets but they don't work well for this
-                            while (final_height > display_height || final_width > display_width) {
-                                scale_factor -= 0.1;
-                                final_height = img_height * scale_factor;
-                                final_width = img_width * scale_factor;
-                            }
-                            //makes it cerntered vertically and makes sure it has right hieght and width
-                            img.setAttribute("style", "width:" + final_width + "px; height:" + final_height + "px; position: relative; top:" + (((display_height) / 2) - (final_height / 2)) + "px;");
-
-                            div.style.display = "block";
-                            div1.style.display = "block";
-                        });
-                    }
+                        div.style.display = "block";
+                        div1.style.display = "block";
+                    });
                 }
             }
-        }, 100);
+        });
     }
 
     function timer() {
-        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 12, 2019", name: "Mother's Day" }, { newDate: "Jun 6, 2019", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 22, 2018", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
+        const currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth(), currentDay = new Date().getDate(), newEvents = [{ date: "Jan 1", name: "New Year's Day" }, { date: "Feb 14", name: "Valentine's Day" }, { date: "Mar 17", name: "St. Patrick's Day" }, { newDate: "May 9, 2021", name: "Mother's Day" }, { newDate: "Jun 20, 2021", name: "Father's Day" }, { date: "Oct 31", name: "Halloween" }, { newDate: "Nov 26, 2020", name: "Thanksgiving" }, { date: "Dec 25", name: "Christmas Day" }, { date: "Dec 31", name: "New Year's Eve" }];
         let ordered = newEvents.map((e) => {
             let holiDate = (e.hasOwnProperty("newDate")) ? new Date(e.newDate).getTime() : new Date(e.date).setFullYear(currentYear);
             return {
@@ -1456,26 +1379,23 @@ SOFTWARE.
 
         if (Holiday) {
             const holidayDate = Holiday.date, holidayName = Holiday.name;
-            let load = setInterval(() => {
-                if (document.querySelector(".box-header")) {
-                    clearInterval(load);
-                    let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").apthis(document.querySelector(".box-header"));
-                    let x = setInterval(() => {
-                        const difference = holidayDate - new Date().getTime(),
-                            days = Math.floor(difference / (1000 * 60 * 60 * 24)),
-                            hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                            minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                            seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            waitTillLoad('.box-header').then(() => {
+                let dateElement = element("span").a("style", "float: right; color: #f6660d; padding-right: 5px; font-size: .85rem; padding-top: 5px;").t("").ap(document.querySelector(".box-header"));
+                let x = setInterval(() => {
+                    const difference = holidayDate - new Date().getTime(),
+                        days = Math.floor(difference / (1000 * 60 * 60 * 24)),
+                        hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                        minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+                        seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-                        if (difference < 0) {
-                            clearInterval(x);
-                            dateElement.innerHTML = "It's " + holidayName;
-                        } else {
-                            dateElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s 'til " + holidayName;
-                        }
-                    }, 0);
-                }
-            }, 1000);
+                    if (difference < 0) {
+                        clearInterval(x);
+                        dateElement.innerHTML = "It's " + holidayName;
+                    } else {
+                        dateElement.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s 'til " + holidayName;
+                    }
+                }, 900);
+            });
         } else {
             console.log("No holiday found");
         }
@@ -1575,61 +1495,61 @@ SOFTWARE.
     //add extras bbcode buttons
     function add_bbbuttons() {
         console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
-        waitTillLoad(document.querySelector(".markItUpContainer"))
+        waitTillLoad(".markItUpContainer")
             .then(a => {
-                $(`<li class="markItUpButton" id="Res1"><a title="Color" style="background-image: url('https://png.icons8.com/color-wheel/office/14/000000');" >Color</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res1"><a title="Color" style="background-image: url('https://img.icons8.com/metro/26/000000/paint-palette.png'); background-size: 16px 16px;" >Color</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000"), constBB = "[color=" + BBstart + "]" + document.stringyBB + "[/color]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton7");
-                $(`<li class="markItUpButton" id="Res2"><a title="Code" style="background-image: url('https://png.icons8.com/code/office/16/000000');" >Code</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res2"><a title="Code" style="background-image: url('https://img.icons8.com/metro/26/000000/code.png'); background-size: 16px 16px;" >Code</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a programming language:", ""), constBB = "[code=" + ((BBstart) ? BBstart : "") + "]" + document.stringyBB + "[/code]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton11");
-                $(`<li class="markItUpButton" id="Res3"><a title="Center" style="background-image: url('https://png.icons8.com/align-center/office/16/000000');" >Center</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res3"><a title="Center" style="background-image: url('https://img.icons8.com/metro/26/000000/align-center.png'); background-size: 16px 16px;" >Center</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[center]" + document.stringyBB + "[/center]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton4");
-                $(`<li class="markItUpButton" id="Res4"><a title="Project link" style="background-image: url('https://png.icons8.com/prototype/office/16/000000');" >Project Link</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res4"><a title="Project link" style="background-image: url('https://img.icons8.com/metro/26/000000/prototype.png'); background-size: 16px 16px;" >Project Link</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton14");
-                $(`<li class="markItUpButton" id="Res5"><a title="Very large" style="background-image: url('https://png.icons8.com/enlarge/office/14/000000');" >Very Large</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res5"><a title="Very large" style="background-image: url('https://img.icons8.com/metro/26/000000/l.png'); background-size: 16px 16px;" >Very Large</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton7");
-                $(`<li class="markItUpButton" id="Res6"><a title="Other IMG" style="background-image: url('https://png.icons8.com/picture/office/14/000000');" >Other IMG</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res6"><a title="Other IMG" style="background-image: url('https://img.icons8.com/metro/26/000000/image-file.png'); background-size: 16px 16px;" >Other IMG</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton5");
-                $(`<li class="markItUpButton" id="Res7"><a title="Align Left" style="background-image: url('https://png.icons8.com/align-text-left/office/16/000000');" >Align Left</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res7"><a title="Align Left" style="background-image: url('https://img.icons8.com/metro/26/000000/align-left.png'); background-size: 16px 16px;" >Align Left</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter("#Res3");
-                $(`<li class="markItUpButton" id="Res8"><a title="Align Right" style="background-image: url('https://png.icons8.com/align-text-right/office/16/000000');" >Align Right</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res8"><a title="Align Right" style="background-image: url('https://img.icons8.com/metro/26/000000/align-right.png'); background-size: 16px 16px;" >Align Right</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter("#Res7");
-                $(`<li class="markItUpButton" id="Res9"><a title="Highlight" style="background-image: url('https://png.icons8.com/highlight/office/14/000000');" >Highlight</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res9"><a title="Highlight" style="background-image: url('https://img.icons8.com/metro/26/000000/marker-pen.png'); background-size: 16px 16px;" >Highlight</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
@@ -1767,19 +1687,23 @@ SOFTWARE.
 
     //uses a selector, has a timeout, and take in a update speed
     function waitTillLoad(selector, timeout = 60000, updateSpeed = 100) {
+        return _waitTillLoad(() => document.querySelector(selector), timeout, updateSpeed);
+    }
+
+    function _waitTillLoad(func, timeout = 60000, updateSpeed = 100) {
         return new Promise((resolve, reject) => {
             let found = false;
 
-            if (document.querySelector(selector)) {
+            if (func()) {
                 found = true;
-                resolve(document.querySelector(selector));
+                resolve(func());
             } else {
                 let _loading = setInterval(() => {
-                    if (document.querySelector(selector)) {
+                    if (func()) {
                         found = true;
-                        resolve(document.querySelector(selector));
+                        resolve(func());
                     }
-                }, 100)
+                }, updateSpeed)
 
                 if (!found) {
                     setTimeout(() => {
@@ -1793,81 +1717,181 @@ SOFTWARE.
         })
     }
 
-    //the following is my own custom dom creation object that I continue to improve as I use it
+
+    /*
+    dom-creation 1.2.1-modified https://github.com/Wetbikeboy2500/dom-creation
+
+    MIT License
+
+    Copyright (c) 2020 Matt
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+    */
+
+    /**
+     * Creates an element
+     * @param {string} name Name of the DOM to be created
+     * @param {string} ns Namespace, if any, that the element needs to be created
+     */
     function element(name, ns) {
-        return new _element(name, ns);
+        if (name) {
+            return new _element(name, ns, new _element());
+        } else {
+            return new _element();
+        }
     }
+
     class _element {
-        //eventually add arguments for function inputs
-        constructor(name, ns = null) {
-            if (ns !== null) {
-                this.dom = document.createElementNS(ns, name);
+        constructor(name, ns = null, pointer) {
+            if (name) {
+                if (pointer) {
+                    this.pointer = pointer;
+                }
+
+                if (ns) {
+                    this.dom = document.createElementNS(ns, name);
+                } else {
+                    this.dom = document.createElement(name);
+                }
             } else {
-                this.dom = document.createElement(name);
+                this.dom = document.createDocumentFragment();
             }
         }
-        a(name, value = "") {
+        /**
+         * Accepts a name/value or a json object to create the dom's attributes
+         * @param {*} name-or-json
+         * @param {string} value 
+         */
+        a(name, value = '') {
             if (name.constructor === {}.constructor) {
-                for (let a in name) {
+                for (const a in name) {
                     this.dom.setAttribute(a, name[a]);
                 }
             } else {
                 this.dom.setAttribute(name, value);
             }
+
             return this;
         }
+        /**
+         * Adds text to dom element
+         * @param {String} text 
+         */
         t(text) {
             this.dom.appendChild(document.createTextNode(text));
             return this;
         }
+        /**
+         * Adds an event listener to the dom element
+         * @param {string} trigger Name of the event
+         * @param {function} callback The function that is called when the event occurs
+         */
         e(trigger, callback) {
             this.dom.addEventListener(trigger, callback);
             return this;
         }
-        append(element2) {
-            this.dom.appendChild(element2.dom);
-            return this;
-        }
+        /**
+         * Appends current element to given DOM element
+         * @param {object} dom DOM element that this element will be appended to
+         */
         ap(dom) {
             dom.appendChild(this.dom);
-            return dom;
+            return this;
         }
-        apthis(dom) {
-            dom.appendChild(this.dom);
-            return this.dom;
+        /**
+         * Preappends current element to given DOM element
+         * @param {object} dom DOM element that this element will be preappended to
+         */
+        preap(dom) {
+            dom.insertBefore(this.dom, dom.firstChild);
+            return this;
         }
-        o(options, selected) {
-            for (let a in options) {
-                if (options.hasOwnProperty(a)) {
-                    console.log(a, options[a]);
-                    let b = document.createElement("option");
-                    b.setAttribute("value", a);
-                    b.appendChild(document.createTextNode(options[a]));
-                    if (selected == a) {
-                        b.setAttribute("selected", true);
+        /**
+         * Appends after current DOM element as a sibling of it
+         * @param {object} dom DOM element that this element added after
+         */
+        aftap(dom) {
+            dom.parentElement.insertBefore(this.dom, dom.nextSibling);
+            return this;
+        }
+        /**
+         * Adds an element to current element
+         * @param {string} name The element's name
+         * @param {string} ns Namespace if needed for that element
+         */
+        add(name, ns = null) {
+            return new _element(name, ns, this);
+        }
+        /**
+         * Adds a dom element to current element
+         * @param {object} dom DOM object that will be added
+         */
+        addDom(dom) {
+            this.dom.appendChild(dom);
+            return this;
+        }
+        /**
+         * Closes current element and returns next element up
+         * This will only work if the element is not on the top level
+         */
+        f() {
+            if (this.pointer == null) {
+                console.warn('Called .f() on a top level element');
+                return this;
+            } else {
+                this.pointer.dom.appendChild(this.dom);
+                return this.pointer;
+            }
+        }
+        /**
+         * Cloes all elements up to the top layer
+         */
+        close() {
+            if (this.pointer) {
+                this.pointer.dom.appendChild(this.dom);
+                return this.pointer.close();
+            } else {
+                return this;
+            }
+        }
+        /**
+         * Runs through a list of data to add dynamically add elements
+         * @param {list} data Accepts a list that will be run through
+         * @param {function} func Function that will be run
+         * The first parameter is the current element
+         * The second is an item from the data list
+         * If a truthy value is returned by the function, it will break out of the loop
+         */
+        each(data, func) {
+            //avoids running if nothing is given
+            if (data) {
+                if (data.length === 0) {
+                    //Avoids running if nothing is given
+                    return this;
+                }
+                for (const d of data) {
+                    if (func(this, d)) {
+                        break;
                     }
-                    this.dom.appendChild(b);
                 }
             }
             return this;
-        }
-        add(elementName) {
-            let newElement = element(elementName);
-            newElement.pointer = this;
-            return newElement;
-        }
-        addDom(domElement) {
-            this.dom.appendChild(domElement);
-            return this;
-        }
-        f() {
-            this.pointer.append(this);
-            return this.pointer;
-        }
-        apAfter(target) {
-            target = document.querySelector(target);
-            target.parentElement.insertBefore(this.dom, target.nextSibling);
-            return this.dom;
         }
     }
 })();
