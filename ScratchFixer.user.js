@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      11.6
+// @version      12.0
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -244,22 +244,10 @@ SOFTWARE.
                     for (const a of elements) {
                         const name = a.querySelector(".box-header > h4").innerHTML.trim();
                         const list = ["Featured Projects", "Featured Studios", "Projects Curated", "Scratch Design Studio", "What the Community is Remixing", "What the Community is Loving"];
-                        const list2 = [`Projects by Scratchers I'm Following`, `Projects in Studios I'm Following`];
-                        let found = false;
                         for (const b of list) {
                             if (name.toLowerCase().includes(b.toLowerCase())) {
                                 a.classList.add("marked");
-                                found = true;
                                 break;
-                            }
-                        }
-                        if (!found) {
-                            for (const b of list2) {
-                                if (name.toLowerCase().includes(b.toLowerCase())) {
-                                    a.classList.add("markedSecond");
-                                    found = true;
-                                    break;
-                                }
                             }
                         }
                     }
@@ -461,7 +449,8 @@ SOFTWARE.
 
                         myLazyLoad.update();
 
-                        GM_addStyle(".markedSecond {display: none;}");
+                        //stop displaying to hide the default boxes
+                        document.querySelector('.splash .inner:nth-child(2)').style.display = 'none';
                     });
                 })
                 .catch((e) => {
