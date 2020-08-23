@@ -24,7 +24,7 @@ SOFTWARE.
 // ==UserScript==
 // @name         ResurgenceUserscript
 // @namespace    http://tampermonkey.net/
-// @version      12.0
+// @version      12.0a
 // @description  Tries to fix and improve certain aspects of Scratch
 // @author       Wetbikeboy2500
 // @match        https://scratch.mit.edu/*
@@ -1497,59 +1497,59 @@ SOFTWARE.
         console.log("added BB Buttons", document.querySelector(".markItUpContainer"));
         waitTillLoad(".markItUpContainer")
             .then(a => {
-                $(`<li class="markItUpButton custombb" id="Res1"><a title="Color" style="background-image: url('https://img.icons8.com/metro/26/000000/paint-palette.png'); background-size: 16px 16px;" >Color</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res1"><a title="Color" style="background-image: url('https://img.icons8.com/officexs/16/000000/rgb-circle-1.png'); background-size: 16px 16px;" >Color</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a hexadecimal color w/ #:", "#FF0000"), constBB = "[color=" + BBstart + "]" + document.stringyBB + "[/color]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton7");
-                $(`<li class="markItUpButton custombb" id="Res2"><a title="Code" style="background-image: url('https://img.icons8.com/metro/26/000000/code.png'); background-size: 16px 16px;" >Code</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res2"><a title="Code" style="background-image: url('https://img.icons8.com/officexs/16/000000/code.png'); background-size: 16px 16px;" >Code</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a programming language:", ""), constBB = "[code=" + ((BBstart) ? BBstart : "") + "]" + document.stringyBB + "[/code]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton11");
-                $(`<li class="markItUpButton custombb" id="Res3"><a title="Center" style="background-image: url('https://img.icons8.com/metro/26/000000/align-center.png'); background-size: 16px 16px;" >Center</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res3"><a title="Center" style="background-image: url('https://img.icons8.com/officexs/16/000000/align-center.png'); background-size: 16px 16px;" >Center</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[center]" + document.stringyBB + "[/center]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton4");
-                $(`<li class="markItUpButton custombb" id="Res4"><a title="Project link" style="background-image: url('https://img.icons8.com/metro/26/000000/prototype.png'); background-size: 16px 16px;" >Project Link</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res4"><a title="Project link" style="background-image: url('https://img.icons8.com/officexs/16/000000/prototype.png'); background-size: 16px 16px;" >Project Link</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter a project ID:", ""), constBB = "[url=https://scratch.mit.edu/projects/" + BBstart + "/][img]https://cdn2.scratch.mit.edu/get_image/project/" + BBstart + "_282x210.png[/img][/url]";
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton14");
-                $(`<li class="markItUpButton custombb" id="Res5"><a title="Very large" style="background-image: url('https://img.icons8.com/metro/26/000000/l.png'); background-size: 16px 16px;" >Very Large</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res5"><a title="Very large" style="background-image: url('https://img.icons8.com/officexs/16/000000/resize-diagonal.png'); background-size: 16px 16px;" >Very Large</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.large]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton7");
-                $(`<li class="markItUpButton custombb" id="Res6"><a title="Other IMG" style="background-image: url('https://img.icons8.com/metro/26/000000/image-file.png'); background-size: 16px 16px;" >Other IMG</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res6"><a title="Other IMG" style="background-image: url('https://img.icons8.com/officexs/16/000000/add-image.png'); background-size: 16px 16px; margin-top: 1px;" >Other IMG</a></li>`)
                     .on("click", (e) => {
                         let BBstart = prompt("Enter an img URL without http tag:", ""), constBB = "[color=transparent][color=res.img]" + BBstart + "[/color][/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter(".markItUpButton5");
-                $(`<li class="markItUpButton custombb" id="Res7"><a title="Align Left" style="background-image: url('https://img.icons8.com/metro/26/000000/align-left.png'); background-size: 16px 16px;" >Align Left</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res7"><a title="Align Left" style="background-image: url('https://img.icons8.com/officexs/16/000000/align-left.png'); background-size: 16px 16px;" >Align Left</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.left]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter("#Res3");
-                $(`<li class="markItUpButton custombb" id="Res8"><a title="Align Right" style="background-image: url('https://img.icons8.com/metro/26/000000/align-right.png'); background-size: 16px 16px;" >Align Right</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res8"><a title="Align Right" style="background-image: url('https://img.icons8.com/officexs/16/000000/align-right.png'); background-size: 16px 16px;" >Align Right</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.right]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
                         replaceIt($('textarea')[0], constBB);
                     })
                     .insertAfter("#Res7");
-                $(`<li class="markItUpButton custombb" id="Res9"><a title="Highlight" style="background-image: url('https://img.icons8.com/metro/26/000000/marker-pen.png'); background-size: 16px 16px;" >Highlight</a></li>`)
+                $(`<li class="markItUpButton custombb" id="Res9"><a title="Highlight" style="background-image: url('https://img.icons8.com/officexs/16/000000/marker-pen.png'); background-size: 16px 16px;" >Highlight</a></li>`)
                     .on("click", (e) => {
                         let constBB = "[color=res.highlight]" + document.stringyBB + "[/color]";
                         alert("This will only appear on the main page, not the preview");
